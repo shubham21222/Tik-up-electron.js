@@ -3,8 +3,10 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { defaultViewerCountSettings } from "@/hooks/overlay-defaults";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 const ViewerCountRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultViewerCountSettings);
   const [count, setCount] = useState(0);

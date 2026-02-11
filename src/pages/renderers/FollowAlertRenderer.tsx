@@ -3,10 +3,12 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultFollowAlertSettings } from "@/hooks/use-overlay-widgets";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface FollowEvent { id: number; user: string; avatar: string; }
 
 const FollowAlertRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultFollowAlertSettings);
   const [alerts, setAlerts] = useState<FollowEvent[]>([]);

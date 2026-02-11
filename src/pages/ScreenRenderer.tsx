@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface OverlayAction {
   id: string;
@@ -11,6 +12,7 @@ interface OverlayAction {
 }
 
 const ScreenRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [connected, setConnected] = useState(false);
   const [queue, setQueue] = useState<OverlayAction[]>([]);

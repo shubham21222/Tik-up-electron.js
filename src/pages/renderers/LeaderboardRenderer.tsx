@@ -3,10 +3,12 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultLeaderboardSettings } from "@/hooks/overlay-defaults";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface Entry { name: string; value: number; avatar: string; }
 
 const LeaderboardRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultLeaderboardSettings);
   const [entries, setEntries] = useState<Entry[]>([]);

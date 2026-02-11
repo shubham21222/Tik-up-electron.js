@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultGiftAlertSettings } from "@/hooks/use-overlay-widgets";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface AlertEvent {
   id: number;
@@ -23,6 +24,7 @@ const getEntryVariants = (style: string) => {
 };
 
 const GiftAlertRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultGiftAlertSettings);
   const [alerts, setAlerts] = useState<AlertEvent[]>([]);

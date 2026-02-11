@@ -14,5 +14,5 @@ export function getOverlayBaseUrl(): string {
     return origin;
   }
   // Fallback: prefer custom domain, but use published domain as safe default
-  return "https://tik-pro-suite.lovable.app";
+  return "https://tikup.xyz";
 }

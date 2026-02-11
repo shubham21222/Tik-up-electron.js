@@ -245,6 +245,57 @@ export type Database = {
         }
         Relationships: []
       }
+      points_config: {
+        Row: {
+          created_at: string
+          currency_name: string
+          id: string
+          level_base_points: number
+          level_multiplier: number
+          points_per_chat_minute: number
+          points_per_chat_minute_enabled: boolean
+          points_per_coin: number
+          points_per_coin_enabled: boolean
+          points_per_share: number
+          points_per_share_enabled: boolean
+          subscriber_bonus_ratio: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          currency_name?: string
+          id?: string
+          level_base_points?: number
+          level_multiplier?: number
+          points_per_chat_minute?: number
+          points_per_chat_minute_enabled?: boolean
+          points_per_coin?: number
+          points_per_coin_enabled?: boolean
+          points_per_share?: number
+          points_per_share_enabled?: boolean
+          subscriber_bonus_ratio?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          currency_name?: string
+          id?: string
+          level_base_points?: number
+          level_multiplier?: number
+          points_per_chat_minute?: number
+          points_per_chat_minute_enabled?: boolean
+          points_per_coin?: number
+          points_per_coin_enabled?: boolean
+          points_per_share?: number
+          points_per_share_enabled?: boolean
+          subscriber_bonus_ratio?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -253,6 +304,9 @@ export type Database = {
           email: string | null
           id: string
           plan_type: string
+          tiktok_connected: boolean
+          tiktok_connected_at: string | null
+          tiktok_username: string | null
           updated_at: string
           user_id: string
         }
@@ -263,6 +317,9 @@ export type Database = {
           email?: string | null
           id?: string
           plan_type?: string
+          tiktok_connected?: boolean
+          tiktok_connected_at?: string | null
+          tiktok_username?: string | null
           updated_at?: string
           user_id: string
         }
@@ -273,6 +330,9 @@ export type Database = {
           email?: string | null
           id?: string
           plan_type?: string
+          tiktok_connected?: boolean
+          tiktok_connected_at?: string | null
+          tiktok_username?: string | null
           updated_at?: string
           user_id?: string
         }

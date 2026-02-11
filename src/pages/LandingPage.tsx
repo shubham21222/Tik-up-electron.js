@@ -291,11 +291,120 @@ const LandingPage = () => {
           style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.04), transparent 70%)" }} />
 
         <div className="max-w-5xl mx-auto text-center relative z-10 w-full">
+          {/* Hero Logo with Stars */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.7 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="relative inline-block mb-8"
+          >
+            {/* Radial glow behind logo */}
+            <motion.div
+              className="absolute inset-0 -m-16 rounded-full pointer-events-none"
+              animate={{ scale: [1, 1.15, 1], opacity: [0.4, 0.7, 0.4] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              style={{ background: "radial-gradient(circle, hsl(160 100% 45% / 0.12), hsl(280 100% 65% / 0.04) 50%, transparent 70%)" }}
+            />
+
+            {/* Orbiting stars */}
+            {Array.from({ length: 12 }).map((_, i) => {
+              const angle = (i / 12) * 360;
+              const radius = 90 + (i % 3) * 25;
+              const size = [10, 14, 8, 12, 6, 16, 9, 11, 7, 13, 10, 8][i];
+              const delay = i * 0.3;
+              const duration = 2.5 + (i % 4) * 0.5;
+              return (
+                <motion.div
+                  key={i}
+                  className="absolute pointer-events-none"
+                  style={{
+                    top: "50%",
+                    left: "50%",
+                    width: size,
+                    height: size,
+                  }}
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{
+                    opacity: [0, 1, 0.6, 1, 0],
+                    scale: [0, 1.2, 0.8, 1, 0],
+                    x: [0, Math.cos((angle * Math.PI) / 180) * radius, Math.cos(((angle + 30) * Math.PI) / 180) * (radius + 20)],
+                    y: [0, Math.sin((angle * Math.PI) / 180) * radius, Math.sin(((angle + 30) * Math.PI) / 180) * (radius + 20)],
+                  }}
+                  transition={{
+                    duration,
+                    delay: delay,
+                    repeat: Infinity,
+                    repeatDelay: 1 + (i % 3),
+                    ease: "easeOut",
+                  }}
+                >
+                  <Star
+                    size={size}
+                    className="drop-shadow-[0_0_6px_hsl(160,100%,60%)]"
+                    fill="hsl(160 100% 55%)"
+                    color="hsl(160 100% 70%)"
+                  />
+                </motion.div>
+              );
+            })}
+
+            {/* Secondary sparkle particles */}
+            {Array.from({ length: 8 }).map((_, i) => {
+              const angle = (i / 8) * 360 + 22;
+              const radius = 70 + (i % 2) * 40;
+              const delay = 0.5 + i * 0.4;
+              return (
+                <motion.div
+                  key={`sparkle-${i}`}
+                  className="absolute rounded-full pointer-events-none"
+                  style={{
+                    top: "50%",
+                    left: "50%",
+                    width: 4,
+                    height: 4,
+                    background: i % 2 === 0 ? "hsl(280 100% 75%)" : "hsl(45 100% 70%)",
+                    boxShadow: i % 2 === 0
+                      ? "0 0 8px hsl(280 100% 65%), 0 0 16px hsl(280 100% 65% / 0.3)"
+                      : "0 0 8px hsl(45 100% 60%), 0 0 16px hsl(45 100% 60% / 0.3)",
+                  }}
+                  animate={{
+                    opacity: [0, 1, 0],
+                    scale: [0, 1.5, 0],
+                    x: [0, Math.cos((angle * Math.PI) / 180) * radius],
+                    y: [0, Math.sin((angle * Math.PI) / 180) * radius],
+                  }}
+                  transition={{
+                    duration: 2,
+                    delay,
+                    repeat: Infinity,
+                    repeatDelay: 2,
+                    ease: "easeOut",
+                  }}
+                />
+              );
+            })}
+
+            {/* The logo */}
+            <motion.img
+              src={tikupLogo}
+              alt="TikUp"
+              className="w-36 h-36 md:w-48 md:h-48 object-contain relative z-10 drop-shadow-[0_0_40px_hsl(160,100%,45%,0.25)]"
+              animate={{
+                filter: [
+                  "drop-shadow(0 0 20px hsl(160 100% 45% / 0.2))",
+                  "drop-shadow(0 0 40px hsl(160 100% 45% / 0.35))",
+                  "drop-shadow(0 0 20px hsl(160 100% 45% / 0.2))",
+                ],
+              }}
+              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+            />
+          </motion.div>
+
           {/* Micro-text */}
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
             className="mb-5"
           >
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-widest text-primary"

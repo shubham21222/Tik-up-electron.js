@@ -181,26 +181,27 @@ Deno.serve(async (req) => {
 });
 
 function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
+  const payloadWithUser = { ...event.data, user: event.username };
   switch (event.type) {
     case "gift":
-      if (widgetType === "gift_alert") return { event: "new_alert", payload: event.data };
+      if (widgetType === "gift_alert") return { event: "new_alert", payload: payloadWithUser };
       break;
     case "like":
       if (widgetType === "like_alert" || widgetType === "like_counter")
-        return { event: "like_update", payload: event.data };
+        return { event: "like_update", payload: payloadWithUser };
       break;
     case "follow":
       if (widgetType === "follow_alert" || widgetType === "follower_goal")
-        return { event: widgetType === "follow_alert" ? "new_alert" : "follower_update", payload: event.data };
+        return { event: widgetType === "follow_alert" ? "new_alert" : "follower_update", payload: payloadWithUser };
       break;
     case "share":
-      if (widgetType === "share_alert") return { event: "new_alert", payload: event.data };
+      if (widgetType === "share_alert") return { event: "new_alert", payload: payloadWithUser };
       break;
     case "chat":
-      if (widgetType === "chat_box") return { event: "new_message", payload: event.data };
+      if (widgetType === "chat_box") return { event: "new_message", payload: payloadWithUser };
       break;
     case "viewer_count":
-      if (widgetType === "viewer_count") return { event: "viewer_update", payload: event.data };
+      if (widgetType === "viewer_count") return { event: "viewer_update", payload: payloadWithUser };
       break;
   }
   return null;

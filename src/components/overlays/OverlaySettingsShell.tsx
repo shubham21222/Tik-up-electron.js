@@ -7,6 +7,7 @@ import {
 import { toast } from "sonner";
 import ProBadge from "./ProBadge";
 import type { OverlayWidget } from "@/hooks/use-overlay-widgets";
+import { getOverlayBaseUrl } from "@/lib/overlay-url";
 
 interface OverlaySettingsShellProps {
   widget: OverlayWidget;
@@ -25,7 +26,7 @@ const OverlaySettingsShell = ({
 }: OverlaySettingsShellProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showOBS, setShowOBS] = useState(false);
-  const overlayUrl = `${window.location.origin}/overlay/${widget.widget_type.replace("_", "-")}/${widget.public_token}`;
+  const overlayUrl = `${getOverlayBaseUrl()}/overlay/${widget.widget_type.replace("_", "-")}/${widget.public_token}`;
 
   const copyUrl = () => {
     navigator.clipboard.writeText(overlayUrl);

@@ -13,6 +13,7 @@ import GoalCustomizePanel from "@/components/goals/GoalCustomizePanel";
 import GoalCreateDialog from "@/components/goals/GoalCreateDialog";
 import GoalOBSInstructions from "@/components/goals/GoalOBSInstructions";
 import { toast } from "sonner";
+import { getOverlayBaseUrl } from "@/lib/overlay-url";
 
 const goalTypeConfig: Record<string, { icon: typeof Heart; label: string; color: string }> = {
   likes: { icon: Heart, label: "Likes Goal", color: "350 90% 55%" },
@@ -38,7 +39,7 @@ const GoalCard = ({ goal, onSimulate, onReset, onDelete, onCustomize }: {
   const Icon = config.icon;
   const pct = goal.target_value > 0 ? Math.min(Math.round((goal.current_value / goal.target_value) * 100), 100) : 0;
   const [showOBS, setShowOBS] = useState(false);
-  const overlayUrl = `${window.location.origin}/overlay/goal/${goal.public_token}`;
+  const overlayUrl = `${getOverlayBaseUrl()}/overlay/goal/${goal.public_token}`;
 
   const copyUrl = () => {
     navigator.clipboard.writeText(overlayUrl);

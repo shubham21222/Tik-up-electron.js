@@ -12,6 +12,7 @@ import Chat from "./pages/Chat";
 import Points from "./pages/Points";
 import Song from "./pages/Song";
 import Tools from "./pages/Tools";
+import Pro from "./pages/Pro";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
           <Route path="/points" element={<Points />} />
           <Route path="/song" element={<Song />} />
           <Route path="/tools" element={<Tools />} />
+          <Route path="/pro" element={<Pro />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

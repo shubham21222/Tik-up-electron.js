@@ -2,79 +2,97 @@ import AppLayout from "@/components/AppLayout";
 import OverlayCard from "@/components/OverlayCard";
 import FormSection from "@/components/FormSection";
 import FormField from "@/components/FormField";
-import { Volume2, Info, Upload, Plus } from "lucide-react";
+import TabNav from "@/components/TabNav";
+import { Info, Upload } from "lucide-react";
+import { useState } from "react";
 
-const soundAlerts = [
-  { title: "Gift Sound: Rose", description: "Plays a chime sound when a viewer sends a Rose gift. Volume and duration are customizable." },
-  { title: "Gift Sound: Lion", description: "Plays a dramatic lion roar sound effect when a viewer sends the Lion gift. High-value alert." },
-  { title: "Gift Sound: Universe", description: "Plays an epic galaxy sound effect for the Universe gift. Includes screen shake effect." },
-  { title: "Follow Sound", description: "A subtle notification sound that plays when someone new follows your stream during a live session." },
-  { title: "TTS Voice: Default", description: "Default Text-to-Speech voice for viewer messages. Supports multiple languages and voice styles." },
-  { title: "TTS Voice: Funny", description: "A funny, pitch-shifted voice that reads viewer messages in a comedic style. Popular with audiences." },
-  { title: "Sub Alert Sound", description: "A special chime that plays when a subscriber joins your live. Includes animated overlay alert." },
-  { title: "Chat Command: !airhorn", description: "Plays an air horn sound when any viewer types !airhorn in chat. Has a 30-second cooldown." },
-  { title: "Share Sound Alert", description: "A subtle sound that plays when a viewer shares your stream with friends. Encourages more sharing." },
-  { title: "Like Milestone Sound", description: "A celebration sound that plays when you reach like milestones (1K, 5K, 10K, 50K likes)." },
-];
+const soundData = {
+  "Sound Alerts": [
+    { title: "Gift Sound: Rose", description: "Plays a chime sound when a viewer sends a Rose gift." },
+    { title: "Gift Sound: Lion", description: "Plays a dramatic lion roar for the Lion gift." },
+    { title: "Gift Sound: Universe", description: "Epic galaxy sound for the Universe gift." },
+    { title: "Follow Sound", description: "Notification sound when someone follows during live." },
+    { title: "Sub Alert Sound", description: "Special chime when a subscriber joins." },
+    { title: "Chat Command: !airhorn", description: "Plays air horn when !airhorn is typed in chat." },
+    { title: "Share Sound Alert", description: "Sound when a viewer shares your stream." },
+    { title: "Like Milestone Sound", description: "Celebration sound at like milestones." },
+  ],
+  "TTS Settings": [],
+  "Music Player": [],
+  "Sound Library": [
+    { title: "Chime Pack", description: "A collection of clean, modern chime sounds for alerts." },
+    { title: "Retro 8-Bit Pack", description: "Pixel-art style sound effects, great for gaming streams." },
+    { title: "Epic Orchestral Pack", description: "Cinematic sounds for high-value gift alerts." },
+    { title: "Funny SFX Pack", description: "Comedy sound effects like boing, fart, and record scratch." },
+  ],
+};
+
+const tabs = Object.keys(soundData);
 
 const Sounds = () => {
+  const [activeTab, setActiveTab] = useState(tabs[0]);
+  const items = soundData[activeTab as keyof typeof soundData];
+
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto animate-slide-in pb-12">
-        {/* Tabs */}
-        <div className="flex items-center gap-1 mb-4 border-b border-border pb-2 overflow-x-auto">
-          {["Sound Alerts", "TTS Settings", "Music Player", "Sound Library"].map((tab, i) => (
-            <button
-              key={tab}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
-                i === 0
-                  ? "bg-primary/10 text-primary"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
-              }`}
-            >
-              {tab}
+        <TabNav
+          tabs={tabs}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          rightAction={
+            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90 transition-opacity">
+              <Upload size={14} /> Upload Sound
             </button>
-          ))}
-          <div className="flex-1" />
-          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90 transition-opacity">
-            <Upload size={14} />
-            Upload Sound
-          </button>
-        </div>
+          }
+        />
 
-        {/* Info */}
         <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border mb-6">
           <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
           <div className="text-sm text-muted-foreground leading-relaxed">
             <p>
-              Configure <span className="text-primary font-medium">Sound Alerts</span> and <span className="text-primary font-medium">Text-to-Speech</span> for your TikTok LIVE stream.
-              Each sound can be triggered by specific events like gifts, follows, or chat commands. Upload your own audio files or use the built-in sound library.
+              Configure <span className="text-primary font-medium">Sound Alerts</span> and <span className="text-primary font-medium">Text-to-Speech</span> for your stream.
             </p>
           </div>
         </div>
 
-        {/* Master settings */}
-        <div className="mb-6">
-          <FormSection title="Master Audio Settings">
-            <FormField label="Master Volume" type="select" options={["25%", "50%", "75%", "100%"]} />
-            <FormField label="TTS Enabled" type="toggle" checked={true} />
-            <FormField label="TTS Voice" type="select" options={["Default Female", "Default Male", "Funny", "Deep", "Robot"]} />
-            <FormField label="TTS Max Length" type="number" value="200" />
-          </FormSection>
-        </div>
+        {(activeTab === "TTS Settings" || activeTab === "Sound Alerts") && (
+          <div className="mb-6">
+            <FormSection title={activeTab === "TTS Settings" ? "Text-to-Speech Configuration" : "Master Audio Settings"}>
+              {activeTab === "TTS Settings" ? (
+                <>
+                  <FormField label="TTS Enabled" type="toggle" checked={true} />
+                  <FormField label="TTS Voice" type="select" options={["Default Female", "Default Male", "Funny", "Deep", "Robot"]} />
+                  <FormField label="TTS Speed" type="select" options={["Slow", "Normal", "Fast"]} />
+                  <FormField label="TTS Max Length" type="number" value="200" />
+                  <FormField label="Min gift for TTS" type="number" value="1" />
+                  <FormField label="Filter profanity" type="toggle" checked={true} />
+                </>
+              ) : (
+                <>
+                  <FormField label="Master Volume" type="select" options={["25%", "50%", "75%", "100%"]} />
+                  <FormField label="TTS Enabled" type="toggle" checked={true} />
+                </>
+              )}
+            </FormSection>
+          </div>
+        )}
 
-        {/* Sound cards grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {soundAlerts.map((sound) => (
-            <OverlayCard
-              key={sound.title}
-              title={sound.title}
-              description={sound.description}
-              hasPreview={false}
-              url="#"
-            />
-          ))}
-        </div>
+        {activeTab === "Music Player" && (
+          <FormSection title="Music Player Settings" description="Configure the built-in music player for your stream.">
+            <FormField label="Music volume" type="select" options={["25%", "50%", "75%", "100%"]} />
+            <FormField label="Auto-duck for TTS" type="toggle" checked={true} />
+            <FormField label="Allow song requests" type="toggle" checked={true} />
+          </FormSection>
+        )}
+
+        {items.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {items.map((sound) => (
+              <OverlayCard key={sound.title} title={sound.title} description={sound.description} hasPreview={false} url="#" />
+            ))}
+          </div>
+        )}
       </div>
     </AppLayout>
   );

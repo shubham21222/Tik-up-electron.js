@@ -102,9 +102,9 @@ const Index = () => {
                 Unlock premium features including unlimited overlays, priority TTS, custom branding, advanced analytics, and priority support. Remove all watermarks from your stream.
               </p>
             </div>
-            <button className="flex items-center gap-2 px-6 py-3 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm hover:opacity-90 transition-opacity flex-shrink-0">
+            <a href="/pro" className="flex items-center gap-2 px-6 py-3 rounded-lg bg-secondary text-secondary-foreground font-semibold text-sm hover:opacity-90 transition-opacity flex-shrink-0">
               Go Pro <ArrowRight size={14} />
-            </button>
+            </a>
           </div>
         </div>
       </div>

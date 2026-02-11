@@ -1,37 +1,49 @@
 import AppLayout from "@/components/AppLayout";
-import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
-import { useTTSSettings, TTS_VOICES } from "@/hooks/use-tts-settings";
-import OverlaySettingsShell from "@/components/overlays/OverlaySettingsShell";
-import SettingToggle from "@/components/overlays/settings/SettingToggle";
-import SettingSlider from "@/components/overlays/settings/SettingSlider";
-import SettingSelect from "@/components/overlays/settings/SettingSelect";
-import SettingRow from "@/components/overlays/settings/SettingRow";
-import TTSOverlay from "@/components/overlays/TTSOverlay";
+import { useTTSSettings, TTS_VOICES, TTS_LANGUAGES } from "@/hooks/use-tts-settings";
+import type { AllowedUsers, SpecialUser } from "@/hooks/use-tts-settings";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Volume2, Mic, Plus } from "lucide-react";
+import { Mic, Play, Plus, Trash2, Search } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Link } from "react-router-dom";
+
+const sectionClass = "rounded-2xl border border-border bg-card p-5 space-y-4";
+const sectionTitle = "text-sm font-heading font-bold text-primary uppercase tracking-wider mb-3";
+const rowClass = "flex items-center justify-between gap-4";
+const labelClass = "text-[12px] font-medium text-foreground";
+const descClass = "text-[10px] text-muted-foreground";
+const selectClass = "text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 transition-colors min-w-[160px]";
+const numberClass = "w-20 text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 text-center";
 
 const TTSOverlayPage = () => {
-  const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("tts");
-  const { settings: ttsSettings, saveSettings: saveTTSSettings } = useTTSSettings();
-  const [localSettings, setLocalSettings] = useState(ttsSettings);
+  const { settings, saveSettings, loading } = useTTSSettings();
+  const [local, setLocal] = useState(settings);
+  const [testText, setTestText] = useState("This is a test!");
   const [testing, setTesting] = useState(false);
+  const [newUsername, setNewUsername] = useState("");
+  const [userSearch, setUserSearch] = useState("");
 
-  useEffect(() => { setLocalSettings(ttsSettings); }, [ttsSettings]);
+  useEffect(() => { setLocal(settings); }, [settings]);
 
-  const handleCreate = async () => {
-    await createWidget("tts", "TTS Overlay");
+  const update = (patch: Partial<typeof settings>) => {
+    setLocal(prev => ({ ...prev, ...patch }));
+    saveSettings(patch);
   };
 
-  const handleTest = async (widget: any) => {
-    if (testing) return;
+  const updateAllowed = (key: keyof AllowedUsers, value: any) => {
+    const next = { ...local.allowed_users, [key]: value };
+    update({ allowed_users: next });
+  };
+
+  const handleTest = async () => {
+    if (testing || !testText.trim()) return;
     setTesting(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) { toast.error("Please log in"); return; }
-
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts-generate`,
         {
@@ -41,122 +53,327 @@ const TTSOverlayPage = () => {
             Authorization: `Bearer ${session.access_token}`,
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
           },
-          body: JSON.stringify({
-            text: "This is a test of the text to speech system. Welcome to TikUp!",
-            overlay_token: widget.public_token,
-            username: "TestUser",
-          }),
+          body: JSON.stringify({ text: testText, username: "TestUser" }),
         }
       );
-
       const data = await response.json();
-      if (!response.ok) {
-        toast.error(data.error || "TTS test failed");
-        return;
-      }
-
-      const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
-      const audio = new Audio(audioUrl);
-      audio.volume = (localSettings.volume || 80) / 100;
+      if (!response.ok) { toast.error(data.error || "TTS failed"); return; }
+      const audio = new Audio(`data:audio/mpeg;base64,${data.audioContent}`);
+      audio.volume = local.volume / 100;
       await audio.play();
-      toast.success("TTS test played!");
-    } catch {
-      toast.error("TTS test failed");
-    } finally {
-      setTesting(false);
-    }
+      toast.success("TTS played!");
+    } catch { toast.error("TTS test failed"); }
+    finally { setTesting(false); }
   };
+
+  const addSpecialUser = () => {
+    if (!newUsername.trim()) return;
+    const exists = local.special_users.some(u => u.username === newUsername.trim());
+    if (exists) { toast.error("User already added"); return; }
+    const user: SpecialUser = { username: newUsername.trim(), allowed: true, voice_id: local.voice_id, speed: local.speed, pitch: local.pitch };
+    update({ special_users: [...local.special_users, user] });
+    setNewUsername("");
+  };
+
+  const removeSpecialUser = (username: string) => {
+    update({ special_users: local.special_users.filter(u => u.username !== username) });
+  };
+
+  const updateSpecialUser = (username: string, patch: Partial<SpecialUser>) => {
+    update({
+      special_users: local.special_users.map(u =>
+        u.username === username ? { ...u, ...patch } : u
+      ),
+    });
+  };
+
+  const filteredSpecial = userSearch
+    ? local.special_users.filter(u => u.username.toLowerCase().includes(userSearch.toLowerCase()))
+    : local.special_users;
+
+  if (loading) return <AppLayout><div className="flex items-center justify-center h-64 text-muted-foreground">Loading...</div></AppLayout>;
 
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto pb-12">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-heading font-bold text-foreground mb-2 flex items-center gap-3">
-              <Mic size={28} className="text-primary" />
-              Text-to-Speech
-            </h1>
-            <p className="text-muted-foreground text-sm">Configure TTS for your stream overlays.</p>
-          </div>
-          <button
-            onClick={handleCreate}
-            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.25)]"
-          >
-            <Plus size={16} /> Create TTS Overlay
-          </button>
+      <div className="max-w-6xl mx-auto pb-12">
+        {/* Header */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+          <h1 className="text-2xl font-heading font-bold text-primary flex items-center gap-2 mb-2">
+            <Mic size={24} /> Text-to-Speech Chat
+          </h1>
+          <p className="text-sm text-muted-foreground leading-relaxed">
+            Here you can read out the chat comments from your viewers automatically via Text-to-Speech (TTS).<br />
+            The voice is played directly in the browser. No Overlay is required!<br />
+            A TTS feature is also available via <Link to="/actions" className="text-primary hover:underline">Actions &amp; Events</Link> which offers more flexibility (e.g. Read out gifts).
+          </p>
         </motion.div>
 
-        {/* Global TTS Settings */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="rounded-2xl border border-border bg-card p-6 mb-8 space-y-5"
-        >
-          <div className="flex items-center gap-2 mb-1">
-            <Volume2 size={16} className="text-primary" />
-            <h3 className="text-sm font-heading font-bold text-foreground uppercase tracking-wider">Global TTS Settings</h3>
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+          {/* General Settings */}
+          <div className={sectionClass}>
+            <h3 className={sectionTitle}>General Settings</h3>
+            <div className={rowClass}>
+              <span className={labelClass}>Enabled</span>
+              <Switch checked={local.enabled} onCheckedChange={(v) => update({ enabled: v })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Language</span>
+              <select className={selectClass} value={local.language} onChange={(e) => update({ language: e.target.value })}>
+                {TTS_LANGUAGES.map(l => <option key={l.value} value={l.value} className="bg-[#0a0a0f]">{l.label}</option>)}
+              </select>
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Voice</span>
+              <select className={selectClass} value={local.voice_id} onChange={(e) => update({ voice_id: e.target.value })}>
+                {TTS_VOICES.map(v => <option key={v.id} value={v.id} className="bg-[#0a0a0f]">{v.name} — {v.tag}</option>)}
+              </select>
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Random Voice</span>
+              <Switch checked={local.random_voice} onCheckedChange={(v) => update({ random_voice: v })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Default Speed</span>
+              <input type="number" className={numberClass} value={local.speed} min={1} max={100}
+                onChange={(e) => update({ speed: Number(e.target.value) })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Default Pitch</span>
+              <input type="number" className={numberClass} value={local.pitch} min={1} max={100}
+                onChange={(e) => update({ pitch: Number(e.target.value) })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Volume</span>
+              <div className="flex items-center gap-2 flex-1 max-w-[160px]">
+                <input type="range" className="flex-1 accent-primary" min={0} max={100} value={local.volume}
+                  onChange={(e) => update({ volume: Number(e.target.value) })} />
+                <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">{local.volume}%</span>
+              </div>
+            </div>
           </div>
 
-          <SettingRow label="Enable TTS" description="Allow chat messages to be read aloud">
-            <SettingToggle checked={localSettings.enabled} onChange={(v) => { setLocalSettings(p => ({ ...p, enabled: v })); saveTTSSettings({ enabled: v }); }} />
-          </SettingRow>
-
-          <SettingRow label="Voice">
-            <SettingSelect value={localSettings.voice_id} options={TTS_VOICES.map(v => ({ value: v.id, label: `${v.name} — ${v.tag}` }))} onChange={(v) => { setLocalSettings(p => ({ ...p, voice_id: v })); saveTTSSettings({ voice_id: v }); }} />
-          </SettingRow>
-
-          <SettingRow label="Volume">
-            <SettingSlider value={localSettings.volume} min={0} max={100} step={5} onChange={(v) => { setLocalSettings(p => ({ ...p, volume: v })); saveTTSSettings({ volume: v }); }} />
-          </SettingRow>
-
-          <SettingRow label="Speed">
-            <SettingSlider value={localSettings.speed * 100} min={70} max={120} step={5} onChange={(v) => { setLocalSettings(p => ({ ...p, speed: v / 100 })); saveTTSSettings({ speed: v / 100 }); }} />
-          </SettingRow>
-
-          <SettingRow label="Cooldown (seconds)">
-            <SettingSlider value={localSettings.cooldown_seconds} min={0} max={30} step={1} onChange={(v) => { setLocalSettings(p => ({ ...p, cooldown_seconds: v })); saveTTSSettings({ cooldown_seconds: v }); }} />
-          </SettingRow>
-
-          <SettingRow label="Min Characters">
-            <SettingSlider value={localSettings.min_chars} min={1} max={50} step={1} onChange={(v) => { setLocalSettings(p => ({ ...p, min_chars: v })); saveTTSSettings({ min_chars: v }); }} />
-          </SettingRow>
-
-          <SettingRow label="Max Length">
-            <SettingSlider value={localSettings.max_length} min={50} max={500} step={10} onChange={(v) => { setLocalSettings(p => ({ ...p, max_length: v })); saveTTSSettings({ max_length: v }); }} />
-          </SettingRow>
-
-          <SettingRow label="Interrupt Mode" description="New messages interrupt currently playing TTS">
-            <SettingToggle checked={localSettings.interrupt_mode} onChange={(v) => { setLocalSettings(p => ({ ...p, interrupt_mode: v })); saveTTSSettings({ interrupt_mode: v }); }} />
-          </SettingRow>
-        </motion.div>
-
-        {/* TTS Overlay Widgets */}
-        {widgets.map((widget) => (
-          <div key={widget.id} className="mb-6">
-            <OverlaySettingsShell
-              widget={widget}
-              onDelete={() => deleteWidget(widget.id)}
-              onReset={() => updateSettings(widget.id, {})}
-              onToggleActive={() => toggleActive(widget.id)}
-              onTest={() => handleTest(widget)}
-              previewSlot={<TTSOverlay />}
-              settingsSlot={
-                <div className="space-y-3">
-                  <SettingRow label="Overlay Token" description="Use this token in your OBS browser source">
-                    <span className="text-[11px] font-mono text-muted-foreground">{widget.public_token.slice(0, 12)}…</span>
-                  </SettingRow>
-                </div>
-              }
-            />
+          {/* Allowed Users */}
+          <div className={sectionClass}>
+            <h3 className={sectionTitle}>Allowed Users</h3>
+            {([
+              ["all_users", "All Users"],
+              ["followers", "Followers"],
+              ["subscribers", "Super Fans / Subscribers"],
+              ["moderators", "Moderators"],
+              ["team_members", "Team Members"],
+            ] as [keyof AllowedUsers, string][]).map(([key, label]) => (
+              <div key={key} className={rowClass}>
+                <span className={labelClass}>{label}</span>
+                <Switch checked={!!local.allowed_users[key]} onCheckedChange={(v) => updateAllowed(key, v)} />
+              </div>
+            ))}
+            <div className={rowClass}>
+              <div>
+                <span className={labelClass}>Top Gifters</span>
+                {local.allowed_users.top_gifters && (
+                  <span className="text-[9px] text-primary ml-1.5">Top {local.allowed_users.top_gifters_count}</span>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                {local.allowed_users.top_gifters && (
+                  <input type="number" className={numberClass + " !w-14"} min={1} max={100}
+                    value={local.allowed_users.top_gifters_count}
+                    onChange={(e) => updateAllowed("top_gifters_count", Number(e.target.value))} />
+                )}
+                <Switch checked={local.allowed_users.top_gifters} onCheckedChange={(v) => updateAllowed("top_gifters", v)} />
+              </div>
+            </div>
           </div>
-        ))}
 
-        {widgets.length === 0 && !loading && (
-          <div className="text-center py-16 text-muted-foreground text-sm">
-            No TTS overlays yet. Click "Create TTS Overlay" to get started.
+          {/* Comment Types */}
+          <div className={sectionClass}>
+            <h3 className={sectionTitle}>Comment Types</h3>
+            <p className="text-[11px] text-muted-foreground mb-2">Read...</p>
+            {([
+              ["any", "Any comment"],
+              ["dot", "Comments starting with dot (.)"],
+              ["slash", "Comments starting with slash (/)"],
+              ["command", "Comments starting with Command:"],
+            ] as [string, string][]).map(([val, label]) => (
+              <label key={val} className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" name="comment_type" className="accent-primary" checked={local.comment_type === val}
+                  onChange={() => update({ comment_type: val })} />
+                <span className={labelClass}>{label}</span>
+              </label>
+            ))}
+            {local.comment_type === "command" && (
+              <div className="flex items-center gap-2 mt-1 ml-6">
+                <span className={`${labelClass} flex-shrink-0`}>Command</span>
+                <Input className="h-7 text-[11px] bg-white/[0.03] border-white/[0.08]" value={local.comment_command}
+                  onChange={(e) => update({ comment_command: e.target.value })} />
+              </div>
+            )}
           </div>
-        )}
+
+          {/* Charge Points */}
+          <div className={sectionClass}>
+            <h3 className={sectionTitle}>Charge Points</h3>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="charge" className="accent-primary" checked={!local.charge_points}
+                onChange={() => update({ charge_points: false })} />
+              <span className={labelClass}>No, its free</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="charge" className="accent-primary" checked={local.charge_points}
+                onChange={() => update({ charge_points: true })} />
+              <span className={labelClass}>Yes, withdraw the following amount:</span>
+            </label>
+            {local.charge_points && (
+              <div className={`${rowClass} ml-6`}>
+                <span className={labelClass}>Cost per Message</span>
+                <input type="number" className={numberClass} value={local.cost_per_message} min={1}
+                  onChange={(e) => update({ cost_per_message: Number(e.target.value) })} />
+              </div>
+            )}
+            {local.charge_points && (
+              <p className="text-[9px] text-muted-foreground ml-6">(If the user doesn't have enough points, the comment will NOT be read)</p>
+            )}
+          </div>
+        </div>
+
+        {/* Second Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mb-4">
+          {/* Special Users */}
+          <div className={`${sectionClass} lg:col-span-2`}>
+            <h3 className={sectionTitle}>Special Users</h3>
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              Here you can allow and disallow users to use TTS and assign their own voices!<br />
+              If you disable the "Allowed" option, the user is entirely blocked from TTS.<br />
+              Click on + to add a new user.
+            </p>
+
+            <div className="flex items-center gap-2 mt-3">
+              <button onClick={addSpecialUser} className="w-8 h-8 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors flex-shrink-0">
+                <Plus size={14} />
+              </button>
+              <Input className="h-8 text-[11px] bg-white/[0.03] border-white/[0.08] flex-1" placeholder="Username (@handle)"
+                value={newUsername} onChange={(e) => setNewUsername(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && addSpecialUser()} />
+              <div className="relative flex-1">
+                <Search size={12} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                <Input className="h-8 text-[11px] bg-white/[0.03] border-white/[0.08] pl-7" placeholder="Search users..."
+                  value={userSearch} onChange={(e) => setUserSearch(e.target.value)} />
+              </div>
+            </div>
+
+            {/* Table */}
+            <div className="mt-3 border border-border rounded-lg overflow-hidden">
+              <div className="grid grid-cols-[1fr_70px_1fr_70px_70px_40px] gap-0 text-[10px] text-muted-foreground font-medium bg-muted/30 px-3 py-2 border-b border-border">
+                <span>Username (@handle)</span>
+                <span className="text-center">Allowed</span>
+                <span>Voice</span>
+                <span className="text-center">Speed</span>
+                <span className="text-center">Pitch</span>
+                <span></span>
+              </div>
+              {filteredSpecial.length === 0 ? (
+                <div className="px-3 py-6 text-center text-[11px] text-muted-foreground">No Special Users defined</div>
+              ) : (
+                filteredSpecial.map((u) => (
+                  <div key={u.username} className="grid grid-cols-[1fr_70px_1fr_70px_70px_40px] gap-0 items-center px-3 py-2 border-b border-border last:border-0 text-[11px]">
+                    <span className="text-foreground font-medium">@{u.username}</span>
+                    <div className="flex justify-center">
+                      <Switch checked={u.allowed} onCheckedChange={(v) => updateSpecialUser(u.username, { allowed: v })} />
+                    </div>
+                    <select className={selectClass + " !min-w-0 !text-[10px]"} value={u.voice_id}
+                      onChange={(e) => updateSpecialUser(u.username, { voice_id: e.target.value })}>
+                      {TTS_VOICES.map(v => <option key={v.id} value={v.id} className="bg-[#0a0a0f]">{v.name}</option>)}
+                    </select>
+                    <input type="number" className={numberClass + " !w-14"} value={u.speed} min={1} max={100}
+                      onChange={(e) => updateSpecialUser(u.username, { speed: Number(e.target.value) })} />
+                    <input type="number" className={numberClass + " !w-14"} value={u.pitch} min={1} max={100}
+                      onChange={(e) => updateSpecialUser(u.username, { pitch: Number(e.target.value) })} />
+                    <button onClick={() => removeSpecialUser(u.username)}
+                      className="p-1.5 rounded text-muted-foreground hover:text-destructive transition-colors">
+                      <Trash2 size={12} />
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Voice Tester + TTS Logs */}
+          <div className="space-y-4">
+            <div className={sectionClass}>
+              <h3 className={sectionTitle}>Voice Tester</h3>
+              <div className="flex items-center gap-2">
+                <Input className="h-8 text-[11px] bg-white/[0.03] border-white/[0.08] flex-1" placeholder="This is a test!"
+                  value={testText} onChange={(e) => setTestText(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleTest()} />
+                <button onClick={handleTest} disabled={testing}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[11px] font-medium hover:bg-primary/20 transition-colors disabled:opacity-50">
+                  <Play size={12} /> {testing ? "Playing..." : "Play"}
+                </button>
+              </div>
+            </div>
+
+            <div className={sectionClass}>
+              <h3 className={sectionTitle}>TTS Logs</h3>
+              <p className="text-[11px] text-muted-foreground">No Entries</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Third Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Spam Protection */}
+          <div className={sectionClass}>
+            <h3 className={sectionTitle}>Spam Protection</h3>
+            <div className={rowClass}>
+              <span className={labelClass}>User Cooldown (seconds)</span>
+              <input type="number" className={numberClass} value={local.cooldown_seconds} min={0}
+                onChange={(e) => update({ cooldown_seconds: Number(e.target.value) })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Max Queue Length</span>
+              <input type="number" className={numberClass} value={local.max_queue_length} min={1} max={50}
+                onChange={(e) => update({ max_queue_length: Number(e.target.value) })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Max Comment Length</span>
+              <input type="number" className={numberClass} value={local.max_length} min={10} max={1000}
+                onChange={(e) => update({ max_length: Number(e.target.value) })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Filter Letter Spam</span>
+              <Switch checked={local.filter_letter_spam} onCheckedChange={(v) => update({ filter_letter_spam: v })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Filter @mentions</span>
+              <Switch checked={local.filter_mentions} onCheckedChange={(v) => update({ filter_mentions: v })} />
+            </div>
+            <div className={rowClass}>
+              <span className={labelClass}>Filter !commands</span>
+              <Switch checked={local.filter_commands} onCheckedChange={(v) => update({ filter_commands: v })} />
+            </div>
+          </div>
+
+          {/* Advanced */}
+          <div className={sectionClass}>
+            <h3 className={sectionTitle}>Advanced</h3>
+            <div className={rowClass}>
+              <span className={labelClass}>Message Template</span>
+              <Input className="h-7 text-[11px] bg-white/[0.03] border-white/[0.08] max-w-[200px]"
+                value={local.message_template}
+                onChange={(e) => update({ message_template: e.target.value })} />
+            </div>
+            <div className="mt-2 p-3 rounded-lg bg-muted/20 border border-border">
+              <p className="text-[10px] text-muted-foreground">
+                <strong className="text-foreground">Placeholder Params:</strong> {"{nickname}"} {"{username}"} {"{comment}"}
+              </p>
+              <p className="text-[10px] text-muted-foreground mt-1">
+                <strong className="text-foreground">Example:</strong> {"{nickname}"} says {"{comment}"}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </AppLayout>
   );

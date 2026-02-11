@@ -451,14 +451,28 @@ export type Database = {
       }
       tts_settings: {
         Row: {
+          allowed_users: Json
           blacklist_words: Json
+          charge_points: boolean
+          comment_command: string
+          comment_type: string
           cooldown_seconds: number
+          cost_per_message: number
           created_at: string
           enabled: boolean
+          filter_commands: boolean
+          filter_letter_spam: boolean
+          filter_mentions: boolean
           id: string
           interrupt_mode: boolean
+          language: string
           max_length: number
+          max_queue_length: number
+          message_template: string
           min_chars: number
+          pitch: number
+          random_voice: boolean
+          special_users: Json
           speed: number
           trigger_mode: string
           updated_at: string
@@ -468,14 +482,28 @@ export type Database = {
           volume: number
         }
         Insert: {
+          allowed_users?: Json
           blacklist_words?: Json
+          charge_points?: boolean
+          comment_command?: string
+          comment_type?: string
           cooldown_seconds?: number
+          cost_per_message?: number
           created_at?: string
           enabled?: boolean
+          filter_commands?: boolean
+          filter_letter_spam?: boolean
+          filter_mentions?: boolean
           id?: string
           interrupt_mode?: boolean
+          language?: string
           max_length?: number
+          max_queue_length?: number
+          message_template?: string
           min_chars?: number
+          pitch?: number
+          random_voice?: boolean
+          special_users?: Json
           speed?: number
           trigger_mode?: string
           updated_at?: string
@@ -485,14 +513,28 @@ export type Database = {
           volume?: number
         }
         Update: {
+          allowed_users?: Json
           blacklist_words?: Json
+          charge_points?: boolean
+          comment_command?: string
+          comment_type?: string
           cooldown_seconds?: number
+          cost_per_message?: number
           created_at?: string
           enabled?: boolean
+          filter_commands?: boolean
+          filter_letter_spam?: boolean
+          filter_mentions?: boolean
           id?: string
           interrupt_mode?: boolean
+          language?: string
           max_length?: number
+          max_queue_length?: number
+          message_template?: string
           min_chars?: number
+          pitch?: number
+          random_voice?: boolean
+          special_users?: Json
           speed?: number
           trigger_mode?: string
           updated_at?: string

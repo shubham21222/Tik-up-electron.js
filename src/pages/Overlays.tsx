@@ -10,6 +10,7 @@ const TTSOverlay = lazy(() => import("@/components/overlays/TTSOverlay"));
 const ChatOverlay = lazy(() => import("@/components/overlays/ChatOverlay"));
 const SoundAlertOverlay = lazy(() => import("@/components/overlays/SoundAlertOverlay"));
 const LikeFollowOverlay = lazy(() => import("@/components/overlays/LikeFollowOverlay"));
+const GoalProgressOverlay = lazy(() => import("@/components/overlays/GoalProgressOverlay"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<() => JSX.Element>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -17,6 +18,7 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<() => JSX.Elemen
   "Sound Alert Overlay": SoundAlertOverlay,
   "Like/Follow Overlay": LikeFollowOverlay,
   "Gift Alert Overlay": SoundAlertOverlay,
+  "Goal Progress Bar": GoalProgressOverlay,
 };
 
 const overlayData = {
@@ -26,6 +28,7 @@ const overlayData = {
     { title: "Sound Alert Overlay", description: "Center-screen animated alert with expanding neon rings and particle effects.", hasPreview: true },
     { title: "Like/Follow Overlay", description: "Elegant floating notifications with heart particle animations.", hasPreview: true },
     { title: "Gift Alert Overlay", description: "Animated gift alerts with glow pulse and ring expansion effects.", hasPreview: true },
+    { title: "Goal Progress Bar", description: "Animated progress bars for likes, follows, shares & stars with shimmer effects.", hasPreview: true },
     { title: "Top Gifters Widget", description: "Real-time leaderboard showing your top gift senders with animated transitions.", hasPreview: false },
   ],
   "Quick Setup": [

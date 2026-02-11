@@ -1,144 +1,116 @@
 import AppLayout from "@/components/AppLayout";
-import FormSection from "@/components/FormSection";
-import FormField from "@/components/FormField";
-import TabNav from "@/components/TabNav";
-import { TrendingUp, Gift, Crown, Star, Plus } from "lucide-react";
-import { useState } from "react";
+import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { useEffect } from "react";
+import {
+  Trophy, Crown, Heart, Gift, MessageCircle, Medal
+} from "lucide-react";
 
-const topViewers = [
-  { rank: 1, name: "GiftKing", points: 12500, icon: Crown },
-  { rank: 2, name: "StreamLover99", points: 8200, icon: Star },
-  { rank: 3, name: "TikTokPro", points: 6800, icon: Star },
-  { rank: 4, name: "CoolViewer42", points: 3200, icon: null },
-  { rank: 5, name: "NewFan2025", points: 1500, icon: null },
-  { rank: 6, name: "VibeCheck", points: 900, icon: null },
-  { rank: 7, name: "WatcherX", points: 700, icon: null },
-  { rank: 8, name: "Supporter99", points: 550, icon: null },
-];
+const glassCard = "rounded-2xl p-[1px]";
+const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
+const glassInnerStyle = { background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" };
 
-const rewards = [
-  { name: "Custom TTS Voice", cost: 500, claimed: 12 },
-  { name: "Song Request", cost: 1000, claimed: 8 },
-  { name: "Choose Game Mode", cost: 2500, claimed: 3 },
-  { name: "VIP Badge", cost: 5000, claimed: 1 },
-  { name: "Shoutout on Stream", cost: 750, claimed: 6 },
-  { name: "Pick Next Challenge", cost: 3000, claimed: 2 },
-];
-
-const pointHistory = [
-  { user: "GiftKing", action: "Sent Rose", points: "+50", time: "2m ago" },
-  { user: "StreamLover99", action: "Watch bonus", points: "+10", time: "5m ago" },
-  { user: "CoolViewer42", action: "Redeemed Song Request", points: "-1000", time: "8m ago" },
-  { user: "TikTokPro", action: "Sent Lion", points: "+500", time: "12m ago" },
-  { user: "NewFan2025", action: "Follow bonus", points: "+25", time: "15m ago" },
-];
-
-const tabs = ["Leaderboard", "Rewards", "Points Settings", "History"];
-
-const Points = () => {
-  const [activeTab, setActiveTab] = useState(tabs[0]);
-
-  return (
-    <AppLayout>
-      <div className="max-w-5xl mx-auto animate-slide-in pb-12">
-        <TabNav
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          rightAction={
-            activeTab === "Rewards" ? (
-              <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90 transition-opacity">
-                <Plus size={14} /> Add Reward
-              </button>
-            ) : undefined
-          }
-        />
-
-        {activeTab === "Leaderboard" && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
-              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
-                <TrendingUp size={16} className="text-primary" />
-                <h3 className="font-heading font-semibold text-sm text-primary">Top Viewers</h3>
-              </div>
-              {topViewers.map((viewer) => (
-                <div key={viewer.rank} className="flex items-center gap-4 px-5 py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                  <span className={`text-base font-heading font-bold w-8 ${viewer.rank <= 3 ? 'text-primary' : 'text-muted-foreground'}`}>#{viewer.rank}</span>
-                  <div className="flex-1 flex items-center gap-2">
-                    <span className="font-medium text-sm text-foreground">{viewer.name}</span>
-                    {viewer.icon && <viewer.icon size={14} className="text-secondary" />}
-                  </div>
-                  <span className="text-sm font-semibold text-primary">{viewer.points.toLocaleString()}</span>
-                </div>
-              ))}
-            </div>
-            <div className="rounded-xl border border-border bg-card overflow-hidden">
-              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
-                <Gift size={16} className="text-secondary" />
-                <h3 className="font-heading font-semibold text-sm text-secondary">Rewards</h3>
-              </div>
-              {rewards.map((reward) => (
-                <div key={reward.name} className="flex items-center gap-4 px-5 py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                  <div className="flex-1">
-                    <span className="font-medium text-sm text-foreground">{reward.name}</span>
-                    <span className="text-xs text-muted-foreground ml-2">({reward.claimed}x claimed)</span>
-                  </div>
-                  <span className="text-sm font-semibold text-primary">{reward.cost} pts</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {activeTab === "Rewards" && (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="px-5 py-3 border-b border-border flex items-center gap-2">
-              <Gift size={16} className="text-secondary" />
-              <h3 className="font-heading font-semibold text-sm text-secondary">Manage Rewards</h3>
-            </div>
-            {rewards.map((reward) => (
-              <div key={reward.name} className="flex items-center gap-4 px-5 py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                <div className="flex-1">
-                  <span className="font-medium text-sm text-foreground">{reward.name}</span>
-                  <span className="text-xs text-muted-foreground ml-2">({reward.claimed}x claimed)</span>
-                </div>
-                <span className="text-sm font-semibold text-primary">{reward.cost} pts</span>
-                <button className="text-xs text-muted-foreground hover:text-foreground transition-colors">Edit</button>
-                <button className="text-xs text-destructive hover:text-destructive/80 transition-colors">Delete</button>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {activeTab === "Points Settings" && (
-          <FormSection title="Points Configuration">
-            <FormField label="Points per minute" type="number" value="1" />
-            <FormField label="Gift multiplier" type="number" value="10" />
-            <FormField label="Subscriber bonus" type="toggle" checked={true} />
-            <FormField label="Bonus multiplier" type="select" options={["1.5x", "2x", "3x"]} />
-            <FormField label="Points for follow" type="number" value="25" />
-            <FormField label="Points for share" type="number" value="50" />
-          </FormSection>
-        )}
-
-        {activeTab === "History" && (
-          <div className="rounded-xl border border-border bg-card overflow-hidden">
-            <div className="px-5 py-3 border-b border-border">
-              <h3 className="font-heading font-semibold text-sm text-primary">Recent Points Activity</h3>
-            </div>
-            {pointHistory.map((entry, i) => (
-              <div key={i} className="flex items-center gap-4 px-5 py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                <span className="text-sm font-semibold text-foreground w-28">{entry.user}</span>
-                <span className="flex-1 text-sm text-muted-foreground">{entry.action}</span>
-                <span className={`text-sm font-semibold ${entry.points.startsWith("+") ? "text-primary" : "text-destructive"}`}>{entry.points}</span>
-                <span className="text-xs text-muted-foreground w-16 text-right">{entry.time}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </AppLayout>
-  );
+const AnimNum = ({ value }: { value: number }) => {
+  const mv = useMotionValue(0);
+  const display = useTransform(mv, (v) => Math.round(v).toLocaleString());
+  useEffect(() => { const c = animate(mv, value, { duration: 1.5, ease: [0.22, 1, 0.36, 1] }); return c.stop; }, [value, mv]);
+  return <motion.span>{display}</motion.span>;
 };
+
+const topGifters = [
+  { rank: 1, name: "GiftKing", value: 12500, avatar: "G", gifts: 342 },
+  { rank: 2, name: "StreamLover99", value: 8200, avatar: "S", gifts: 214 },
+  { rank: 3, name: "TikTokPro", value: 6800, avatar: "T", gifts: 187 },
+  { rank: 4, name: "CoolViewer42", value: 3200, avatar: "C", gifts: 98 },
+  { rank: 5, name: "NewFan2025", value: 1500, avatar: "N", gifts: 56 },
+  { rank: 6, name: "VibeCheck", value: 900, avatar: "V", gifts: 34 },
+  { rank: 7, name: "WatcherX", value: 700, avatar: "W", gifts: 28 },
+  { rank: 8, name: "Supporter99", value: 550, avatar: "S", gifts: 21 },
+];
+
+const topLikers = [
+  { rank: 1, name: "HeartSpammer", value: 45200, avatar: "H" },
+  { rank: 2, name: "LikeMachine", value: 32100, avatar: "L" },
+  { rank: 3, name: "DoubleTap", value: 28900, avatar: "D" },
+  { rank: 4, name: "HeartBot", value: 19800, avatar: "H" },
+  { rank: 5, name: "LoveStream", value: 12400, avatar: "L" },
+];
+
+const topChatters = [
+  { rank: 1, name: "ChatKing", value: 3420, avatar: "C" },
+  { rank: 2, name: "TalkativeTom", value: 2890, avatar: "T" },
+  { rank: 3, name: "VibeMaster", value: 2100, avatar: "V" },
+  { rank: 4, name: "StreamTalk", value: 1650, avatar: "S" },
+  { rank: 5, name: "ChatMod", value: 1200, avatar: "C" },
+];
+
+const rankColors = ["", "45 100% 55%", "0 0% 65%", "25 70% 45%"];
+
+const LeaderboardSection = ({ title, icon: Icon, data, unit, color }: {
+  title: string; icon: typeof Trophy; data: { rank: number; name: string; value: number; avatar: string; gifts?: number }[]; unit: string; color: string;
+}) => (
+  <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+    className={glassCard} style={glassGradient}
+  >
+    <div className="rounded-2xl p-5" style={glassInnerStyle}>
+      <div className="flex items-center gap-2 mb-5">
+        <Icon size={16} style={{ color: `hsl(${color})` }} />
+        <h2 className="text-sm font-heading font-bold text-foreground">{title}</h2>
+      </div>
+      <div className="space-y-1">
+        {data.map((item, i) => (
+          <motion.div key={item.name}
+            initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.05 }}
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/20 transition-colors"
+          >
+            <span className={`text-sm font-heading font-bold w-6 text-center ${
+              item.rank <= 3 ? "" : "text-muted-foreground"
+            }`} style={item.rank <= 3 ? { color: `hsl(${rankColors[item.rank]})` } : undefined}>
+              {item.rank <= 3 ? <Medal size={16} style={{ color: `hsl(${rankColors[item.rank]})` }} /> : `#${item.rank}`}
+            </span>
+            <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-primary-foreground flex-shrink-0"
+              style={{ background: `linear-gradient(135deg, hsl(${color}), hsl(${color} / 0.7))` }}
+            >
+              {item.avatar}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-foreground truncate">{item.name}</p>
+              {"gifts" in item && <p className="text-[11px] text-muted-foreground">{item.gifts} gifts sent</p>}
+            </div>
+            <span className="text-sm font-heading font-bold" style={{ color: `hsl(${color})` }}>
+              <AnimNum value={item.value} />
+              <span className="text-[10px] text-muted-foreground ml-1">{unit}</span>
+            </span>
+            {item.rank === 1 && (
+              <div className="absolute -top-1 -right-1 w-5 h-5 rounded-full bg-secondary/20 flex items-center justify-center">
+                <Crown size={10} className="text-secondary" />
+              </div>
+            )}
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  </motion.div>
+);
+
+const Points = () => (
+  <AppLayout>
+    <div className="fixed top-20 left-1/2 -translate-x-1/4 w-[500px] h-[300px] rounded-full pointer-events-none z-0"
+      style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.03), transparent 70%)" }} />
+
+    <div className="max-w-6xl mx-auto relative z-10 pb-12">
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-8">
+        <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Leaderboard</h1>
+        <p className="text-muted-foreground text-sm">Track your most active viewers, top gifters, and community champions.</p>
+      </motion.div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <LeaderboardSection title="Top Gifters" icon={Gift} data={topGifters} unit="coins" color="280 100% 65%" />
+        <LeaderboardSection title="Top Likers" icon={Heart} data={topLikers} unit="likes" color="350 90% 55%" />
+        <LeaderboardSection title="Top Chatters" icon={MessageCircle} data={topChatters} unit="msgs" color="160 100% 45%" />
+      </div>
+    </div>
+  </AppLayout>
+);
 
 export default Points;

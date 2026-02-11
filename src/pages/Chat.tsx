@@ -1,130 +1,170 @@
 import AppLayout from "@/components/AppLayout";
-import FormSection from "@/components/FormSection";
-import FormField from "@/components/FormField";
-import TabNav from "@/components/TabNav";
-import { MessageCircle, Info } from "lucide-react";
+import { motion } from "framer-motion";
 import { useState } from "react";
+import {
+  Terminal, Plus, Trash2, Clock,
+  Settings, Shield,
+  AlertTriangle, Link2, Type
+} from "lucide-react";
 
-const recentMessages = [
-  { user: "CoolViewer42", message: "Love the stream! 🔥", time: "2m ago", type: "chat" as const },
-  { user: "GiftKing", message: "Sent a Rose 🌹", time: "3m ago", type: "gift" as const },
-  { user: "NewFan2025", message: "Just followed!", time: "5m ago", type: "follow" as const },
-  { user: "StreamLover", message: "Can you play music?", time: "7m ago", type: "chat" as const },
-  { user: "TikTokPro", message: "Sent a Lion 🦁", time: "8m ago", type: "gift" as const },
-  { user: "WatcherX", message: "Great content as always!", time: "9m ago", type: "chat" as const },
-  { user: "Supporter99", message: "Shared your stream!", time: "10m ago", type: "share" as const },
-  { user: "VibeCheck", message: "😂😂😂", time: "11m ago", type: "chat" as const },
+const glassCard = "rounded-2xl p-[1px]";
+const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
+const glassInner = "rounded-2xl h-full transition-shadow duration-300 group-hover:shadow-[0_0_30px_hsl(160_100%_45%/0.06)]";
+const glassInnerStyle = { background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" };
+
+const commands = [
+  { cmd: "!dice", response: "🎲 {user} rolled a {random:1-6}!", cooldown: "10s", uses: 342, active: true },
+  { cmd: "!socials", response: "Follow me: instagram.com/creator", cooldown: "30s", uses: 128, active: true },
+  { cmd: "!uptime", response: "Stream has been live for {uptime}", cooldown: "60s", uses: 89, active: true },
+  { cmd: "!song", response: "Now playing: {current_song}", cooldown: "15s", uses: 567, active: true },
+  { cmd: "!hug", response: "{user} hugs {target}! 🤗", cooldown: "5s", uses: 1203, active: true },
+  { cmd: "!rank", response: "{user} is ranked #{rank} with {points} points", cooldown: "30s", uses: 445, active: false },
 ];
 
-const tabs = ["Live Chat", "Chat Settings", "Moderation", "Word Filters", "Blacklist"];
+const modSettings = [
+  { icon: Shield, label: "Block links in chat", desc: "Auto-delete messages containing URLs", active: true },
+  { icon: Type, label: "Caps lock filter", desc: "Block all-caps messages (>80% uppercase)", active: true },
+  { icon: AlertTriangle, label: "Spam detection", desc: "Block repeated messages within 5 seconds", active: true },
+  { icon: Link2, label: "Allow subscriber links", desc: "Subscribers can post links in chat", active: false },
+  { icon: Clock, label: "Slow mode", desc: "Users can only send one message every 5 seconds", active: false },
+];
+
+const tabs = ["Chat Commands", "Auto Moderation", "Word Filters", "Banned Users"];
 
 const Chat = () => {
   const [activeTab, setActiveTab] = useState(tabs[0]);
+  const [filterInput, setFilterInput] = useState("");
+  const [banInput, setBanInput] = useState("");
 
   return (
     <AppLayout>
-      <div className="max-w-5xl mx-auto animate-slide-in pb-12">
-        <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+      <div className="fixed top-20 left-1/2 -translate-x-1/4 w-[500px] h-[300px] rounded-full pointer-events-none z-0"
+        style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.03), transparent 70%)" }} />
 
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border mb-6">
-          <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            <p>View and manage your <span className="text-primary font-medium">TikTok LIVE Chat</span>. Configure moderation, word filters, and blacklists.</p>
+      <div className="max-w-6xl mx-auto relative z-10 pb-12">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Chat Commands</h1>
+            <p className="text-muted-foreground text-sm">Create custom commands, manage moderation rules, and control chat behavior.</p>
           </div>
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.25)]">
+            <Plus size={16} /> New Command
+          </button>
+        </motion.div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-6 p-1 rounded-xl bg-muted/30 w-fit">
+          {tabs.map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${activeTab === tab ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >{tab}</button>
+          ))}
         </div>
 
-        {activeTab === "Live Chat" && (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-            <div className="lg:col-span-3 space-y-5">
-              <FormSection title="Chat Display Settings">
-                <FormField label="Chat overlay" type="toggle" checked={true} />
-                <FormField label="Font size" type="select" options={["Small", "Medium", "Large"]} />
-                <FormField label="Animation" type="select" options={["Slide In", "Fade In", "None"]} />
-                <FormField label="Show badges" type="toggle" checked={true} />
-                <FormField label="Show timestamps" type="toggle" checked={false} />
-                <FormField label="Max messages shown" type="number" value="50" />
-              </FormSection>
-            </div>
-            <div className="lg:col-span-2">
-              <div className="rounded-xl border border-border bg-card overflow-hidden sticky top-20">
-                <div className="px-4 py-3 border-b border-border">
-                  <h3 className="font-heading font-semibold text-sm text-primary flex items-center gap-2">
-                    <MessageCircle size={14} /> Live Chat Feed
-                  </h3>
-                </div>
-                <div className="max-h-[500px] overflow-y-auto">
-                  {recentMessages.map((msg, i) => (
-                    <div key={i} className="flex items-start gap-2.5 px-4 py-2.5 border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                      <div className={`w-2 h-2 rounded-full mt-1.5 flex-shrink-0 ${
-                        msg.type === 'gift' ? 'bg-secondary' : msg.type === 'follow' ? 'bg-primary' : msg.type === 'share' ? 'bg-green-400' : 'bg-muted-foreground'
-                      }`} />
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs font-semibold text-foreground">{msg.user}</span>
-                          <span className="text-[10px] text-muted-foreground">{msg.time}</span>
-                        </div>
-                        <p className="text-xs text-muted-foreground">{msg.message}</p>
-                      </div>
+        {/* Chat Commands */}
+        {activeTab === "Chat Commands" && (
+          <div className="space-y-3">
+            {commands.map((cmd, i) => (
+              <motion.div key={cmd.cmd} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                whileHover={{ y: -2, transition: { duration: 0.2 } }}
+                className={`${glassCard} group`} style={glassGradient}
+              >
+                <div className={glassInner} style={glassInnerStyle}>
+                  <div className="p-4 flex items-center gap-4">
+                    <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Terminal size={16} className="text-primary" />
                     </div>
-                  ))}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-sm font-heading font-bold text-foreground">{cmd.cmd}</span>
+                        <span className="text-[10px] text-muted-foreground/60 flex items-center gap-1"><Clock size={9} /> {cmd.cooldown}</span>
+                        <span className="text-[10px] text-muted-foreground/60">{cmd.uses} uses</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">{cmd.response}</p>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <button className={`w-9 h-[20px] rounded-full relative transition-colors duration-200 ${cmd.active ? "bg-primary/30" : "bg-muted/60"}`}>
+                        <div className={`w-3.5 h-3.5 rounded-full absolute top-[3px] transition-all duration-200 ${cmd.active ? "left-[19px] bg-primary" : "left-1 bg-muted-foreground/60"}`} />
+                      </button>
+                      <button className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors"><Settings size={14} /></button>
+                      <button className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors"><Trash2 size={14} /></button>
+                    </div>
+                  </div>
                 </div>
-                <div className="px-4 py-2.5 border-t border-border bg-muted/30">
-                  <p className="text-xs text-muted-foreground text-center italic">Connect to TikTok LIVE to see real-time chat</p>
-                </div>
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </div>
         )}
 
-        {activeTab === "Chat Settings" && (
-          <FormSection title="General Chat Settings">
-            <FormField label="Chat overlay enabled" type="toggle" checked={true} />
-            <FormField label="Show viewer badges" type="toggle" checked={true} />
-            <FormField label="Chat theme" type="select" options={["Default Dark", "Light", "Transparent", "Neon"]} />
-            <FormField label="Max message length" type="number" value="300" />
-          </FormSection>
+        {/* Auto Moderation */}
+        {activeTab === "Auto Moderation" && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            className={glassCard} style={glassGradient}
+          >
+            <div className="rounded-2xl p-6" style={glassInnerStyle}>
+              <h2 className="text-sm font-heading font-bold text-foreground mb-5">Moderation Rules</h2>
+              <div className="space-y-4">
+                {modSettings.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between group">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-muted/50 flex items-center justify-center">
+                        <item.icon size={14} className="text-muted-foreground" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{item.label}</p>
+                        <p className="text-xs text-muted-foreground">{item.desc}</p>
+                      </div>
+                    </div>
+                    <button className={`w-10 h-[22px] rounded-full relative transition-colors duration-200 ${item.active ? "bg-primary/30" : "bg-muted/60"}`}>
+                      <div className={`w-4 h-4 rounded-full absolute top-[3px] transition-all duration-200 ${item.active ? "left-[22px] bg-primary" : "left-1 bg-muted-foreground/60"}`} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
         )}
 
-        {activeTab === "Moderation" && (
-          <FormSection title="Moderation Rules" accent>
-            <FormField label="Block links" type="toggle" checked={true} />
-            <FormField label="Block repeated messages" type="toggle" checked={true} />
-            <FormField label="Slow mode (seconds)" type="number" value="0" />
-            <FormField label="Min account age (days)" type="number" value="0" />
-            <FormField label="Auto-ban spam bots" type="toggle" checked={true} />
-          </FormSection>
-        )}
-
+        {/* Word Filters */}
         {activeTab === "Word Filters" && (
-          <FormSection title="Word Filters" description="Add words or phrases to auto-block from chat and TTS.">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Add a word or phrase..."
-                className="flex-1 bg-muted border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
-              />
-              <button className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">
-                Add
-              </button>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            className={glassCard} style={glassGradient}
+          >
+            <div className="rounded-2xl p-6" style={glassInnerStyle}>
+              <h2 className="text-sm font-heading font-bold text-foreground mb-2">Blocked Words & Phrases</h2>
+              <p className="text-xs text-muted-foreground mb-5">Messages containing these words will be automatically blocked from chat and TTS.</p>
+              <div className="flex gap-2 mb-4">
+                <input type="text" value={filterInput} onChange={e => setFilterInput(e.target.value)} placeholder="Add a word or phrase..."
+                  className="flex-1 bg-muted/40 border border-border/60 rounded-xl px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary/40 transition-colors" />
+                <button className="px-5 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity">Add</button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {["badword1", "spam", "scam", "buy followers"].map(word => (
+                  <span key={word} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-destructive/10 text-destructive text-xs font-medium">
+                    {word} <button className="hover:text-destructive/80">×</button>
+                  </span>
+                ))}
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground italic">No words added yet.</p>
-          </FormSection>
+          </motion.div>
         )}
 
-        {activeTab === "Blacklist" && (
-          <FormSection title="User Blacklist" description="Block specific users from triggering actions, TTS, and alerts.">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                placeholder="Enter username to blacklist..."
-                className="flex-1 bg-muted border border-border rounded-md px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:ring-1 focus:ring-primary"
-              />
-              <button className="px-4 py-2 rounded-md bg-destructive/20 text-destructive text-sm font-semibold hover:bg-destructive/30 transition-colors">
-                Block
-              </button>
+        {/* Banned Users */}
+        {activeTab === "Banned Users" && (
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+            className={glassCard} style={glassGradient}
+          >
+            <div className="rounded-2xl p-6" style={glassInnerStyle}>
+              <h2 className="text-sm font-heading font-bold text-foreground mb-2">Banned Users</h2>
+              <p className="text-xs text-muted-foreground mb-5">These users are blocked from triggering any actions, TTS, or alerts.</p>
+              <div className="flex gap-2 mb-4">
+                <input type="text" value={banInput} onChange={e => setBanInput(e.target.value)} placeholder="Enter username..."
+                  className="flex-1 bg-muted/40 border border-border/60 rounded-xl px-4 py-2.5 text-sm text-foreground outline-none focus:border-primary/40 transition-colors" />
+                <button className="px-5 py-2.5 rounded-xl bg-destructive/20 text-destructive text-sm font-semibold hover:bg-destructive/30 transition-colors">Block</button>
+              </div>
+              <p className="text-xs text-muted-foreground italic">No users banned yet.</p>
             </div>
-            <p className="text-xs text-muted-foreground italic">No users blacklisted.</p>
-          </FormSection>
+          </motion.div>
         )}
       </div>
     </AppLayout>

@@ -1,98 +1,129 @@
 import AppLayout from "@/components/AppLayout";
-import OverlayCard from "@/components/OverlayCard";
-import FormSection from "@/components/FormSection";
-import FormField from "@/components/FormField";
-import TabNav from "@/components/TabNav";
-import { Info, Upload } from "lucide-react";
+import { motion } from "framer-motion";
 import { useState } from "react";
+import {
+  Volume2, Upload, Play, Pause, Trash2,
+  Hash, Clock
+} from "lucide-react";
 
-const soundData = {
-  "Sound Alerts": [
-    { title: "Gift Sound: Rose", description: "Plays a chime sound when a viewer sends a Rose gift." },
-    { title: "Gift Sound: Lion", description: "Plays a dramatic lion roar for the Lion gift." },
-    { title: "Gift Sound: Universe", description: "Epic galaxy sound for the Universe gift." },
-    { title: "Follow Sound", description: "Notification sound when someone follows during live." },
-    { title: "Sub Alert Sound", description: "Special chime when a subscriber joins." },
-    { title: "Chat Command: !airhorn", description: "Plays air horn when !airhorn is typed in chat." },
-    { title: "Share Sound Alert", description: "Sound when a viewer shares your stream." },
-    { title: "Like Milestone Sound", description: "Celebration sound at like milestones." },
-  ],
-  "TTS Settings": [],
-  "Music Player": [],
-  "Sound Library": [
-    { title: "Chime Pack", description: "A collection of clean, modern chime sounds for alerts." },
-    { title: "Retro 8-Bit Pack", description: "Pixel-art style sound effects, great for gaming streams." },
-    { title: "Epic Orchestral Pack", description: "Cinematic sounds for high-value gift alerts." },
-    { title: "Funny SFX Pack", description: "Comedy sound effects like boing, fart, and record scratch." },
-  ],
-};
+const glassCard = "rounded-2xl p-[1px]";
+const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
+const glassInnerStyle = { background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" };
 
-const tabs = Object.keys(soundData);
+const sounds = [
+  { id: "1", name: "Chime Alert", trigger: "Rose Gift", duration: "2.3s", plays: 1247, file: "chime.mp3" },
+  { id: "2", name: "Lion Roar", trigger: "Lion Gift", duration: "3.1s", plays: 432, file: "lion.mp3" },
+  { id: "3", name: "Universe Epic", trigger: "Universe Gift", duration: "5.2s", plays: 89, file: "universe.mp3" },
+  { id: "4", name: "Follow Ding", trigger: "New Follow", duration: "1.5s", plays: 3201, file: "follow.mp3" },
+  { id: "5", name: "Air Horn", trigger: "!airhorn command", duration: "2.0s", plays: 876, file: "airhorn.mp3" },
+  { id: "6", name: "Cash Register", trigger: "Gift > 100 coins", duration: "1.8s", plays: 234, file: "cash.mp3" },
+  { id: "7", name: "Level Up", trigger: "Milestone", duration: "2.5s", plays: 156, file: "levelup.mp3" },
+  { id: "8", name: "Sad Trombone", trigger: "!sad command", duration: "3.0s", plays: 543, file: "sad.mp3" },
+];
 
 const Sounds = () => {
-  const [activeTab, setActiveTab] = useState(tabs[0]);
-  const items = soundData[activeTab as keyof typeof soundData];
+  const [playing, setPlaying] = useState<string | null>(null);
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto animate-slide-in pb-12">
-        <TabNav
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          rightAction={
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90 transition-opacity">
-              <Upload size={14} /> Upload Sound
-            </button>
-          }
-        />
+      <div className="fixed top-20 left-1/2 -translate-x-1/4 w-[500px] h-[300px] rounded-full pointer-events-none z-0"
+        style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.03), transparent 70%)" }} />
 
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border mb-6">
-          <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            <p>
-              Configure <span className="text-primary font-medium">Sound Alerts</span> and <span className="text-primary font-medium">Text-to-Speech</span> for your stream.
-            </p>
+      <div className="max-w-6xl mx-auto relative z-10 pb-12">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Soundboard</h1>
+            <p className="text-muted-foreground text-sm">Upload and manage sound effects triggered by gifts, commands, and events.</p>
           </div>
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.25)]">
+            <Upload size={16} /> Upload Sound
+          </button>
+        </motion.div>
+
+        {/* Volume Control */}
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className={glassCard} style={glassGradient}
+        >
+          <div className="rounded-2xl p-5 flex items-center gap-6" style={glassInnerStyle}>
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Volume2 size={18} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-sm font-heading font-bold text-foreground">Master Volume</p>
+                <p className="text-[11px] text-muted-foreground">Controls all sound alert volumes</p>
+              </div>
+            </div>
+            <div className="flex-1">
+              <div className="h-2 rounded-full bg-muted/40 relative">
+                <div className="h-full w-3/4 rounded-full bg-primary relative">
+                  <div className="w-4 h-4 rounded-full bg-primary border-2 border-background absolute -right-2 -top-1 shadow-lg" />
+                </div>
+              </div>
+            </div>
+            <span className="text-sm font-heading font-bold text-foreground w-10 text-right">75%</span>
+          </div>
+        </motion.div>
+
+        {/* Sound List */}
+        <div className="mt-6 space-y-2">
+          {sounds.map((sound, i) => (
+            <motion.div key={sound.id}
+              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 + i * 0.03 }}
+              whileHover={{ y: -2, transition: { duration: 0.2 } }}
+              className={`${glassCard} group`} style={glassGradient}
+            >
+              <div className="rounded-2xl transition-shadow duration-300 group-hover:shadow-[0_0_25px_hsl(160_100%_45%/0.05)]" style={glassInnerStyle}>
+                <div className="p-4 flex items-center gap-4">
+                  {/* Play button */}
+                  <button
+                    onClick={() => setPlaying(playing === sound.id ? null : sound.id)}
+                    className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-200 flex-shrink-0 ${
+                      playing === sound.id ? "bg-primary text-primary-foreground" : "bg-primary/10 text-primary hover:bg-primary/20"
+                    }`}
+                  >
+                    {playing === sound.id ? <Pause size={14} /> : <Play size={14} className="ml-0.5" />}
+                  </button>
+
+                  {/* Info */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-sm font-heading font-bold text-foreground">{sound.name}</span>
+                      {playing === sound.id && (
+                        <div className="flex items-end gap-[2px] h-3">
+                          {[...Array(4)].map((_, j) => (
+                            <motion.div key={j} className="w-[2px] rounded-full bg-primary"
+                              animate={{ height: [3, 8 + Math.random() * 4, 3] }}
+                              transition={{ duration: 0.4, repeat: Infinity, delay: j * 0.1 }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-muted-foreground flex items-center gap-3">
+                      <span className="flex items-center gap-1"><Hash size={9} /> {sound.trigger}</span>
+                      <span className="flex items-center gap-1"><Clock size={9} /> {sound.duration}</span>
+                      <span>{sound.plays} plays</span>
+                    </p>
+                  </div>
+
+                  {/* Waveform placeholder */}
+                  <div className="hidden md:flex items-end gap-[2px] h-6 opacity-30">
+                    {[...Array(20)].map((_, j) => (
+                      <div key={j} className="w-[2px] rounded-full bg-primary" style={{ height: `${4 + Math.random() * 16}px` }} />
+                    ))}
+                  </div>
+
+                  {/* Actions */}
+                  <button className="p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors flex-shrink-0">
+                    <Trash2 size={14} />
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
-
-        {(activeTab === "TTS Settings" || activeTab === "Sound Alerts") && (
-          <div className="mb-6">
-            <FormSection title={activeTab === "TTS Settings" ? "Text-to-Speech Configuration" : "Master Audio Settings"}>
-              {activeTab === "TTS Settings" ? (
-                <>
-                  <FormField label="TTS Enabled" type="toggle" checked={true} />
-                  <FormField label="TTS Voice" type="select" options={["Default Female", "Default Male", "Funny", "Deep", "Robot"]} />
-                  <FormField label="TTS Speed" type="select" options={["Slow", "Normal", "Fast"]} />
-                  <FormField label="TTS Max Length" type="number" value="200" />
-                  <FormField label="Min gift for TTS" type="number" value="1" />
-                  <FormField label="Filter profanity" type="toggle" checked={true} />
-                </>
-              ) : (
-                <>
-                  <FormField label="Master Volume" type="select" options={["25%", "50%", "75%", "100%"]} />
-                  <FormField label="TTS Enabled" type="toggle" checked={true} />
-                </>
-              )}
-            </FormSection>
-          </div>
-        )}
-
-        {activeTab === "Music Player" && (
-          <FormSection title="Music Player Settings" description="Configure the built-in music player for your stream.">
-            <FormField label="Music volume" type="select" options={["25%", "50%", "75%", "100%"]} />
-            <FormField label="Auto-duck for TTS" type="toggle" checked={true} />
-            <FormField label="Allow song requests" type="toggle" checked={true} />
-          </FormSection>
-        )}
-
-        {items.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {items.map((sound) => (
-              <OverlayCard key={sound.title} title={sound.title} description={sound.description} hasPreview={false} url="#" />
-            ))}
-          </div>
-        )}
       </div>
     </AppLayout>
   );

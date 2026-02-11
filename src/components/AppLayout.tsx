@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { ReactNode } from "react";
 import AppSidebar from "./AppSidebar";
 import { Search, Bell, HelpCircle, User } from "lucide-react";
 
@@ -7,14 +7,11 @@ interface AppLayoutProps {
 }
 
 const AppLayout = ({ children }: AppLayoutProps) => {
-  const [activeItem, setActiveItem] = useState("start");
-
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar activeItem={activeItem} onItemChange={setActiveItem} />
+      <AppSidebar />
       
       <div className="flex-1 ml-[68px]">
-        {/* Top bar */}
         <header className="h-14 border-b border-border flex items-center justify-between px-6 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 w-64">
@@ -42,7 +39,6 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           </div>
         </header>
 
-        {/* Content */}
         <main className="p-6">
           {children}
         </main>

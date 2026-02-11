@@ -22,8 +22,8 @@ const FollowAlertRenderer = () => {
 
   useEffect(() => {
     if (!publicToken) return;
-    const ch = supabase.channel(`follow-alert-${publicToken}`)
-      .on("broadcast", { event: "follow_alert" }, (msg) => {
+    const ch = supabase.channel(`follow_alert-${publicToken}`)
+      .on("broadcast", { event: "new_alert" }, (msg) => {
         setAlerts(prev => [...prev, { ...msg.payload as any, id: Date.now() }]);
       })
       .on("broadcast", { event: "test_alert" }, () => {

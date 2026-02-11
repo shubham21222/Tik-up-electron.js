@@ -256,7 +256,7 @@ const LandingPage = () => {
       >
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <img src={tikupLogo} alt="TikUp" className="w-8 h-8 object-contain" />
+            <img src={tikupLogo} alt="TikUp" className="w-20 h-20 object-contain" />
             <span className="text-lg font-heading font-bold text-foreground tracking-tight">TIKUP</span>
           </Link>
           <div className="flex items-center gap-3">

@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import AppSidebar from "./AppSidebar";
+import StatusBar from "./StatusBar";
 import { Search, Bell, HelpCircle, User } from "lucide-react";
 
 interface AppLayoutProps {
@@ -39,10 +40,12 @@ const AppLayout = ({ children }: AppLayoutProps) => {
           </div>
         </header>
 
-        <main className="p-6">
+        <main className="p-6 pb-16">
           {children}
         </main>
       </div>
+
+      <StatusBar />
     </div>
   );
 };

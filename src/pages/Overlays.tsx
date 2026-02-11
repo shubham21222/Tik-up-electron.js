@@ -1,50 +1,68 @@
 import AppLayout from "@/components/AppLayout";
-import { Layers, Plus, Image, BarChart3, Target, MessageSquare, Trophy } from "lucide-react";
+import OverlayCard from "@/components/OverlayCard";
+import { Layers, Info } from "lucide-react";
 
-const overlayTypes = [
-  { icon: MessageSquare, title: "Chat Overlay", description: "Display live chat messages on your stream with custom styling and animations.", count: 0 },
-  { icon: Target, title: "Alert Box", description: "Show animated alerts for follows, gifts, shares, and other viewer actions.", count: 0 },
-  { icon: BarChart3, title: "Goal Widget", description: "Set gift or follower goals and display progress bars on your stream.", count: 0 },
-  { icon: Trophy, title: "Leaderboard", description: "Show top gifters, most active chatters, and viewer rankings in real time.", count: 0 },
-  { icon: Image, title: "Custom Widget", description: "Create fully custom HTML/CSS widgets and embed them in your stream overlay.", count: 0 },
+const overlays = [
+  { title: "Text-to-Speech (TTS)", description: "Shows text-to-speech messages on your stream. Viewers can send messages that are read aloud with customizable voices.", hasPreview: true },
+  { title: "TikTok Chat Overlay", description: "Display live chat messages as an overlay. Fully customizable with different themes, font sizes, and animation styles.", hasPreview: true },
+  { title: "Sound Alert Overlay", description: "Visual overlay that shows animated alerts when sound effects are triggered by viewer gifts.", hasPreview: true },
+  { title: "Like/Follow Overlay", description: "A customizable overlay that shows animations when viewers like or follow your stream.", hasPreview: true },
+  { title: "Gift Alert Overlay", description: "Beautiful animated alerts that appear on screen when viewers send gifts during your live.", hasPreview: true },
+  { title: "Top Gifters Widget", description: "Display a real-time leaderboard showing your top gift senders with animated transitions.", hasPreview: true },
+  { title: "Goal Progress Bar", description: "Set gift or follower goals and display animated progress bars on your stream overlay.", hasPreview: true },
+  { title: "Stream Countdown", description: "A countdown timer that viewers can extend by sending gifts. Great for subathon-style streams.", hasPreview: true },
+  { title: "Custom Alert Box", description: "Create fully customizable alert boxes with your own images, sounds, and animation effects.", hasPreview: true },
+  { title: "Viewer Count Widget", description: "Display your current viewer count with a clean animated widget on your stream.", hasPreview: true },
+  { title: "Chat Word Cloud", description: "Generate a real-time word cloud from your chat messages. Shows trending words and phrases.", hasPreview: true },
+  { title: "Emote Wall", description: "Display a wall of emotes and stickers sent by your viewers. Fun and interactive visual overlay.", hasPreview: true },
+  { title: "Poll Overlay", description: "Create interactive polls where viewers can vote through chat. Results displayed in real-time on stream.", hasPreview: true },
+  { title: "Wheel Spin", description: "A spinning wheel that can be triggered by gifts. Add custom prizes and let viewers try their luck!", hasPreview: true },
+  { title: "Sub Emote Overlay", description: "Display subscriber emotes as animated overlays when subscribers interact with your stream.", hasPreview: true },
+  { title: "Queue System", description: "Let viewers join a queue for games, duets, or other interactive activities during your live stream.", hasPreview: true },
 ];
 
 const Overlays = () => {
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto animate-slide-in">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Layers size={28} className="text-primary" />
-              <h1 className="text-3xl font-heading font-bold text-foreground">Overlays</h1>
-            </div>
-            <p className="text-muted-foreground">Add professional overlays and widgets to your TikTok LIVE stream.</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity">
-            <Plus size={16} />
-            New Overlay
-          </button>
+      <div className="max-w-6xl mx-auto animate-slide-in pb-12">
+        {/* Top tabs */}
+        <div className="flex items-center gap-1 mb-4 border-b border-border pb-2 overflow-x-auto">
+          {["Overlays", "Quick Setup", "Browser Sources", "All Overlays"].map((tab, i) => (
+            <button
+              key={tab}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                i === 0
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
+        {/* Info block */}
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border mb-6">
+          <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-muted-foreground leading-relaxed">
+            <p>
+              Here you will find all available <span className="text-primary font-medium">Overlay Widgets</span> for your TikTok LIVE stream.
+              Each overlay provides a unique browser source URL that you can add to OBS Studio, TikTok LIVE Studio, or Streamlabs.
+              Simply copy the URL and add it as a browser source in your streaming software.
+            </p>
+          </div>
+        </div>
+
+        {/* Overlay grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {overlayTypes.map((overlay) => (
-            <div
+          {overlays.map((overlay) => (
+            <OverlayCard
               key={overlay.title}
-              className="p-5 rounded-xl border border-border bg-card hover:border-primary/20 transition-all cursor-pointer group relative overflow-hidden"
-            >
-              <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br from-primary/5 to-transparent" />
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center">
-                    <overlay.icon size={20} />
-                  </div>
-                  <span className="text-xs text-muted-foreground">{overlay.count} active</span>
-                </div>
-                <h3 className="font-heading font-semibold text-foreground mb-1">{overlay.title}</h3>
-                <p className="text-sm text-muted-foreground">{overlay.description}</p>
-              </div>
-            </div>
+              title={overlay.title}
+              description={overlay.description}
+              hasPreview={overlay.hasPreview}
+              url="#"
+            />
           ))}
         </div>
       </div>

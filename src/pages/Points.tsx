@@ -1,5 +1,7 @@
 import AppLayout from "@/components/AppLayout";
-import { Trophy, Plus, Gift, Star, Crown, TrendingUp } from "lucide-react";
+import FormSection from "@/components/FormSection";
+import FormField from "@/components/FormField";
+import { Trophy, TrendingUp, Gift, Crown, Star, Plus } from "lucide-react";
 
 const topViewers = [
   { rank: 1, name: "GiftKing", points: 12500, icon: Crown },
@@ -7,6 +9,9 @@ const topViewers = [
   { rank: 3, name: "TikTokPro", points: 6800, icon: Star },
   { rank: 4, name: "CoolViewer42", points: 3200, icon: null },
   { rank: 5, name: "NewFan2025", points: 1500, icon: null },
+  { rank: 6, name: "VibeCheck", points: 900, icon: null },
+  { rank: 7, name: "WatcherX", points: 700, icon: null },
+  { rank: 8, name: "Supporter99", points: 550, icon: null },
 ];
 
 const rewards = [
@@ -14,22 +19,31 @@ const rewards = [
   { name: "Song Request", cost: 1000, claimed: 8 },
   { name: "Choose Game Mode", cost: 2500, claimed: 3 },
   { name: "VIP Badge", cost: 5000, claimed: 1 },
+  { name: "Shoutout on Stream", cost: 750, claimed: 6 },
+  { name: "Pick Next Challenge", cost: 3000, claimed: 2 },
 ];
 
 const Points = () => {
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto animate-slide-in">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Trophy size={28} className="text-primary" />
-              <h1 className="text-3xl font-heading font-bold text-foreground">Points System</h1>
-            </div>
-            <p className="text-muted-foreground">Reward loyal viewers with points they can redeem for special perks.</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity">
-            <Plus size={16} />
+      <div className="max-w-5xl mx-auto animate-slide-in pb-12">
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-4 border-b border-border pb-2 overflow-x-auto">
+          {["Leaderboard", "Rewards", "Points Settings", "History"].map((tab, i) => (
+            <button
+              key={tab}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                i === 0
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+          <div className="flex-1" />
+          <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90 transition-opacity">
+            <Plus size={14} />
             Add Reward
           </button>
         </div>
@@ -37,55 +51,57 @@ const Points = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Leaderboard */}
           <section>
-            <div className="flex items-center gap-2 mb-4">
-              <TrendingUp size={18} className="text-primary" />
-              <h2 className="text-lg font-heading font-semibold text-foreground">Leaderboard</h2>
-            </div>
             <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+                <TrendingUp size={16} className="text-primary" />
+                <h3 className="font-heading font-semibold text-sm text-primary">Top Viewers</h3>
+              </div>
               {topViewers.map((viewer) => (
                 <div
                   key={viewer.rank}
-                  className="flex items-center gap-4 px-5 py-3.5 border-b border-border last:border-0 hover:bg-muted/30 transition-colors"
+                  className="flex items-center gap-4 px-5 py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors"
                 >
-                  <span className={`text-lg font-heading font-bold w-8 ${viewer.rank <= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
+                  <span className={`text-base font-heading font-bold w-8 ${viewer.rank <= 3 ? 'text-primary' : 'text-muted-foreground'}`}>
                     #{viewer.rank}
                   </span>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm text-foreground">{viewer.name}</span>
-                      {viewer.icon && <viewer.icon size={14} className="text-secondary" />}
-                    </div>
+                  <div className="flex-1 flex items-center gap-2">
+                    <span className="font-medium text-sm text-foreground">{viewer.name}</span>
+                    {viewer.icon && <viewer.icon size={14} className="text-secondary" />}
                   </div>
-                  <span className="text-sm font-semibold text-primary">{viewer.points.toLocaleString()} pts</span>
+                  <span className="text-sm font-semibold text-primary">{viewer.points.toLocaleString()}</span>
                 </div>
               ))}
             </div>
           </section>
 
-          {/* Rewards */}
-          <section>
-            <div className="flex items-center gap-2 mb-4">
-              <Gift size={18} className="text-secondary" />
-              <h2 className="text-lg font-heading font-semibold text-foreground">Rewards</h2>
-            </div>
-            <div className="space-y-3">
+          {/* Rewards + Settings */}
+          <div className="space-y-5">
+            <div className="rounded-xl border border-border bg-card overflow-hidden">
+              <div className="px-5 py-3 border-b border-border flex items-center gap-2">
+                <Gift size={16} className="text-secondary" />
+                <h3 className="font-heading font-semibold text-sm text-secondary">Rewards</h3>
+              </div>
               {rewards.map((reward) => (
                 <div
                   key={reward.name}
-                  className="flex items-center gap-4 p-4 rounded-xl border border-border bg-card hover:border-primary/20 transition-all"
+                  className="flex items-center gap-4 px-5 py-3 border-b border-border last:border-0 hover:bg-muted/20 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-secondary/10 text-secondary flex items-center justify-center flex-shrink-0">
-                    <Gift size={20} />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-heading font-semibold text-foreground text-sm">{reward.name}</h3>
-                    <p className="text-xs text-muted-foreground">{reward.claimed} times claimed</p>
+                  <div className="flex-1">
+                    <span className="font-medium text-sm text-foreground">{reward.name}</span>
+                    <span className="text-xs text-muted-foreground ml-2">({reward.claimed}x claimed)</span>
                   </div>
                   <span className="text-sm font-semibold text-primary">{reward.cost} pts</span>
                 </div>
               ))}
             </div>
-          </section>
+
+            <FormSection title="Points Settings">
+              <FormField label="Points per minute" type="number" value="1" />
+              <FormField label="Gift multiplier" type="number" value="10" />
+              <FormField label="Subscriber bonus" type="toggle" checked={true} />
+              <FormField label="Bonus multiplier" type="select" options={["1.5x", "2x", "3x"]} />
+            </FormSection>
+          </div>
         </div>
       </div>
     </AppLayout>

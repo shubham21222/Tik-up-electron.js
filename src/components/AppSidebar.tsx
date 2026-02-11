@@ -4,7 +4,7 @@ import {
   Heart, UserPlus, Share2, Users, Timer, Activity, Trophy,
   Volume2, Terminal, Shield, Mic, PartyPopper, BarChart,
   Puzzle, Link2, Palette, CreditCard, ChevronLeft,
-  ChevronRight, Layers, Type
+  ChevronRight, Layers, Type, Settings
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -61,6 +61,7 @@ const sections: SidebarSection[] = [
   {
     label: "Settings",
     items: [
+      { id: "/setup", label: "Setup / Connect", icon: Settings },
       { id: "/widgets", label: "Custom Widgets", icon: Puzzle, pro: true },
       { id: "/integrations", label: "Integrations", icon: Link2 },
       { id: "/brand-settings", label: "Brand Settings", icon: Palette },

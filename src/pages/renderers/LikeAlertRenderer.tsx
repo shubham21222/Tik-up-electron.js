@@ -3,10 +3,12 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultLikeAlertSettings } from "@/hooks/use-overlay-widgets";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface LikeEvent { id: number; user: string; count: number; }
 
 const LikeAlertRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultLikeAlertSettings);
   const [alerts, setAlerts] = useState<LikeEvent[]>([]);

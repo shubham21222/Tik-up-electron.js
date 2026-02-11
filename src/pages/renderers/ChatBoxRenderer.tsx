@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultChatBoxSettings } from "@/hooks/use-overlay-widgets";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface ChatMessage {
   id: number;
@@ -26,6 +27,7 @@ const getAnimVariants = (style: string) => {
 };
 
 const ChatBoxRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultChatBoxSettings);
   const [messages, setMessages] = useState<ChatMessage[]>([]);

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface TTSMessage {
   id: string;
@@ -13,6 +14,7 @@ interface TTSMessage {
 }
 
 const TTSRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [connected, setConnected] = useState(false);
   const [queue, setQueue] = useState<TTSMessage[]>([]);

@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface GoalData {
   id: string;
@@ -49,6 +50,7 @@ const Confetti = () => {
 };
 
 const GoalOverlayRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [goal, setGoal] = useState<GoalData | null>(null);
   const [connected, setConnected] = useState(false);

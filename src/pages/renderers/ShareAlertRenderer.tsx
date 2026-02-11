@@ -3,10 +3,12 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultShareAlertSettings } from "@/hooks/use-overlay-widgets";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface ShareEvent { id: number; user: string; count: number; }
 
 const ShareAlertRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultShareAlertSettings);
   const [alerts, setAlerts] = useState<ShareEvent[]>([]);

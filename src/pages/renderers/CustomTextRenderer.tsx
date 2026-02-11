@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import { defaultCustomTextSettings } from "@/hooks/overlay-defaults";
+import useOverlayBody from "@/hooks/use-overlay-body";
 
 const mockVars: Record<string, string> = {
   "{viewer_count}": "0",
@@ -13,6 +14,7 @@ const mockVars: Record<string, string> = {
 };
 
 const CustomTextRenderer = () => {
+  useOverlayBody();
   const { publicToken } = useParams();
   const [settings, setSettings] = useState(defaultCustomTextSettings);
   const [vars, setVars] = useState(mockVars);

@@ -29,8 +29,8 @@ const sections: SidebarSection[] = [
     label: "Alerts",
     items: [
       { id: "/actions", label: "Event Alerts", icon: Zap },
-      { id: "/chat", label: "Chat Alerts", icon: MessageCircle },
-      { id: "/gift-alerts", label: "Gift Alerts", icon: Gift },
+      { id: "/chat-overlay", label: "Chat Box Overlay", icon: MessageCircle, pro: true },
+      { id: "/gift-alerts", label: "Gift Alerts", icon: Gift, pro: true },
       { id: "/like-alerts", label: "Like Alerts", icon: Heart },
       { id: "/follow-alerts", label: "Follow Alerts", icon: UserPlus },
       { id: "/share-alerts", label: "Share Alerts", icon: Share2 },

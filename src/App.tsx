@@ -10,6 +10,10 @@ import Setup from "./pages/Setup";
 import Overlays from "./pages/Overlays";
 import GoalOverlays from "./pages/GoalOverlays";
 import GoalOverlayRenderer from "./pages/GoalOverlayRenderer";
+import GiftAlertOverlay from "./pages/GiftAlertOverlay";
+import ChatBoxOverlay from "./pages/ChatBoxOverlay";
+import GiftAlertRenderer from "./pages/renderers/GiftAlertRenderer";
+import ChatBoxRenderer from "./pages/renderers/ChatBoxRenderer";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
 import Chat from "./pages/Chat";
@@ -38,6 +42,8 @@ const App = () => (
             <Route path="/setup" element={<Setup />} />
             <Route path="/overlays" element={<Overlays />} />
             <Route path="/goal-overlays" element={<GoalOverlays />} />
+            <Route path="/gift-alerts" element={<GiftAlertOverlay />} />
+            <Route path="/chat-overlay" element={<ChatBoxOverlay />} />
             <Route path="/actions" element={<Actions />} />
             <Route path="/sounds" element={<Sounds />} />
             <Route path="/chat" element={<Chat />} />
@@ -52,6 +58,8 @@ const App = () => (
             <Route path="/pro" element={<Pro />} />
             <Route path="/screen/:publicToken" element={<ScreenRenderer />} />
             <Route path="/overlay/goal/:publicToken" element={<GoalOverlayRenderer />} />
+            <Route path="/overlay/gift-alert/:publicToken" element={<GiftAlertRenderer />} />
+            <Route path="/overlay/chat-box/:publicToken" element={<ChatBoxRenderer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

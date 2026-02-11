@@ -4,6 +4,7 @@ import {
   Trophy, Music, Wrench, Crown
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import tikupLogo from "@/assets/tikup_logo.png";
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -46,8 +47,8 @@ const AppSidebar = () => {
 
   return (
     <aside className="w-[68px] h-screen bg-sidebar border-r border-sidebar-border flex flex-col items-center py-3 fixed left-0 top-0 z-50">
-      <Link to="/" className="mb-4 flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 border border-primary/20 hover:bg-primary/15 transition-colors">
-        <span className="text-lg font-heading font-bold text-primary">T</span>
+      <Link to="/" className="mb-4 flex items-center justify-center w-10 h-10 rounded-xl hover:opacity-80 transition-opacity">
+        <img src={tikupLogo} alt="TikUp" className="w-9 h-9 object-contain" />
       </Link>
 
       <nav className="flex-1 flex flex-col gap-0.5 w-full px-1.5 overflow-y-auto">

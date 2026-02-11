@@ -83,7 +83,7 @@ const AppSidebar = () => {
       {/* Logo */}
       <div className={cn("flex items-center h-14 border-b border-sidebar-border px-3 flex-shrink-0", collapsed ? "justify-center" : "gap-3")}>
         <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <img src={tikupLogo} alt="TikUp" className="w-8 h-8 object-contain" />
+          <img src={tikupLogo} alt="TikUp" className={cn(collapsed ? "w-10 h-10" : "w-12 h-12")} style={{ objectFit: "contain" }} />
           {!collapsed && (
             <span className="text-base font-heading font-bold text-foreground tracking-tight">TikUp</span>
           )}

@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
     // Look up user
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("user_id, plan_type")
+      .select("user_id")
       .eq("tiktok_username", tiktok_username)
       .eq("tiktok_connected", true)
       .maybeSingle();
@@ -50,19 +50,6 @@ Deno.serve(async (req) => {
     }
 
     const userId = profile.user_id;
-    const isPro = profile.plan_type === "pro" || profile.plan_type === "enterprise";
-
-    // Check subscription table too
-    let isProSub = isPro;
-    if (!isProSub) {
-      const { data: sub } = await supabase
-        .from("subscriptions")
-        .select("plan, status")
-        .eq("user_id", userId)
-        .maybeSingle();
-      isProSub = (sub?.plan === "pro" || sub?.plan === "enterprise") && sub?.status === "active";
-    }
-
     // Get overlay widgets
     const { data: widgets } = await supabase
       .from("overlay_widgets")
@@ -70,16 +57,12 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .eq("is_active", true);
 
-    // Get TTS settings if pro
-    let ttsSettings = null;
-    if (isProSub) {
-      const { data } = await supabase
-        .from("tts_settings")
-        .select("*")
-        .eq("user_id", userId)
-        .maybeSingle();
-      ttsSettings = data;
-    }
+    // Get TTS settings (available to all users)
+    const { data: ttsSettings } = await supabase
+      .from("tts_settings")
+      .select("*")
+      .eq("user_id", userId)
+      .maybeSingle();
 
     // Get automations
     const { data: automations } = await supabase
@@ -131,8 +114,8 @@ Deno.serve(async (req) => {
         });
       }
 
-      // TTS triggering for chat events (PRO only)
-      if (isProSub && ttsSettings?.enabled && event.type === "chat") {
+      // TTS triggering for chat events (available to all users)
+      if (ttsSettings?.enabled && event.type === "chat") {
         const message = (event.data.message as string) || "";
         const minChars = ttsSettings.min_chars || 3;
         const maxLength = ttsSettings.max_length || 200;

@@ -46,27 +46,8 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    // Check PRO subscription
+    // No PRO check — TTS is available to all users
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
-    const { data: sub } = await serviceClient
-      .from("subscriptions")
-      .select("plan, status")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    const { data: profile } = await serviceClient
-      .from("profiles")
-      .select("plan_type")
-      .eq("user_id", userId)
-      .maybeSingle();
-
-    const isPro = (sub?.plan === "pro" || sub?.plan === "enterprise") || profile?.plan_type === "pro";
-    if (!isPro) {
-      return new Response(JSON.stringify({ error: "TTS requires a Pro subscription" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
 
     // Get TTS settings
     const { data: ttsSettings } = await serviceClient

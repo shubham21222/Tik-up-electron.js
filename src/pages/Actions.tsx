@@ -1,99 +1,128 @@
 import AppLayout from "@/components/AppLayout";
-import OverlayCard from "@/components/OverlayCard";
-import TabNav from "@/components/TabNav";
-import FormSection from "@/components/FormSection";
-import FormField from "@/components/FormField";
-import { Info, Plus } from "lucide-react";
+import { motion } from "framer-motion";
 import { useState } from "react";
+import {
+  Zap, Gift, Heart, UserPlus, Share2, Star, Plus,
+  Play, Settings, Trash2, Clock,
+  Volume2, Gamepad2, Monitor
+} from "lucide-react";
 
-const actionsData = {
-  "Actions": [
-    { title: "Sound Alert on Gift", description: "Play a custom sound effect when a viewer sends any gift." },
-    { title: "TTS on Gift", description: "Read out the viewer's name and gift message using Text-to-Speech." },
-    { title: "Screen Shake on Gift", description: "Apply a screen shake effect to your overlay on large gifts." },
-    { title: "Follow Alert", description: "Show an animated alert when someone follows your stream." },
-    { title: "GTA 5 - Spawn Vehicle", description: "Spawn a random vehicle in GTA 5 when a viewer sends a specific gift." },
-    { title: "Minecraft - Spawn Mob", description: "Let viewers spawn mobs in Minecraft by sending gifts." },
-  ],
-  "Event Rules": [
-    { title: "Like Milestone Alert", description: "Trigger a special alert at like milestones (1K, 5K, 10K, etc.)." },
-    { title: "Gift Combo Bonus", description: "Trigger escalating effects when a viewer sends multiple gifts." },
-    { title: "Share Alert", description: "Thank viewers who share your stream with a shoutout." },
-    { title: "Subscriber Welcome", description: "Play a welcome message for new subscribers." },
-  ],
-  "Chat Commands": [
-    { title: "Chat Command: !dice", description: "Viewers roll a virtual dice. Result shown on overlay and via TTS." },
-    { title: "Chat Highlight", description: "Highlight specific chat messages on your overlay." },
-    { title: "Custom HTTP Request", description: "Send a custom webhook when a chat command triggers." },
-  ],
-  "Advanced": [],
-  "Import / Export": [],
-};
+const glassCard = "rounded-2xl p-[1px]";
+const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
+const glassInner = "rounded-2xl h-full transition-shadow duration-300 group-hover:shadow-[0_0_30px_hsl(160_100%_45%/0.06)]";
+const glassInnerStyle = { background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" };
 
-const tabs = Object.keys(actionsData);
+type AlertType = { id: string; icon: typeof Zap; label: string; trigger: string; action: string; cooldown: string; active: boolean; color: string };
+
+const alerts: AlertType[] = [
+  { id: "1", icon: UserPlus, label: "Follow Alert", trigger: "New Follow", action: "Play Sound + Show Overlay", cooldown: "5s", active: true, color: "160 100% 45%" },
+  { id: "2", icon: Heart, label: "Like Alert", trigger: "Like Received", action: "Floating Hearts", cooldown: "0s", active: true, color: "350 90% 55%" },
+  { id: "3", icon: Gift, label: "Gift Alert", trigger: "Any Gift", action: "Sound + Overlay + TTS", cooldown: "3s", active: true, color: "280 100% 65%" },
+  { id: "4", icon: Share2, label: "Share Alert", trigger: "Stream Shared", action: "Show Overlay", cooldown: "10s", active: true, color: "200 100% 55%" },
+  { id: "5", icon: Star, label: "Milestone Alert", trigger: "1K / 5K / 10K Likes", action: "Celebration Effect", cooldown: "0s", active: false, color: "45 100% 55%" },
+  { id: "6", icon: Gamepad2, label: "Game Trigger", trigger: "Gift > 100 coins", action: "Spawn Vehicle (GTA 5)", cooldown: "30s", active: false, color: "160 100% 45%" },
+  { id: "7", icon: Volume2, label: "Sound on Gift: Rose", trigger: "Rose Gift", action: "Play chime.mp3", cooldown: "2s", active: true, color: "350 90% 55%" },
+  { id: "8", icon: Monitor, label: "Screen Shake", trigger: "Gift > 500 coins", action: "Shake Effect (3s)", cooldown: "15s", active: false, color: "200 100% 55%" },
+];
+
+const tabs = ["All Alerts", "Gifts", "Social", "Advanced"];
 
 const Actions = () => {
   const [activeTab, setActiveTab] = useState(tabs[0]);
-  const items = actionsData[activeTab as keyof typeof actionsData];
+
+  const filtered = activeTab === "Gifts"
+    ? alerts.filter(a => ["Gift Alert", "Sound on Gift: Rose", "Screen Shake"].includes(a.label))
+    : activeTab === "Social"
+    ? alerts.filter(a => ["Follow Alert", "Like Alert", "Share Alert", "Milestone Alert"].includes(a.label))
+    : activeTab === "Advanced"
+    ? alerts.filter(a => ["Game Trigger", "Screen Shake"].includes(a.label))
+    : alerts;
 
   return (
     <AppLayout>
-      <div className="max-w-6xl mx-auto animate-slide-in pb-12">
-        <TabNav
-          tabs={tabs}
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          rightAction={
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90 transition-opacity">
-              <Plus size={14} /> New Action
-            </button>
-          }
-        />
+      <div className="fixed top-20 left-1/2 -translate-x-1/4 w-[500px] h-[300px] rounded-full pointer-events-none z-0"
+        style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.03), transparent 70%)" }} />
 
-        <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border mb-6">
-          <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            <p>
-              Create <span className="text-primary font-medium">Actions & Events</span> that trigger automatically based on viewer interactions.
-            </p>
+      <div className="max-w-6xl mx-auto relative z-10 pb-12">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex items-center justify-between mb-8">
+          <div>
+            <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Event Alerts</h1>
+            <p className="text-muted-foreground text-sm">Configure real-time alerts triggered by viewer interactions on your TikTok LIVE.</p>
           </div>
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.25)]">
+            <Plus size={16} /> New Alert
+          </button>
+        </motion.div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-6 p-1 rounded-xl bg-muted/30 w-fit">
+          {tabs.map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${activeTab === tab ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+            >{tab}</button>
+          ))}
         </div>
 
-        {activeTab === "Advanced" && (
-          <FormSection title="Advanced Action Settings" description="Configure global action behavior.">
-            <FormField label="Action queue mode" type="select" options={["Sequential", "Parallel", "Priority"]} />
-            <FormField label="Max concurrent actions" type="number" value="5" />
-            <FormField label="Global cooldown (s)" type="number" value="2" />
-            <FormField label="Debug mode" type="toggle" checked={false} />
-          </FormSection>
-        )}
+        {/* Alert Cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          {filtered.map((alert, i) => {
+            const Icon = alert.icon;
+            return (
+              <motion.div key={alert.id}
+                initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: i * 0.04 }}
+                whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                className={`${glassCard} group cursor-default`} style={glassGradient}
+              >
+                <div className={glassInner} style={glassInnerStyle}>
+                  <div className="p-5">
+                    {/* Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: `hsl(${alert.color} / 0.1)` }}>
+                          <Icon size={18} style={{ color: `hsl(${alert.color})` }} />
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-heading font-bold text-foreground">{alert.label}</h3>
+                          <p className="text-[11px] text-muted-foreground">{alert.trigger}</p>
+                        </div>
+                      </div>
+                      {/* Toggle */}
+                      <button className={`w-10 h-[22px] rounded-full relative transition-colors duration-200 ${alert.active ? "bg-primary/30" : "bg-muted/60"}`}>
+                        <div className={`w-4 h-4 rounded-full absolute top-[3px] transition-all duration-200 ${alert.active ? "left-[22px] bg-primary" : "left-1 bg-muted-foreground/60"}`} />
+                      </button>
+                    </div>
 
-        {activeTab === "Import / Export" && (
-          <FormSection title="Import / Export Actions" description="Backup or share your action configurations.">
-            <div className="flex items-center gap-3">
-              <button className="px-4 py-2 rounded-md bg-muted text-foreground text-sm font-medium hover:bg-accent transition-colors border border-border">
-                Export Actions (JSON)
-              </button>
-              <button className="px-4 py-2 rounded-md bg-muted text-foreground text-sm font-medium hover:bg-accent transition-colors border border-border">
-                Import Actions
-              </button>
-            </div>
-          </FormSection>
-        )}
+                    {/* Details */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="bg-muted/30 rounded-xl px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-0.5">Action</p>
+                        <p className="text-xs text-foreground font-medium">{alert.action}</p>
+                      </div>
+                      <div className="bg-muted/30 rounded-xl px-3 py-2">
+                        <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-0.5">Cooldown</p>
+                        <p className="text-xs text-foreground font-medium flex items-center gap-1"><Clock size={10} /> {alert.cooldown}</p>
+                      </div>
+                    </div>
 
-        {items.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {items.map((action) => (
-              <OverlayCard
-                key={action.title}
-                title={action.title}
-                description={action.description}
-                hasPreview={true}
-                url="#"
-              />
-            ))}
-          </div>
-        )}
+                    {/* Actions */}
+                    <div className="flex items-center gap-2">
+                      <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
+                        <Play size={12} /> Test
+                      </button>
+                      <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5">
+                        <Settings size={12} /> Edit
+                      </button>
+                      <button className="px-3 py-2 rounded-xl border border-destructive/20 text-xs font-medium text-destructive/60 hover:text-destructive hover:border-destructive/40 transition-all duration-200 hover:-translate-y-0.5">
+                        <Trash2 size={12} />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
     </AppLayout>
   );

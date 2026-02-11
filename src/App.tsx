@@ -15,6 +15,7 @@ import Points from "./pages/Points";
 import Song from "./pages/Song";
 import Tools from "./pages/Tools";
 import Pro from "./pages/Pro";
+import Giveaways from "./pages/Giveaways";
 import Auth from "./pages/Auth";
 import ScreenRenderer from "./pages/ScreenRenderer";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,11 @@ const App = () => (
             <Route path="/sounds" element={<Sounds />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/points" element={<Points />} />
+            <Route path="/leaderboard" element={<Points />} />
+            <Route path="/giveaways" element={<Giveaways />} />
+            <Route path="/polls" element={<Giveaways />} />
+            <Route path="/chat-commands" element={<Chat />} />
+            <Route path="/auto-moderation" element={<Chat />} />
             <Route path="/song" element={<Song />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/pro" element={<Pro />} />

@@ -38,32 +38,21 @@ const TTSOverlayPage = () => {
     update({ allowed_users: next });
   };
 
-  const handleTest = async () => {
+  const handleTest = () => {
     if (testing || !testText.trim()) return;
+    if (!('speechSynthesis' in window)) {
+      toast.error("Browser doesn't support speech synthesis");
+      return;
+    }
     setTesting(true);
-    try {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) { toast.error("Please log in"); return; }
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts-generate`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${session.access_token}`,
-            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({ text: testText, username: "TestUser" }),
-        }
-      );
-      const data = await response.json();
-      if (!response.ok) { toast.error(data.error || "TTS failed"); return; }
-      const audio = new Audio(`data:audio/mpeg;base64,${data.audioContent}`);
-      audio.volume = local.volume / 100;
-      await audio.play();
-      toast.success("TTS played!");
-    } catch { toast.error("TTS test failed"); }
-    finally { setTesting(false); }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(testText);
+    utterance.volume = local.volume / 100;
+    utterance.rate = local.speed / 50; // map 1-100 to 0.02-2.0
+    utterance.pitch = local.pitch / 50; // map 1-100 to 0.02-2.0
+    utterance.onend = () => { setTesting(false); toast.success("TTS played!"); };
+    utterance.onerror = () => { setTesting(false); toast.error("TTS playback failed"); };
+    window.speechSynthesis.speak(utterance);
   };
 
   const addSpecialUser = () => {

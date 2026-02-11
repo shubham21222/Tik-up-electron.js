@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import Setup from "./pages/Setup";
 import Overlays from "./pages/Overlays";
 import GoalOverlays from "./pages/GoalOverlays";
+import GoalOverlayRenderer from "./pages/GoalOverlayRenderer";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
 import Chat from "./pages/Chat";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/tools" element={<Tools />} />
             <Route path="/pro" element={<Pro />} />
             <Route path="/screen/:publicToken" element={<ScreenRenderer />} />
+            <Route path="/overlay/goal/:publicToken" element={<GoalOverlayRenderer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

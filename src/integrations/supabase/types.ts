@@ -144,6 +144,71 @@ export type Database = {
           },
         ]
       }
+      goals: {
+        Row: {
+          auto_reset: boolean
+          created_at: string
+          current_value: number
+          custom_config: Json | null
+          goal_type: string
+          id: string
+          is_active: boolean
+          milestone_alerts: boolean
+          on_complete_action: string | null
+          public_token: string
+          screen_id: string | null
+          style_preset: string
+          target_value: number
+          title: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          auto_reset?: boolean
+          created_at?: string
+          current_value?: number
+          custom_config?: Json | null
+          goal_type?: string
+          id?: string
+          is_active?: boolean
+          milestone_alerts?: boolean
+          on_complete_action?: string | null
+          public_token?: string
+          screen_id?: string | null
+          style_preset?: string
+          target_value?: number
+          title?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          auto_reset?: boolean
+          created_at?: string
+          current_value?: number
+          custom_config?: Json | null
+          goal_type?: string
+          id?: string
+          is_active?: boolean
+          milestone_alerts?: boolean
+          on_complete_action?: string | null
+          public_token?: string
+          screen_id?: string | null
+          style_preset?: string
+          target_value?: number
+          title?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "goals_screen_id_fkey"
+            columns: ["screen_id"]
+            isOneToOne: false
+            referencedRelation: "screens"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null

@@ -374,6 +374,135 @@ export type Database = {
         }
         Relationships: []
       }
+      subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          id: string
+          plan: string
+          status: string
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          id?: string
+          plan?: string
+          status?: string
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      tts_queue: {
+        Row: {
+          audio_url: string | null
+          created_at: string
+          id: string
+          overlay_token: string
+          processed_at: string | null
+          status: string
+          text_content: string
+          user_id: string
+          username: string
+          voice_id: string
+        }
+        Insert: {
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          overlay_token: string
+          processed_at?: string | null
+          status?: string
+          text_content: string
+          user_id: string
+          username?: string
+          voice_id?: string
+        }
+        Update: {
+          audio_url?: string | null
+          created_at?: string
+          id?: string
+          overlay_token?: string
+          processed_at?: string | null
+          status?: string
+          text_content?: string
+          user_id?: string
+          username?: string
+          voice_id?: string
+        }
+        Relationships: []
+      }
+      tts_settings: {
+        Row: {
+          blacklist_words: Json
+          cooldown_seconds: number
+          created_at: string
+          enabled: boolean
+          id: string
+          interrupt_mode: boolean
+          max_length: number
+          min_chars: number
+          speed: number
+          trigger_mode: string
+          updated_at: string
+          user_id: string
+          voice_id: string
+          voice_provider: string
+          volume: number
+        }
+        Insert: {
+          blacklist_words?: Json
+          cooldown_seconds?: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interrupt_mode?: boolean
+          max_length?: number
+          min_chars?: number
+          speed?: number
+          trigger_mode?: string
+          updated_at?: string
+          user_id: string
+          voice_id?: string
+          voice_provider?: string
+          volume?: number
+        }
+        Update: {
+          blacklist_words?: Json
+          cooldown_seconds?: number
+          created_at?: string
+          enabled?: boolean
+          id?: string
+          interrupt_mode?: boolean
+          max_length?: number
+          min_chars?: number
+          speed?: number
+          trigger_mode?: string
+          updated_at?: string
+          user_id?: string
+          voice_id?: string
+          voice_provider?: string
+          volume?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

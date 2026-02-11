@@ -1,9 +1,10 @@
 import AppLayout from "@/components/AppLayout";
 import OverlayCard from "@/components/OverlayCard";
 import TabNav from "@/components/TabNav";
-import { Info, Eye, Maximize2, X } from "lucide-react";
+import { Info, Eye, Maximize2, X, Target } from "lucide-react";
 import { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const TTSOverlay = lazy(() => import("@/components/overlays/TTSOverlay"));
 const ChatOverlay = lazy(() => import("@/components/overlays/ChatOverlay"));
@@ -60,6 +61,21 @@ const Overlays = () => {
   return (
     <AppLayout>
       <div className="max-w-6xl mx-auto animate-slide-in pb-12">
+        {/* Goal Overlays CTA */}
+        <Link
+          to="/goal-overlays"
+          className="flex items-center gap-4 p-4 rounded-2xl border border-primary/15 bg-primary/5 hover:bg-primary/8 mb-6 transition-all duration-200 hover:-translate-y-0.5 group"
+        >
+          <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+            <Target size={20} className="text-primary" />
+          </div>
+          <div className="flex-1">
+            <h3 className="text-sm font-heading font-bold text-foreground">Goal Overlay Builder</h3>
+            <p className="text-xs text-muted-foreground">Create dynamic live goals with animated progress bars</p>
+          </div>
+          <span className="text-xs text-primary font-medium opacity-0 group-hover:opacity-100 transition-opacity">Open →</span>
+        </Link>
+
         <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
         <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border mb-6">

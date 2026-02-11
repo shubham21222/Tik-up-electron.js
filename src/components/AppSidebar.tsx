@@ -19,7 +19,7 @@ const sections: SidebarSection[] = [
   {
     label: "Overview",
     items: [
-      { id: "/", label: "Dashboard", icon: LayoutDashboard },
+      { id: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { id: "/goal-overlays", label: "Goal Overlays", icon: Target },
       { id: "/overlays", label: "Overlays", icon: Layers },
       { id: "/live-counters", label: "Live Counters", icon: BarChart3 },

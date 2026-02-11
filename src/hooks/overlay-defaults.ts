@@ -286,6 +286,23 @@ export const defaultCustomTextSettings = {
   custom_css: "",
 };
 
+// TTS Overlay
+export const defaultTTSSettings = {
+  voice_id: "JBFqnCBsd6RMkjVDRZzb",
+  volume: 80,
+  speed: 1.0,
+  show_bubble: true,
+  bubble_position: "bottom-center" as "bottom-center" | "bottom-left" | "bottom-right" | "top-center",
+  bubble_style: "glass" as "glass" | "neon" | "minimal",
+  show_soundwave: true,
+  show_avatar: true,
+  accent_color: "160 100% 45%",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -299,4 +316,5 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   leaderboard: defaultLeaderboardSettings,
   stream_timer: defaultStreamTimerSettings,
   custom_text: defaultCustomTextSettings,
+  tts: defaultTTSSettings,
 };

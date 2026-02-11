@@ -42,6 +42,8 @@ import Pro from "./pages/Pro";
 import Giveaways from "./pages/Giveaways";
 import Auth from "./pages/Auth";
 import ScreenRenderer from "./pages/ScreenRenderer";
+import TTSOverlayPage from "./pages/TTSOverlayPage";
+import TTSRenderer from "./pages/renderers/TTSRenderer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -95,6 +97,8 @@ const App = () => (
             <Route path="/overlay/leaderboard/:publicToken" element={<LeaderboardRenderer />} />
             <Route path="/overlay/stream-timer/:publicToken" element={<StreamTimerRenderer />} />
             <Route path="/overlay/custom-text/:publicToken" element={<CustomTextRenderer />} />
+            <Route path="/tts" element={<TTSOverlayPage />} />
+            <Route path="/overlay/tts/:publicToken" element={<TTSRenderer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
 interface TikTokEvent {
@@ -34,40 +34,76 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Look up the user by TikTok username
+    // Look up user
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("user_id")
+      .select("user_id, plan_type")
       .eq("tiktok_username", tiktok_username)
       .eq("tiktok_connected", true)
       .maybeSingle();
 
     if (profileError || !profile) {
-      return new Response(JSON.stringify({ error: "No connected user found for this username" }), {
+      return new Response(JSON.stringify({ error: "No connected user found" }), {
         status: 404,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const userId = profile.user_id;
+    const isPro = profile.plan_type === "pro" || profile.plan_type === "enterprise";
 
-    // Get user's active overlay widgets to broadcast events
+    // Check subscription table too
+    let isProSub = isPro;
+    if (!isProSub) {
+      const { data: sub } = await supabase
+        .from("subscriptions")
+        .select("plan, status")
+        .eq("user_id", userId)
+        .maybeSingle();
+      isProSub = (sub?.plan === "pro" || sub?.plan === "enterprise") && sub?.status === "active";
+    }
+
+    // Get overlay widgets
     const { data: widgets } = await supabase
       .from("overlay_widgets")
       .select("public_token, widget_type")
       .eq("user_id", userId)
       .eq("is_active", true);
 
-    // Process each event
+    // Get TTS settings if pro
+    let ttsSettings = null;
+    if (isProSub) {
+      const { data } = await supabase
+        .from("tts_settings")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      ttsSettings = data;
+    }
+
+    // Get automations
+    const { data: automations } = await supabase
+      .from("automations")
+      .select("*, actions(*)")
+      .eq("user_id", userId)
+      .eq("is_active", true)
+      .order("priority", { ascending: false });
+
+    let ttsTriggered = 0;
+
     for (const event of events) {
+      // Find matching automation
+      const matchingAuto = automations?.find(a => a.trigger_type === event.type);
+
       // Log the event
       await supabase.from("events_log").insert({
         user_id: userId,
         event_type: event.type,
         payload: event.data,
+        triggered_automation_id: matchingAuto?.id || null,
       });
 
-      // Broadcast to relevant overlay channels
+      // Broadcast to overlay widgets
       if (widgets) {
         for (const widget of widgets) {
           const channelName = `${widget.widget_type}-${widget.public_token}`;
@@ -81,9 +117,106 @@ Deno.serve(async (req) => {
           }
         }
       }
+
+      // Broadcast to screen-based overlays (automations)
+      if (matchingAuto?.screen_id) {
+        await supabase.channel(`screen-${matchingAuto.screen_id}`).send({
+          type: "broadcast",
+          event: "overlay_action",
+          payload: {
+            event_type: event.type,
+            payload: event.data,
+            automations: matchingAuto ? [matchingAuto] : [],
+          },
+        });
+      }
+
+      // TTS triggering for chat events (PRO only)
+      if (isProSub && ttsSettings?.enabled && event.type === "chat") {
+        const message = (event.data.message as string) || "";
+        const minChars = ttsSettings.min_chars || 3;
+        const maxLength = ttsSettings.max_length || 200;
+        const blacklist: string[] = ttsSettings.blacklist_words || [];
+
+        if (message.length >= minChars) {
+          const lowerMsg = message.toLowerCase();
+          const isBlocked = blacklist.some((w: string) => lowerMsg.includes(w.toLowerCase()));
+
+          if (!isBlocked) {
+            const truncated = message.slice(0, maxLength);
+
+            // Find TTS overlay widgets
+            const ttsWidgets = widgets?.filter(w => w.widget_type === "tts") || [];
+            for (const ttsWidget of ttsWidgets) {
+              // Queue TTS job - insert into tts_queue
+              await supabase.from("tts_queue").insert({
+                user_id: userId,
+                overlay_token: ttsWidget.public_token,
+                text_content: truncated,
+                username: event.username,
+                voice_id: ttsSettings.voice_id || "JBFqnCBsd6RMkjVDRZzb",
+                status: "pending",
+              });
+
+              // Generate TTS audio
+              const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+              if (ELEVENLABS_API_KEY) {
+                try {
+                  const ttsResponse = await fetch(
+                    `https://api.elevenlabs.io/v1/text-to-speech/${ttsSettings.voice_id || "JBFqnCBsd6RMkjVDRZzb"}?output_format=mp3_44100_128`,
+                    {
+                      method: "POST",
+                      headers: {
+                        "xi-api-key": ELEVENLABS_API_KEY,
+                        "Content-Type": "application/json",
+                      },
+                      body: JSON.stringify({
+                        text: truncated,
+                        model_id: "eleven_turbo_v2_5",
+                        voice_settings: {
+                          stability: 0.5,
+                          similarity_boost: 0.75,
+                          speed: ttsSettings.speed || 1.0,
+                        },
+                      }),
+                    }
+                  );
+
+                  if (ttsResponse.ok) {
+                    const audioBuffer = await ttsResponse.arrayBuffer();
+                    const { encode: base64Encode } = await import("https://deno.land/std@0.168.0/encoding/base64.ts");
+                    const audioBase64 = base64Encode(audioBuffer);
+
+                    // Broadcast to TTS overlay
+                    await supabase.channel(`tts-${ttsWidget.public_token}`).send({
+                      type: "broadcast",
+                      event: "play_tts",
+                      payload: {
+                        audioBase64,
+                        username: event.username,
+                        text: truncated,
+                        volume: ttsSettings.volume || 80,
+                        interrupt: ttsSettings.interrupt_mode || false,
+                      },
+                    });
+
+                    ttsTriggered++;
+                  }
+                } catch (ttsErr) {
+                  console.error("TTS generation error:", ttsErr);
+                }
+              }
+            }
+          }
+        }
+      }
     }
 
-    return new Response(JSON.stringify({ success: true, processed: events.length }), {
+    return new Response(JSON.stringify({
+      success: true,
+      processed: events.length,
+      tts_triggered: ttsTriggered,
+    }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
@@ -99,34 +232,24 @@ Deno.serve(async (req) => {
 function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
   switch (event.type) {
     case "gift":
-      if (widgetType === "gift_alert") {
-        return { event: "new_alert", payload: event.data };
-      }
+      if (widgetType === "gift_alert") return { event: "new_alert", payload: event.data };
       break;
     case "like":
-      if (widgetType === "like_alert" || widgetType === "like_counter") {
+      if (widgetType === "like_alert" || widgetType === "like_counter")
         return { event: "like_update", payload: event.data };
-      }
       break;
     case "follow":
-      if (widgetType === "follow_alert" || widgetType === "follower_goal") {
+      if (widgetType === "follow_alert" || widgetType === "follower_goal")
         return { event: widgetType === "follow_alert" ? "new_alert" : "follower_update", payload: event.data };
-      }
       break;
     case "share":
-      if (widgetType === "share_alert") {
-        return { event: "new_alert", payload: event.data };
-      }
+      if (widgetType === "share_alert") return { event: "new_alert", payload: event.data };
       break;
     case "chat":
-      if (widgetType === "chat_box") {
-        return { event: "new_message", payload: event.data };
-      }
+      if (widgetType === "chat_box") return { event: "new_message", payload: event.data };
       break;
     case "viewer_count":
-      if (widgetType === "viewer_count") {
-        return { event: "viewer_update", payload: event.data };
-      }
+      if (widgetType === "viewer_count") return { event: "viewer_update", payload: event.data };
       break;
   }
   return null;

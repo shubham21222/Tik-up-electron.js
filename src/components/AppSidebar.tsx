@@ -63,10 +63,10 @@ const AppSidebar = () => {
       </nav>
 
       <div className="flex flex-col gap-1 w-full px-1.5 mt-2">
-        <button className="flex items-center justify-center gap-1 py-2 px-2 w-full rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors text-secondary text-[10px] font-semibold">
+        <Link to="/pro" className="flex items-center justify-center gap-1 py-2 px-2 w-full rounded-lg bg-secondary/10 hover:bg-secondary/20 transition-colors text-secondary text-[10px] font-semibold">
           <Crown size={14} />
           PRO
-        </button>
+        </Link>
       </div>
     </aside>
   );

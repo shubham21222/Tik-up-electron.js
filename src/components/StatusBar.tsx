@@ -1,12 +1,18 @@
 import { Wifi, WifiOff, Clock, Radio } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useSidebarState } from "@/hooks/use-sidebar-state";
+import { cn } from "@/lib/utils";
 
 const StatusBar = () => {
   const [time, setTime] = useState("00:00");
   const [connected, setConnected] = useState(false);
+  const { collapsed } = useSidebarState();
 
   return (
-    <div className="fixed bottom-0 left-[68px] right-0 h-10 bg-card border-t border-border flex items-center justify-between px-4 z-40">
+    <div className={cn(
+      "fixed bottom-0 right-0 h-10 bg-card border-t border-border flex items-center justify-between px-4 z-40 transition-all duration-300",
+      collapsed ? "left-[60px]" : "left-[220px]"
+    )}>
       {/* Left side */}
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2">

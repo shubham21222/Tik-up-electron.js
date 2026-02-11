@@ -57,64 +57,71 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<Index />} />
-            <Route path="/setup" element={<Setup />} />
-            <Route path="/overlays" element={<Overlays />} />
-            <Route path="/goal-overlays" element={<GoalOverlays />} />
-            <Route path="/gift-alerts" element={<GiftAlertOverlay />} />
-            <Route path="/chat-overlay" element={<ChatBoxOverlay />} />
-            <Route path="/like-alerts" element={<LikeAlertOverlay />} />
-            <Route path="/follow-alerts" element={<FollowAlertOverlay />} />
-            <Route path="/share-alerts" element={<ShareAlertOverlay />} />
-            <Route path="/like-counter" element={<LikeCounterOverlay />} />
-            <Route path="/follower-goal" element={<FollowerGoalOverlay />} />
-            <Route path="/viewer-count" element={<ViewerCountOverlay />} />
-            <Route path="/leaderboard" element={<LeaderboardOverlay />} />
-            <Route path="/stream-timer" element={<StreamTimerOverlay />} />
-            <Route path="/custom-text" element={<CustomTextOverlay />} />
-            <Route path="/actions" element={<Actions />} />
-            <Route path="/sounds" element={<Sounds />} />
-            <Route path="/chat" element={<Chat />} />
-            <Route path="/points" element={<Points />} />
-            <Route path="/giveaways" element={<Giveaways />} />
-            <Route path="/polls" element={<Polls />} />
-            <Route path="/chat-commands" element={<ChatCommands />} />
-            <Route path="/auto-moderation" element={<AutoModeration />} />
-            <Route path="/recent-activity" element={<RecentActivity />} />
-            <Route path="/widgets" element={<Widgets />} />
-            <Route path="/integrations" element={<Integrations />} />
-            <Route path="/brand-settings" element={<BrandSettings />} />
-            <Route path="/song" element={<Song />} />
-            <Route path="/tools" element={<Tools />} />
-            <Route path="/pro" element={<Pro />} />
-            <Route path="/screen/:publicToken" element={<ScreenRenderer />} />
-            <Route path="/overlay/goal/:publicToken" element={<GoalOverlayRenderer />} />
-            <Route path="/overlay/gift-alert/:publicToken" element={<GiftAlertRenderer />} />
-            <Route path="/overlay/chat-box/:publicToken" element={<ChatBoxRenderer />} />
-            <Route path="/overlay/like-alert/:publicToken" element={<LikeAlertRenderer />} />
-            <Route path="/overlay/follow-alert/:publicToken" element={<FollowAlertRenderer />} />
-            <Route path="/overlay/share-alert/:publicToken" element={<ShareAlertRenderer />} />
-            <Route path="/overlay/like-counter/:publicToken" element={<LikeCounterRenderer />} />
-            <Route path="/overlay/follower-goal/:publicToken" element={<FollowerGoalRenderer />} />
-            <Route path="/overlay/viewer-count/:publicToken" element={<ViewerCountRenderer />} />
-            <Route path="/overlay/leaderboard/:publicToken" element={<LeaderboardRenderer />} />
-            <Route path="/overlay/stream-timer/:publicToken" element={<StreamTimerRenderer />} />
-            <Route path="/overlay/custom-text/:publicToken" element={<CustomTextRenderer />} />
-            <Route path="/tts" element={<TTSOverlayPage />} />
-            <Route path="/overlay/tts/:publicToken" element={<TTSRenderer />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </AuthProvider>
+    <TooltipProvider>
+      <Toaster />
+      <Sonner />
+      <BrowserRouter>
+        <Routes>
+          {/* Public overlay renderer routes - NO auth provider, no login required */}
+          <Route path="/screen/:publicToken" element={<ScreenRenderer />} />
+          <Route path="/overlay/goal/:publicToken" element={<GoalOverlayRenderer />} />
+          <Route path="/overlay/gift-alert/:publicToken" element={<GiftAlertRenderer />} />
+          <Route path="/overlay/chat-box/:publicToken" element={<ChatBoxRenderer />} />
+          <Route path="/overlay/like-alert/:publicToken" element={<LikeAlertRenderer />} />
+          <Route path="/overlay/follow-alert/:publicToken" element={<FollowAlertRenderer />} />
+          <Route path="/overlay/share-alert/:publicToken" element={<ShareAlertRenderer />} />
+          <Route path="/overlay/like-counter/:publicToken" element={<LikeCounterRenderer />} />
+          <Route path="/overlay/follower-goal/:publicToken" element={<FollowerGoalRenderer />} />
+          <Route path="/overlay/viewer-count/:publicToken" element={<ViewerCountRenderer />} />
+          <Route path="/overlay/leaderboard/:publicToken" element={<LeaderboardRenderer />} />
+          <Route path="/overlay/stream-timer/:publicToken" element={<StreamTimerRenderer />} />
+          <Route path="/overlay/custom-text/:publicToken" element={<CustomTextRenderer />} />
+          <Route path="/overlay/tts/:publicToken" element={<TTSRenderer />} />
+
+          {/* All other routes wrapped in AuthProvider */}
+          <Route path="/*" element={
+            <AuthProvider>
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/setup" element={<Setup />} />
+                <Route path="/overlays" element={<Overlays />} />
+                <Route path="/goal-overlays" element={<GoalOverlays />} />
+                <Route path="/gift-alerts" element={<GiftAlertOverlay />} />
+                <Route path="/chat-overlay" element={<ChatBoxOverlay />} />
+                <Route path="/like-alerts" element={<LikeAlertOverlay />} />
+                <Route path="/follow-alerts" element={<FollowAlertOverlay />} />
+                <Route path="/share-alerts" element={<ShareAlertOverlay />} />
+                <Route path="/like-counter" element={<LikeCounterOverlay />} />
+                <Route path="/follower-goal" element={<FollowerGoalOverlay />} />
+                <Route path="/viewer-count" element={<ViewerCountOverlay />} />
+                <Route path="/leaderboard" element={<LeaderboardOverlay />} />
+                <Route path="/stream-timer" element={<StreamTimerOverlay />} />
+                <Route path="/custom-text" element={<CustomTextOverlay />} />
+                <Route path="/actions" element={<Actions />} />
+                <Route path="/sounds" element={<Sounds />} />
+                <Route path="/chat" element={<Chat />} />
+                <Route path="/points" element={<Points />} />
+                <Route path="/giveaways" element={<Giveaways />} />
+                <Route path="/polls" element={<Polls />} />
+                <Route path="/chat-commands" element={<ChatCommands />} />
+                <Route path="/auto-moderation" element={<AutoModeration />} />
+                <Route path="/recent-activity" element={<RecentActivity />} />
+                <Route path="/widgets" element={<Widgets />} />
+                <Route path="/integrations" element={<Integrations />} />
+                <Route path="/brand-settings" element={<BrandSettings />} />
+                <Route path="/song" element={<Song />} />
+                <Route path="/tools" element={<Tools />} />
+                <Route path="/pro" element={<Pro />} />
+                <Route path="/tts" element={<TTSOverlayPage />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AuthProvider>
+          } />
+        </Routes>
+      </BrowserRouter>
+    </TooltipProvider>
   </QueryClientProvider>
 );
 

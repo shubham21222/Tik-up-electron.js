@@ -15,11 +15,23 @@ import ChatBoxOverlay from "./pages/ChatBoxOverlay";
 import LikeAlertOverlay from "./pages/LikeAlertOverlay";
 import FollowAlertOverlay from "./pages/FollowAlertOverlay";
 import ShareAlertOverlay from "./pages/ShareAlertOverlay";
+import LikeCounterOverlay from "./pages/LikeCounterOverlay";
+import FollowerGoalOverlay from "./pages/FollowerGoalOverlay";
+import ViewerCountOverlay from "./pages/ViewerCountOverlay";
+import LeaderboardOverlay from "./pages/LeaderboardOverlay";
+import StreamTimerOverlay from "./pages/StreamTimerOverlay";
+import CustomTextOverlay from "./pages/CustomTextOverlay";
 import GiftAlertRenderer from "./pages/renderers/GiftAlertRenderer";
 import ChatBoxRenderer from "./pages/renderers/ChatBoxRenderer";
 import LikeAlertRenderer from "./pages/renderers/LikeAlertRenderer";
 import FollowAlertRenderer from "./pages/renderers/FollowAlertRenderer";
 import ShareAlertRenderer from "./pages/renderers/ShareAlertRenderer";
+import LikeCounterRenderer from "./pages/renderers/LikeCounterRenderer";
+import FollowerGoalRenderer from "./pages/renderers/FollowerGoalRenderer";
+import ViewerCountRenderer from "./pages/renderers/ViewerCountRenderer";
+import LeaderboardRenderer from "./pages/renderers/LeaderboardRenderer";
+import StreamTimerRenderer from "./pages/renderers/StreamTimerRenderer";
+import CustomTextRenderer from "./pages/renderers/CustomTextRenderer";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
 import Chat from "./pages/Chat";
@@ -53,11 +65,16 @@ const App = () => (
             <Route path="/like-alerts" element={<LikeAlertOverlay />} />
             <Route path="/follow-alerts" element={<FollowAlertOverlay />} />
             <Route path="/share-alerts" element={<ShareAlertOverlay />} />
+            <Route path="/like-counter" element={<LikeCounterOverlay />} />
+            <Route path="/follower-goal" element={<FollowerGoalOverlay />} />
+            <Route path="/viewer-count" element={<ViewerCountOverlay />} />
+            <Route path="/leaderboard" element={<LeaderboardOverlay />} />
+            <Route path="/stream-timer" element={<StreamTimerOverlay />} />
+            <Route path="/custom-text" element={<CustomTextOverlay />} />
             <Route path="/actions" element={<Actions />} />
             <Route path="/sounds" element={<Sounds />} />
             <Route path="/chat" element={<Chat />} />
             <Route path="/points" element={<Points />} />
-            <Route path="/leaderboard" element={<Points />} />
             <Route path="/giveaways" element={<Giveaways />} />
             <Route path="/polls" element={<Giveaways />} />
             <Route path="/chat-commands" element={<Chat />} />
@@ -72,6 +89,12 @@ const App = () => (
             <Route path="/overlay/like-alert/:publicToken" element={<LikeAlertRenderer />} />
             <Route path="/overlay/follow-alert/:publicToken" element={<FollowAlertRenderer />} />
             <Route path="/overlay/share-alert/:publicToken" element={<ShareAlertRenderer />} />
+            <Route path="/overlay/like-counter/:publicToken" element={<LikeCounterRenderer />} />
+            <Route path="/overlay/follower-goal/:publicToken" element={<FollowerGoalRenderer />} />
+            <Route path="/overlay/viewer-count/:publicToken" element={<ViewerCountRenderer />} />
+            <Route path="/overlay/leaderboard/:publicToken" element={<LeaderboardRenderer />} />
+            <Route path="/overlay/stream-timer/:publicToken" element={<StreamTimerRenderer />} />
+            <Route path="/overlay/custom-text/:publicToken" element={<CustomTextRenderer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

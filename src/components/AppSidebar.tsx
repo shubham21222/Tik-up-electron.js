@@ -4,7 +4,7 @@ import {
   Heart, UserPlus, Share2, Users, Timer, Activity, Trophy,
   Volume2, Terminal, Shield, Mic, PartyPopper, BarChart,
   Puzzle, Link2, Palette, CreditCard, ChevronLeft,
-  ChevronRight, Layers
+  ChevronRight, Layers, Type
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -22,7 +22,7 @@ const sections: SidebarSection[] = [
       { id: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { id: "/goal-overlays", label: "Goal Overlays", icon: Target },
       { id: "/overlays", label: "Overlays", icon: Layers },
-      { id: "/live-counters", label: "Live Counters", icon: BarChart3 },
+      { id: "/like-counter", label: "Like Counter", icon: BarChart3, pro: true },
     ],
   },
   {
@@ -39,10 +39,12 @@ const sections: SidebarSection[] = [
   {
     label: "Stream",
     items: [
-      { id: "/viewer-count", label: "Viewer Count", icon: Users },
-      { id: "/live-timer", label: "Live Timer", icon: Timer },
+      { id: "/viewer-count", label: "Viewer Count", icon: Users, pro: true },
+      { id: "/follower-goal", label: "Follower Goal", icon: Target, pro: true },
+      { id: "/stream-timer", label: "Stream Timer", icon: Timer, pro: true },
+      { id: "/leaderboard", label: "Leaderboard", icon: Trophy, pro: true },
+      { id: "/custom-text", label: "Custom Text", icon: Type, pro: true },
       { id: "/recent-activity", label: "Recent Activity", icon: Activity },
-      { id: "/leaderboard", label: "Leaderboard", icon: Trophy },
     ],
   },
   {

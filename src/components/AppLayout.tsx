@@ -1,9 +1,11 @@
 import { ReactNode } from "react";
 import AppSidebar from "./AppSidebar";
 import StatusBar from "./StatusBar";
-import { Search, Bell, HelpCircle, User } from "lucide-react";
+import { Search, Bell, HelpCircle, User, LogOut } from "lucide-react";
 import { SidebarStateProvider, useSidebarState } from "@/hooks/use-sidebar-state";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
+import { Link } from "react-router-dom";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -11,6 +13,7 @@ interface AppLayoutProps {
 
 const LayoutInner = ({ children }: AppLayoutProps) => {
   const { collapsed } = useSidebarState();
+  const { user, signOut } = useAuth();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -42,10 +45,26 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
             <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
               <HelpCircle size={18} />
             </button>
-            <button className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-              <User size={18} />
-              <span className="text-sm font-medium">Login</span>
-            </button>
+            {user ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-muted-foreground truncate max-w-[120px]">{user.email}</span>
+                <button
+                  onClick={() => signOut()}
+                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                  title="Sign out"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/auth"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+              >
+                <User size={18} />
+                <span className="text-sm font-medium">Login</span>
+              </Link>
+            )}
           </div>
         </header>
 

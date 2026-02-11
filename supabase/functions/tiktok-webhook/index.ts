@@ -114,7 +114,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      // TTS triggering for chat events (available to all users)
+      // TTS triggering for chat events — browser-based (no ElevenLabs needed)
       if (ttsSettings?.enabled && event.type === "chat") {
         const message = (event.data.message as string) || "";
         const minChars = ttsSettings.min_chars || 3;
@@ -131,64 +131,32 @@ Deno.serve(async (req) => {
             // Find TTS overlay widgets
             const ttsWidgets = widgets?.filter(w => w.widget_type === "tts") || [];
             for (const ttsWidget of ttsWidgets) {
-              // Queue TTS job - insert into tts_queue
+              // Log to queue
               await supabase.from("tts_queue").insert({
                 user_id: userId,
                 overlay_token: ttsWidget.public_token,
                 text_content: truncated,
                 username: event.username,
-                voice_id: ttsSettings.voice_id || "JBFqnCBsd6RMkjVDRZzb",
-                status: "pending",
+                voice_id: ttsSettings.voice_id || "default",
+                status: "completed",
+                processed_at: new Date().toISOString(),
               });
 
-              // Generate TTS audio
-              const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
-              if (ELEVENLABS_API_KEY) {
-                try {
-                  const ttsResponse = await fetch(
-                    `https://api.elevenlabs.io/v1/text-to-speech/${ttsSettings.voice_id || "JBFqnCBsd6RMkjVDRZzb"}?output_format=mp3_44100_128`,
-                    {
-                      method: "POST",
-                      headers: {
-                        "xi-api-key": ELEVENLABS_API_KEY,
-                        "Content-Type": "application/json",
-                      },
-                      body: JSON.stringify({
-                        text: truncated,
-                        model_id: "eleven_turbo_v2_5",
-                        voice_settings: {
-                          stability: 0.5,
-                          similarity_boost: 0.75,
-                          speed: ttsSettings.speed || 1.0,
-                        },
-                      }),
-                    }
-                  );
+              // Broadcast text to TTS overlay (browser SpeechSynthesis handles audio)
+              await supabase.channel(`tts-${ttsWidget.public_token}`).send({
+                type: "broadcast",
+                event: "play_tts",
+                payload: {
+                  username: event.username,
+                  text: truncated,
+                  volume: ttsSettings.volume || 80,
+                  speed: ttsSettings.speed || 50,
+                  pitch: ttsSettings.pitch || 50,
+                  interrupt: ttsSettings.interrupt_mode || false,
+                },
+              });
 
-                  if (ttsResponse.ok) {
-                    const audioBuffer = await ttsResponse.arrayBuffer();
-                    const { encode: base64Encode } = await import("https://deno.land/std@0.168.0/encoding/base64.ts");
-                    const audioBase64 = base64Encode(audioBuffer);
-
-                    // Broadcast to TTS overlay
-                    await supabase.channel(`tts-${ttsWidget.public_token}`).send({
-                      type: "broadcast",
-                      event: "play_tts",
-                      payload: {
-                        audioBase64,
-                        username: event.username,
-                        text: truncated,
-                        volume: ttsSettings.volume || 80,
-                        interrupt: ttsSettings.interrupt_mode || false,
-                      },
-                    });
-
-                    ttsTriggered++;
-                  }
-                } catch (ttsErr) {
-                  console.error("TTS generation error:", ttsErr);
-                }
-              }
+              ttsTriggered++;
             }
           }
         }

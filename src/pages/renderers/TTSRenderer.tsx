@@ -8,8 +8,9 @@ interface TTSMessage {
   id: string;
   username: string;
   text: string;
-  audioBase64: string;
   volume: number;
+  speed: number;
+  pitch: number;
   interrupt: boolean;
 }
 
@@ -20,7 +21,6 @@ const TTSRenderer = () => {
   const [queue, setQueue] = useState<TTSMessage[]>([]);
   const [current, setCurrent] = useState<TTSMessage | null>(null);
   const [speaking, setSpeaking] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Subscribe to TTS broadcast channel
   useEffect(() => {
@@ -33,14 +33,14 @@ const TTSRenderer = () => {
           id: crypto.randomUUID(),
           username: payload.payload.username || "Viewer",
           text: payload.payload.text || "",
-          audioBase64: payload.payload.audioBase64,
           volume: payload.payload.volume || 80,
+          speed: payload.payload.speed || 50,
+          pitch: payload.payload.pitch || 50,
           interrupt: payload.payload.interrupt || false,
         };
 
-        if (msg.interrupt && audioRef.current) {
-          audioRef.current.pause();
-          audioRef.current = null;
+        if (msg.interrupt) {
+          window.speechSynthesis.cancel();
           setCurrent(null);
           setSpeaking(false);
         }
@@ -54,39 +54,33 @@ const TTSRenderer = () => {
     return () => { supabase.removeChannel(channel); };
   }, [publicToken]);
 
-  // Process queue
+  // Process queue using browser SpeechSynthesis
   useEffect(() => {
     if (current || queue.length === 0) return;
+    if (!('speechSynthesis' in window)) return;
 
     const next = queue[0];
     setCurrent(next);
     setQueue((prev) => prev.slice(1));
     setSpeaking(true);
 
-    const audioUrl = `data:audio/mpeg;base64,${next.audioBase64}`;
-    const audio = new Audio(audioUrl);
-    audio.volume = next.volume / 100;
-    audioRef.current = audio;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(next.text);
+    utterance.volume = next.volume / 100;
+    utterance.rate = next.speed / 50;   // map 1-100 → 0.02-2.0
+    utterance.pitch = next.pitch / 50;  // map 1-100 → 0.02-2.0
 
-    audio.onended = () => {
+    utterance.onend = () => {
       setSpeaking(false);
-      setTimeout(() => {
-        setCurrent(null);
-        audioRef.current = null;
-      }, 500);
+      setTimeout(() => { setCurrent(null); }, 500);
     };
 
-    audio.onerror = () => {
+    utterance.onerror = () => {
       setSpeaking(false);
       setCurrent(null);
-      audioRef.current = null;
     };
 
-    audio.play().catch(() => {
-      setSpeaking(false);
-      setCurrent(null);
-      audioRef.current = null;
-    });
+    speechSynthesis.speak(utterance);
   }, [queue, current]);
 
   return (

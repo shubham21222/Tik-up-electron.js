@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Setup from "./pages/Setup";
 import Overlays from "./pages/Overlays";
+import GoalOverlays from "./pages/GoalOverlays";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
 import Chat from "./pages/Chat";
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/setup" element={<Setup />} />
           <Route path="/overlays" element={<Overlays />} />
+          <Route path="/goal-overlays" element={<GoalOverlays />} />
           <Route path="/actions" element={<Actions />} />
           <Route path="/sounds" element={<Sounds />} />
           <Route path="/chat" element={<Chat />} />

@@ -1,61 +1,69 @@
 import AppLayout from "@/components/AppLayout";
-import { Zap, Plus, Gift, UserPlus, Heart, Share2, MessageCircle, Star } from "lucide-react";
+import OverlayCard from "@/components/OverlayCard";
+import { Zap, Info } from "lucide-react";
 
-const eventTriggers = [
-  { icon: Gift, label: "Gift Received", color: "text-secondary" },
-  { icon: UserPlus, label: "New Follow", color: "text-primary" },
-  { icon: Heart, label: "Like", color: "text-secondary" },
-  { icon: Share2, label: "Share", color: "text-primary" },
-  { icon: MessageCircle, label: "Chat Message", color: "text-primary" },
-  { icon: Star, label: "Subscription", color: "text-secondary" },
+const actions = [
+  { title: "Sound Alert on Gift", description: "Play a custom sound effect when a viewer sends any gift. Assign different sounds to different gift values." },
+  { title: "TTS on Gift", description: "Read out the viewer's name and gift message using Text-to-Speech when they send a gift worth more than a threshold." },
+  { title: "Screen Shake on Gift", description: "Apply a screen shake effect to your overlay when a viewer sends a large gift. Intensity scales with gift value." },
+  { title: "Follow Alert", description: "Show an animated alert when someone follows your stream. Includes custom images, sounds, and text." },
+  { title: "GTA 5 - Spawn Vehicle", description: "When a viewer sends a specific gift, spawn a random vehicle in GTA 5 near the player. Uses TikUp's GTA Plugin." },
+  { title: "Minecraft - Spawn Mob", description: "Let viewers spawn friendly or hostile mobs in your Minecraft world by sending gifts during the stream." },
+  { title: "Chat Command: !dice", description: "Viewers can type !dice in chat to roll a virtual dice. The result is displayed on the overlay and read via TTS." },
+  { title: "Like Milestone Alert", description: "Trigger a special alert when your stream reaches certain like milestones (1K, 5K, 10K, etc.)." },
+  { title: "Gift Combo Bonus", description: "When a viewer sends multiple gifts in a row, trigger escalating effects — bigger sounds, more animations, bonus points." },
+  { title: "Share Alert", description: "Thank viewers who share your stream to friends with a personalized shoutout and on-screen notification." },
+  { title: "Keystroke: Toggle Scene", description: "Simulate a keystroke in OBS or another application when a specific gift is received. Great for scene switching." },
+  { title: "Subscriber Welcome", description: "Play a special welcome message and animation when a subscriber joins your live stream for the first time." },
+  { title: "Voicemod: Change Voice", description: "Let viewers change your voice filter by sending specific gifts. Integrates with Voicemod voice changer." },
+  { title: "Random Event Wheel", description: "Trigger a random event wheel spin when a viewer sends a high-value gift. Prizes include TTS, sounds, and game actions." },
+  { title: "Chat Highlight", description: "Highlight specific chat messages on your overlay when they contain certain keywords or are from specific users." },
+  { title: "Custom HTTP Request", description: "Send a custom HTTP webhook request when an event triggers. Connect to any external service or API." },
 ];
 
 const Actions = () => {
   return (
     <AppLayout>
-      <div className="max-w-4xl mx-auto animate-slide-in">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <Zap size={28} className="text-primary" />
-              <h1 className="text-3xl font-heading font-bold text-foreground">Actions & Events</h1>
-            </div>
-            <p className="text-muted-foreground">Create automated actions triggered by viewer interactions on your LIVE stream.</p>
-          </div>
-          <button className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity">
-            <Plus size={16} />
-            New Action
-          </button>
+      <div className="max-w-6xl mx-auto animate-slide-in pb-12">
+        {/* Tabs */}
+        <div className="flex items-center gap-1 mb-4 border-b border-border pb-2 overflow-x-auto">
+          {["Actions", "Event Rules", "Chat Commands", "Advanced", "Import / Export"].map((tab, i) => (
+            <button
+              key={tab}
+              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap ${
+                i === 0
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
         </div>
 
-        {/* Event triggers */}
-        <section className="mb-8">
-          <h2 className="text-lg font-heading font-semibold text-foreground mb-4">Event Triggers</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {eventTriggers.map((trigger) => (
-              <div
-                key={trigger.label}
-                className="flex items-center gap-3 p-4 rounded-xl border border-border bg-card hover:border-primary/20 transition-all cursor-pointer group"
-              >
-                <div className={`w-9 h-9 rounded-lg bg-muted flex items-center justify-center ${trigger.color}`}>
-                  <trigger.icon size={18} />
-                </div>
-                <span className="font-medium text-sm text-foreground">{trigger.label}</span>
-              </div>
-            ))}
+        {/* Info block */}
+        <div className="flex items-start gap-3 p-4 rounded-lg bg-card border border-border mb-6">
+          <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
+          <div className="text-sm text-muted-foreground leading-relaxed">
+            <p>
+              Create <span className="text-primary font-medium">Actions & Events</span> that trigger automatically based on viewer interactions.
+              Combine event triggers (gifts, follows, chat commands) with effects (sounds, TTS, game control, keystrokes).
+              Actions are fully customizable and can be chained together for complex interactions.
+            </p>
           </div>
-        </section>
+        </div>
 
-        {/* Empty state */}
-        <div className="rounded-xl border border-dashed border-border bg-card/50 p-12 text-center">
-          <Zap size={40} className="text-muted-foreground mx-auto mb-4 opacity-40" />
-          <h3 className="font-heading font-semibold text-foreground mb-2">No Actions Yet</h3>
-          <p className="text-sm text-muted-foreground mb-4 max-w-md mx-auto">
-            Create your first action to automate responses to viewer events. Combine triggers with effects like sound alerts, TTS, or game commands.
-          </p>
-          <button className="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-semibold text-sm hover:opacity-90 transition-opacity">
-            Create First Action
-          </button>
+        {/* Actions grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {actions.map((action) => (
+            <OverlayCard
+              key={action.title}
+              title={action.title}
+              description={action.description}
+              hasPreview={true}
+              url="#"
+            />
+          ))}
         </div>
       </div>
     </AppLayout>

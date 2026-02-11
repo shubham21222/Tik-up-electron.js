@@ -1,11 +1,16 @@
 import AppLayout from "@/components/AppLayout";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import {
   Eye, Heart, Share2, UserPlus, DollarSign, Radio,
   TrendingUp, ArrowUpRight, Activity, Gift, Star,
-  Play, Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight
+  Play, Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight,
+  Wifi, WifiOff, Loader2, AlertCircle, CheckCircle2, Settings
 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
   const mv = useMotionValue(0);
@@ -44,8 +49,63 @@ const updates = [
   { icon: Globe, title: "Streamer.bot Integration", description: "Connect with Streamer.bot for more features." },
 ];
 
+type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
+
 const Index = () => {
+  const { user } = useAuth();
   const [isLive, setIsLive] = useState(true);
+  const [tiktokUsername, setTiktokUsername] = useState("");
+  const [inputUsername, setInputUsername] = useState("");
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
+  const [connectionError, setConnectionError] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    supabase.from("profiles").select("tiktok_username, tiktok_connected").eq("user_id", user.id).maybeSingle()
+      .then(({ data }) => {
+        if (data) {
+          const d = data as any;
+          if (d.tiktok_username) {
+            setTiktokUsername(d.tiktok_username);
+            setInputUsername(d.tiktok_username);
+            if (d.tiktok_connected) setConnectionStatus("connected");
+          }
+        }
+      });
+  }, [user]);
+
+  const handleConnect = useCallback(async () => {
+    if (!user) return;
+    const clean = inputUsername.trim().replace(/^@/, "");
+    if (!clean) {
+      setConnectionError("Please enter a TikTok username");
+      setConnectionStatus("error");
+      return;
+    }
+    setConnectionError("");
+    setConnectionStatus("connecting");
+    const { error } = await supabase.from("profiles").update({
+      tiktok_username: clean,
+      tiktok_connected: true,
+      tiktok_connected_at: new Date().toISOString(),
+    } as any).eq("user_id", user.id);
+    if (error) {
+      setConnectionError("Failed to save. Try again.");
+      setConnectionStatus("error");
+      return;
+    }
+    setTiktokUsername(clean);
+    setConnectionStatus("connected");
+    toast.success(`Connected to @${clean}`);
+  }, [inputUsername, user]);
+
+  const handleDisconnect = async () => {
+    if (!user) return;
+    await supabase.from("profiles").update({ tiktok_connected: false } as any).eq("user_id", user.id);
+    setConnectionStatus("disconnected");
+    setTiktokUsername("");
+    toast.info("Disconnected from TikTok");
+  };
 
   return (
     <AppLayout>
@@ -66,7 +126,6 @@ const Index = () => {
             <h1 className="text-3xl font-heading font-bold text-foreground">
               Creator Control Center
             </h1>
-            {/* Live indicator */}
             {isLive && (
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/20">
                 <div className="relative">
@@ -80,6 +139,111 @@ const Index = () => {
           <p className="text-muted-foreground text-sm">
             Welcome back! Your stream tools are ready. Monitor your performance in real-time.
           </p>
+        </motion.div>
+
+        {/* TikTok Connection Banner */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+          className="mb-8 rounded-2xl p-[1px]"
+          style={{
+            background: connectionStatus === "connected"
+              ? "linear-gradient(135deg, hsl(160 100% 45% / 0.3), hsl(160 100% 45% / 0.05))"
+              : "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))",
+          }}
+        >
+          <div
+            className="rounded-2xl p-6 md:p-8 relative overflow-hidden"
+            style={{ background: "rgba(20,25,35,0.8)", backdropFilter: "blur(24px)" }}
+          >
+            {/* Background glow */}
+            <div className="absolute top-0 right-0 w-80 h-80 rounded-full pointer-events-none"
+              style={{ background: connectionStatus === "connected"
+                ? "radial-gradient(ellipse, hsl(160 100% 45% / 0.06), transparent 70%)"
+                : "radial-gradient(ellipse, hsl(280 100% 65% / 0.04), transparent 70%)" }}
+            />
+
+            <div className="relative z-10">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
+                    {connectionStatus === "connected" ? <Wifi size={24} className="text-primary" /> : <WifiOff size={24} className="text-muted-foreground" />}
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-heading font-bold text-foreground">TikTok Connection</h2>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {connectionStatus === "connected"
+                        ? <>Streaming as <span className="text-primary font-semibold">@{tiktokUsername}</span></>
+                        : "Connect your TikTok username to start receiving live events"}
+                    </p>
+                  </div>
+                </div>
+                <div className={`flex items-center gap-2 px-4 py-2 rounded-full text-xs font-bold ${
+                  connectionStatus === "connected"
+                    ? "bg-primary/10 text-primary border border-primary/20"
+                    : connectionStatus === "connecting"
+                    ? "bg-primary/10 text-primary"
+                    : connectionStatus === "error"
+                    ? "bg-destructive/10 text-destructive border border-destructive/20"
+                    : "bg-muted text-muted-foreground border border-border"
+                }`}>
+                  {connectionStatus === "connecting" ? <Loader2 size={14} className="animate-spin" /> :
+                   connectionStatus === "connected" ? <CheckCircle2 size={14} /> :
+                   connectionStatus === "error" ? <AlertCircle size={14} /> :
+                   <WifiOff size={14} />}
+                  {connectionStatus === "connected" ? "Connected" :
+                   connectionStatus === "connecting" ? "Connecting..." :
+                   connectionStatus === "error" ? "Error" : "Disconnected"}
+                </div>
+              </div>
+
+              <div className="mt-6 flex items-center gap-3">
+                <div className="flex-1 relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-lg text-muted-foreground font-semibold">@</span>
+                  <input
+                    type="text"
+                    value={inputUsername}
+                    onChange={(e) => setInputUsername(e.target.value.replace(/^@/, ""))}
+                    placeholder="your_tiktok_username"
+                    disabled={connectionStatus === "connecting" || connectionStatus === "connected"}
+                    className="w-full bg-muted/50 border border-border rounded-xl pl-10 pr-4 py-3.5 text-base text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 disabled:opacity-50 transition-all font-medium"
+                  />
+                </div>
+                {connectionStatus === "connected" ? (
+                  <button onClick={handleDisconnect} className="px-6 py-3.5 rounded-xl bg-destructive/15 text-destructive text-sm font-bold hover:bg-destructive/25 transition-colors border border-destructive/20">
+                    Disconnect
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleConnect}
+                    disabled={connectionStatus === "connecting"}
+                    className="px-8 py-3.5 rounded-xl bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2"
+                  >
+                    {connectionStatus === "connecting" && <Loader2 size={16} className="animate-spin" />}
+                    {connectionStatus === "connecting" ? "Connecting..." : "Connect"}
+                  </button>
+                )}
+              </div>
+
+              {connectionError && (
+                <div className="mt-3 flex items-center gap-2 text-xs text-destructive bg-destructive/10 px-4 py-2.5 rounded-xl border border-destructive/10">
+                  <AlertCircle size={14} />
+                  {connectionError}
+                </div>
+              )}
+
+              {connectionStatus === "connected" && (
+                <div className="mt-5 flex items-center gap-6">
+                  <Link to="/setup" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors font-medium">
+                    <Settings size={14} />
+                    Full Setup & Points Config
+                    <ArrowRight size={12} />
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </motion.div>
 
         {/* Stats Grid */}

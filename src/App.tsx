@@ -12,8 +12,14 @@ import GoalOverlays from "./pages/GoalOverlays";
 import GoalOverlayRenderer from "./pages/GoalOverlayRenderer";
 import GiftAlertOverlay from "./pages/GiftAlertOverlay";
 import ChatBoxOverlay from "./pages/ChatBoxOverlay";
+import LikeAlertOverlay from "./pages/LikeAlertOverlay";
+import FollowAlertOverlay from "./pages/FollowAlertOverlay";
+import ShareAlertOverlay from "./pages/ShareAlertOverlay";
 import GiftAlertRenderer from "./pages/renderers/GiftAlertRenderer";
 import ChatBoxRenderer from "./pages/renderers/ChatBoxRenderer";
+import LikeAlertRenderer from "./pages/renderers/LikeAlertRenderer";
+import FollowAlertRenderer from "./pages/renderers/FollowAlertRenderer";
+import ShareAlertRenderer from "./pages/renderers/ShareAlertRenderer";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
 import Chat from "./pages/Chat";
@@ -44,6 +50,9 @@ const App = () => (
             <Route path="/goal-overlays" element={<GoalOverlays />} />
             <Route path="/gift-alerts" element={<GiftAlertOverlay />} />
             <Route path="/chat-overlay" element={<ChatBoxOverlay />} />
+            <Route path="/like-alerts" element={<LikeAlertOverlay />} />
+            <Route path="/follow-alerts" element={<FollowAlertOverlay />} />
+            <Route path="/share-alerts" element={<ShareAlertOverlay />} />
             <Route path="/actions" element={<Actions />} />
             <Route path="/sounds" element={<Sounds />} />
             <Route path="/chat" element={<Chat />} />
@@ -60,6 +69,9 @@ const App = () => (
             <Route path="/overlay/goal/:publicToken" element={<GoalOverlayRenderer />} />
             <Route path="/overlay/gift-alert/:publicToken" element={<GiftAlertRenderer />} />
             <Route path="/overlay/chat-box/:publicToken" element={<ChatBoxRenderer />} />
+            <Route path="/overlay/like-alert/:publicToken" element={<LikeAlertRenderer />} />
+            <Route path="/overlay/follow-alert/:publicToken" element={<FollowAlertRenderer />} />
+            <Route path="/overlay/share-alert/:publicToken" element={<ShareAlertRenderer />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

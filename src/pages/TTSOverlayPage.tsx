@@ -1,14 +1,15 @@
 import AppLayout from "@/components/AppLayout";
 import { useTTSSettings, TTS_VOICES, TTS_LANGUAGES } from "@/hooks/use-tts-settings";
 import type { AllowedUsers, SpecialUser } from "@/hooks/use-tts-settings";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Mic, Play, Plus, Trash2, Search } from "lucide-react";
+import { Mic, Play, Plus, Trash2, Search, Copy } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/use-auth";
 
 const sectionClass = "rounded-2xl border border-border bg-card p-5 space-y-4";
 const sectionTitle = "text-sm font-heading font-bold text-primary uppercase tracking-wider mb-3";
@@ -19,14 +20,49 @@ const selectClass = "text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.0
 const numberClass = "w-20 text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 text-center";
 
 const TTSOverlayPage = () => {
+  const { user } = useAuth();
   const { settings, saveSettings, loading } = useTTSSettings();
   const [local, setLocal] = useState(settings);
   const [testText, setTestText] = useState("This is a test!");
   const [testing, setTesting] = useState(false);
   const [newUsername, setNewUsername] = useState("");
   const [userSearch, setUserSearch] = useState("");
+  const [ttsWidget, setTtsWidget] = useState<{ public_token: string } | null>(null);
 
   useEffect(() => { setLocal(settings); }, [settings]);
+
+  // Fetch or create TTS overlay widget
+  useEffect(() => {
+    if (!user) return;
+    const ensureTTSWidget = async () => {
+      const { data } = await supabase
+        .from("overlay_widgets")
+        .select("public_token")
+        .eq("user_id", user.id)
+        .eq("widget_type", "tts")
+        .maybeSingle();
+      if (data) {
+        setTtsWidget(data);
+      } else {
+        // Auto-create TTS widget
+        const token = crypto.randomUUID().replace(/-/g, '');
+        const { data: created } = await supabase
+          .from("overlay_widgets")
+          .insert({
+            user_id: user.id,
+            widget_type: "tts",
+            name: "TTS Overlay",
+            public_token: token,
+            is_active: true,
+            settings: {},
+          })
+          .select("public_token")
+          .single();
+        if (created) setTtsWidget(created);
+      }
+    };
+    ensureTTSWidget();
+  }, [user]);
 
   const update = (patch: Partial<typeof settings>) => {
     setLocal(prev => ({ ...prev, ...patch }));
@@ -301,6 +337,27 @@ const TTSOverlayPage = () => {
                   <Play size={12} /> {testing ? "Playing..." : "Play"}
                 </button>
               </div>
+            </div>
+
+            <div className={sectionClass}>
+              <h3 className={sectionTitle}>TTS Overlay URL</h3>
+              {ttsWidget ? (
+                <div className="space-y-2">
+                  <p className="text-[11px] text-muted-foreground">Add this URL as a Browser Source in OBS:</p>
+                  <div className="flex items-center gap-2">
+                    <Input className="h-7 text-[10px] bg-white/[0.03] border-white/[0.08] flex-1 font-mono" readOnly
+                      value={`https://tikup.xyz/overlay/tts/${ttsWidget.public_token}`} />
+                    <button onClick={() => {
+                      navigator.clipboard.writeText(`https://tikup.xyz/overlay/tts/${ttsWidget.public_token}`);
+                      toast.success("URL copied!");
+                    }} className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
+                      <Copy size={12} />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">Creating TTS overlay...</p>
+              )}
             </div>
 
             <div className={sectionClass}>

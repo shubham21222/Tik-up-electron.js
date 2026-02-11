@@ -40,6 +40,13 @@ import Song from "./pages/Song";
 import Tools from "./pages/Tools";
 import Pro from "./pages/Pro";
 import Giveaways from "./pages/Giveaways";
+import Polls from "./pages/Polls";
+import ChatCommands from "./pages/ChatCommands";
+import AutoModeration from "./pages/AutoModeration";
+import RecentActivity from "./pages/RecentActivity";
+import Widgets from "./pages/Widgets";
+import Integrations from "./pages/Integrations";
+import BrandSettings from "./pages/BrandSettings";
 import Auth from "./pages/Auth";
 import ScreenRenderer from "./pages/ScreenRenderer";
 import TTSOverlayPage from "./pages/TTSOverlayPage";
@@ -78,9 +85,13 @@ const App = () => (
             <Route path="/chat" element={<Chat />} />
             <Route path="/points" element={<Points />} />
             <Route path="/giveaways" element={<Giveaways />} />
-            <Route path="/polls" element={<Giveaways />} />
-            <Route path="/chat-commands" element={<Chat />} />
-            <Route path="/auto-moderation" element={<Chat />} />
+            <Route path="/polls" element={<Polls />} />
+            <Route path="/chat-commands" element={<ChatCommands />} />
+            <Route path="/auto-moderation" element={<AutoModeration />} />
+            <Route path="/recent-activity" element={<RecentActivity />} />
+            <Route path="/widgets" element={<Widgets />} />
+            <Route path="/integrations" element={<Integrations />} />
+            <Route path="/brand-settings" element={<BrandSettings />} />
             <Route path="/song" element={<Song />} />
             <Route path="/tools" element={<Tools />} />
             <Route path="/pro" element={<Pro />} />

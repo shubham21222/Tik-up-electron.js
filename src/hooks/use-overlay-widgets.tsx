@@ -2,6 +2,22 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { overlayDefaultsMap } from "@/hooks/overlay-defaults";
+
+// Re-export all defaults for backward compatibility
+export {
+  defaultGiftAlertSettings,
+  defaultChatBoxSettings,
+  defaultLikeAlertSettings,
+  defaultFollowAlertSettings,
+  defaultShareAlertSettings,
+  defaultLikeCounterSettings,
+  defaultFollowerGoalSettings,
+  defaultViewerCountSettings,
+  defaultLeaderboardSettings,
+  defaultStreamTimerSettings,
+  defaultCustomTextSettings,
+} from "@/hooks/overlay-defaults";
 
 export interface OverlayWidget {
   id: string;
@@ -14,167 +30,6 @@ export interface OverlayWidget {
   created_at: string;
   updated_at: string;
 }
-
-// Default settings for Gift Alert overlay
-export const defaultGiftAlertSettings = {
-  // Trigger conditions
-  trigger_mode: "any_gift" as "any_gift" | "specific_gift" | "value_threshold" | "combo" | "milestone",
-  specific_gift_type: "",
-  value_threshold: 100,
-  combo_threshold: 5,
-  milestone_total: 1000,
-
-  // Visual customization
-  animation_style: "bounce" as "slide" | "bounce" | "explosion" | "flip_3d" | "glitch",
-  duration: 5,
-  entry_animation: "scale_up" as "scale_up" | "slide_left" | "slide_right" | "slide_top" | "fade",
-  exit_animation: "fade" as "fade" | "slide_out" | "scale_down" | "dissolve",
-  gift_image_size: 64,
-  username_font: "heading" as "heading" | "mono" | "sans",
-  glow_intensity: 50,
-  shadow_depth: 30,
-  border_glow: true,
-  accent_color: "160 100% 45%",
-
-  // Sound
-  sound_url: "",
-  sound_volume: 80,
-  sound_delay: 0,
-  sound_loop: false,
-  combo_sound_override: "",
-
-  // Advanced
-  queue_enabled: true,
-  priority_alerts: true,
-  max_on_screen: 3,
-  anti_spam_throttle: 2,
-  alert_cooldown: 1,
-  animation_speed: 1,
-
-  // Display
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-};
-
-// Default settings for Chat Box overlay
-export const defaultChatBoxSettings = {
-  // Display mode
-  display_mode: "cyber" as "minimal" | "twitch" | "cyber" | "glass",
-
-  // Customization
-  message_fade_time: 30,
-  max_messages: 8,
-  username_color_auto: true,
-  show_badges: true,
-  emote_scale: 1.2,
-
-  // Advanced
-  highlight_gifts: true,
-  highlight_keywords: "",
-  highlight_moderators: true,
-  auto_scroll: true,
-  message_animation: "slide" as "slide" | "fade" | "pop" | "typewriter",
-  shadow_depth: 20,
-
-  // Font
-  font_size: 13,
-  font_family: "sans" as "sans" | "mono" | "heading",
-
-  // Display
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-  accent_color: "160 100% 45%",
-};
-
-// Default settings for Like Alert overlay
-export const defaultLikeAlertSettings = {
-  animation_style: "hearts_rise" as "hearts_rise" | "pulse_burst" | "neon_wave" | "sparkle_trail" | "vortex" | "ripple_glow",
-  duration: 4,
-  icon_size: 48,
-  glow_intensity: 60,
-  particle_count: 12,
-  color_mode: "warm" as "warm" | "cool" | "rainbow" | "mono",
-  show_count: true,
-  count_style: "animated" as "animated" | "static" | "milestone",
-  milestone_interval: 100,
-  milestone_animation: "confetti" as "confetti" | "flash" | "shake" | "explode",
-  username_visible: true,
-  combo_detection: true,
-  combo_multiplier_visual: true,
-  entry_animation: "float_up" as "float_up" | "slide_in" | "scale_pop" | "spiral",
-  exit_animation: "fade_up" as "fade_up" | "dissolve" | "shrink" | "fly_away",
-  sound_volume: 70,
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-  accent_color: "350 90% 55%",
-  queue_enabled: true,
-  max_on_screen: 5,
-  anti_spam_throttle: 0.5,
-  animation_speed: 1,
-};
-
-// Default settings for Follow Alert overlay
-export const defaultFollowAlertSettings = {
-  animation_style: "spotlight" as "spotlight" | "badge_drop" | "neon_slide" | "hologram" | "portal" | "glitch_in",
-  duration: 5,
-  icon_size: 56,
-  glow_intensity: 50,
-  show_avatar: true,
-  avatar_style: "circle" as "circle" | "hexagon" | "rounded_square",
-  welcome_text: "just followed!",
-  username_font: "heading" as "heading" | "mono" | "sans",
-  card_style: "glass" as "glass" | "solid" | "neon_border" | "gradient" | "minimal",
-  entry_animation: "drop_bounce" as "drop_bounce" | "slide_right" | "zoom_in" | "typewriter" | "flip",
-  exit_animation: "fade" as "fade" | "slide_out" | "scale_down" | "glitch_out",
-  sound_volume: 80,
-  counter_visible: true,
-  streak_detection: true,
-  streak_threshold: 3,
-  streak_animation: "rainbow" as "rainbow" | "shake" | "grow",
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-  accent_color: "160 100% 45%",
-  queue_enabled: true,
-  max_on_screen: 3,
-  anti_spam_throttle: 1,
-  animation_speed: 1,
-};
-
-// Default settings for Share Alert overlay
-export const defaultShareAlertSettings = {
-  animation_style: "rocket_launch" as "rocket_launch" | "shockwave" | "neon_burst" | "paper_plane" | "warp_speed" | "sonic_boom",
-  duration: 5,
-  icon_size: 52,
-  glow_intensity: 55,
-  show_share_count: true,
-  batch_detection: true,
-  batch_threshold: 5,
-  milestone_triggers: true,
-  milestone_interval: 50,
-  milestone_animation: "explosion" as "explosion" | "fireworks" | "rainbow_wave",
-  username_visible: true,
-  card_style: "cyber" as "cyber" | "glass" | "minimal" | "gradient",
-  entry_animation: "burst" as "burst" | "slide" | "zoom" | "spiral",
-  exit_animation: "fade" as "fade" | "fly_out" | "dissolve",
-  sound_volume: 75,
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-  accent_color: "200 100% 55%",
-  queue_enabled: true,
-  max_on_screen: 3,
-  anti_spam_throttle: 1,
-  animation_speed: 1,
-};
 
 export function useOverlayWidgets(widgetType?: string) {
   const { user } = useAuth();
@@ -195,11 +50,7 @@ export function useOverlayWidgets(widgetType?: string) {
 
   const createWidget = async (type: string, name: string) => {
     if (!user) return null;
-    const defaults = type === "gift_alert" ? defaultGiftAlertSettings
-      : type === "chat_box" ? defaultChatBoxSettings
-      : type === "like_alert" ? defaultLikeAlertSettings
-      : type === "follow_alert" ? defaultFollowAlertSettings
-      : type === "share_alert" ? defaultShareAlertSettings : {};
+    const defaults = overlayDefaultsMap[type] || {};
     const { data, error } = await supabase
       .from("overlay_widgets" as any)
       .insert({ user_id: user.id, widget_type: type, name, settings: defaults } as any)

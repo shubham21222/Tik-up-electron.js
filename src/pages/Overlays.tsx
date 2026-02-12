@@ -25,6 +25,8 @@ const CustomTextPreview = lazy(() => import("@/components/overlays/previews/Cust
 const GiftAlertPreview = lazy(() => import("@/components/overlays/previews/GiftAlertPreview"));
 const LikeAlertPreview = lazy(() => import("@/components/overlays/previews/LikeAlertPreview"));
 const ChatBoxPreview = lazy(() => import("@/components/overlays/previews/ChatBoxPreview"));
+const SocialRotatorPreview = lazy(() => import("@/components/overlays/previews/SocialRotatorPreview"));
+const GiftFireworkPreview = lazy(() => import("@/components/overlays/previews/GiftFireworkPreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -46,6 +48,8 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Stream Timer": StreamTimerPreview,
   "Custom Text": CustomTextPreview,
   "Like Alert": LikeAlertPreview,
+  "Social Media Rotator": SocialRotatorPreview,
+  "Gift Firework": GiftFireworkPreview,
 };
 
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -81,6 +85,8 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Leaderboard", description: "Live top gifters/fans leaderboard with animated ranking transitions.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/leaderboard", tags: ["Ranking", "Gifters"] },
     { title: "Stream Timer", description: "Digital countdown/count-up timer with segment display. Extendable by gifts.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/stream-timer", tags: ["Timer", "Countdown"] },
     { title: "Custom Text", description: "Dynamic text overlay supporting real-time variable binding ({viewers}, {likes}, etc).", hasPreview: true, color: "160 100% 45%", pro: true, route: "/custom-text", tags: ["Text", "Variables"] },
+    { title: "Social Media Rotator", description: "Animated 3D carousel of your social media links with glow effects and smooth rotation.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/social-rotator", tags: ["Social", "Links"] },
+    { title: "Gift Firework", description: "Cinematic firework explosions triggered by gifts with particle trails and username tags.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/gift-firework", tags: ["Gift", "Firework"] },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },

@@ -389,6 +389,39 @@ export const defaultSoundReactiveSettings = {
   custom_css: "",
 };
 
+// Social Media Rotator
+export const defaultSocialRotatorSettings = {
+  rotation_speed: 4,
+  icon_size: 48,
+  font_size: 16,
+  glow_intensity: 40,
+  glass_bg: true,
+  show_indicators: true,
+  social_links: [] as { icon: string; label: string; handle: string; color: string }[],
+  accent_color: "200 100% 55%",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
+// Gift Firework Animation
+export const defaultGiftFireworkSettings = {
+  duration: 3,
+  particle_count: 20,
+  explosion_radius: 80,
+  glow_intensity: 60,
+  show_username: true,
+  gravity: true,
+  multi_burst: false,
+  particle_colors: ["45 100% 55%", "280 100% 65%", "160 100% 45%", "350 90% 55%"],
+  accent_color: "45 100% 55%",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -407,4 +440,6 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   ticker: defaultTickerSettings,
   animated_bg: defaultAnimatedBgSettings,
   sound_reactive: defaultSoundReactiveSettings,
+  social_rotator: defaultSocialRotatorSettings,
+  gift_firework: defaultGiftFireworkSettings,
 };

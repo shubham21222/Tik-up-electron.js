@@ -16,7 +16,7 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<() => JSX.Elemen
   "TikTok Chat Overlay": ChatOverlay,
   "Sound Alert Overlay": SoundAlertOverlay,
   "Like/Follow Overlay": LikeFollowOverlay,
-  "Gift Alert Overlay": SoundAlertOverlay,
+  "Gift Alert Overlay": GoalProgressOverlay,
   "Goal Progress Bar": GoalProgressOverlay,
 };
 
@@ -41,6 +41,18 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Like/Follow Overlay", description: "Elegant floating notifications with heart particle animations.", hasPreview: true, color: "350 90% 55%", route: "/like-alerts" },
     { title: "Gift Alert Overlay", description: "Animated gift alerts with glow pulse and ring expansion effects.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-alerts" },
     { title: "Goal Progress Bar", description: "Animated progress bars for likes, follows, shares & stars with shimmer effects.", hasPreview: true, color: "45 100% 55%", route: "/goal-overlays" },
+    { title: "Super Gift Combo", description: "Stacking combo counter with escalating tiers — Combo, Super, Epic, Legendary.", hasPreview: false, color: "350 90% 55%", pro: true, route: "/gift-combo", tags: ["Gift", "Combo"] },
+    { title: "Notifications Ticker", description: "Scrolling event ticker bar showing follows, likes, gifts in real-time.", hasPreview: false, color: "200 100% 55%", pro: true, route: "/ticker", tags: ["Ticker", "Events"] },
+    { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/animated-bg", tags: ["Background", "Loop"] },
+    { title: "Sound Reactive", description: "Audio visualizer with peak meters and waveform backgrounds synced to stream audio.", hasPreview: false, color: "200 100% 55%", pro: true, route: "/sound-reactive", tags: ["Audio", "Visual"] },
+    { title: "Follow Alert", description: "Clean notification when a new user follows. Slide-in animation with avatar display.", hasPreview: false, color: "160 100% 45%", pro: true, route: "/follow-alerts", tags: ["Follow"] },
+    { title: "Share Alert", description: "Stream share notification with animated share icon and username display.", hasPreview: false, color: "200 100% 55%", pro: true, route: "/share-alerts", tags: ["Share"] },
+    { title: "Viewer Count", description: "Live viewer count display with spike animations, peak tracking, and mini graph mode.", hasPreview: false, color: "45 100% 55%", pro: true, route: "/viewer-count", tags: ["Live", "Counter"] },
+    { title: "Like Counter", description: "Real-time like counter with progress ring, bar, and animated digit modes.", hasPreview: false, color: "350 90% 55%", pro: true, route: "/like-counter", tags: ["Counter", "Like"] },
+    { title: "Follower Goal", description: "Animated follower goal bar with milestone markers and completion celebration.", hasPreview: false, color: "160 100% 45%", pro: true, route: "/follower-goal", tags: ["Goal", "Follow"] },
+    { title: "Leaderboard", description: "Live top gifters/fans leaderboard with animated ranking transitions.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/leaderboard", tags: ["Ranking", "Gifters"] },
+    { title: "Stream Timer", description: "Digital countdown/count-up timer with segment display. Extendable by gifts.", hasPreview: false, color: "200 100% 55%", pro: true, route: "/stream-timer", tags: ["Timer", "Countdown"] },
+    { title: "Custom Text", description: "Dynamic text overlay supporting real-time variable binding ({viewers}, {likes}, etc).", hasPreview: false, color: "160 100% 45%", pro: true, route: "/custom-text", tags: ["Text", "Variables"] },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },

@@ -34,6 +34,7 @@ const sections: SidebarSection[] = [
       { id: "/like-alerts", label: "Like Alerts", icon: Heart, pro: true },
       { id: "/follow-alerts", label: "Follow Alerts", icon: UserPlus, pro: true },
       { id: "/share-alerts", label: "Share Alerts", icon: Share2, pro: true },
+      { id: "/gift-browser", label: "Gift Browser", icon: Gift },
     ],
   },
   {

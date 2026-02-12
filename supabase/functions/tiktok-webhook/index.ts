@@ -80,6 +80,13 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .eq("is_active", true);
 
+    // Get user gift triggers
+    const { data: giftTriggers } = await supabase
+      .from("user_gift_triggers")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("is_enabled", true);
+
     // Get TTS settings
     const { data: ttsSettings } = await supabase
       .from("tts_settings")
@@ -110,11 +117,30 @@ Deno.serve(async (req) => {
 
       // Broadcast to overlay widgets via REST API
       if (widgets) {
+        // Check if this gift event has a custom trigger config
+        let triggerOverrides: Record<string, unknown> = {};
+        if (event.type === "gift" && giftTriggers) {
+          const giftName = ((event.data.giftName as string) || "").toLowerCase().replace(/\s+/g, "_");
+          const giftId = (event.data.giftId as string) || giftName;
+          const matchedTrigger = giftTriggers.find(
+            (t: any) => t.gift_id === giftId || t.gift_id === giftName
+          );
+          if (matchedTrigger) {
+            triggerOverrides = {
+              animation_effect: matchedTrigger.animation_effect,
+              alert_sound_url: matchedTrigger.alert_sound_url,
+              priority: matchedTrigger.priority,
+              combo_threshold: matchedTrigger.combo_threshold,
+            };
+          }
+        }
+
         for (const widget of widgets) {
           const channelName = `${widget.widget_type}-${widget.public_token}`;
           const broadcastEvent = mapEventToOverlay(event, widget.widget_type);
           if (broadcastEvent) {
-            await broadcast(channelName, broadcastEvent.event, broadcastEvent.payload);
+            const enrichedPayload = { ...broadcastEvent.payload, ...triggerOverrides };
+            await broadcast(channelName, broadcastEvent.event, enrichedPayload);
           }
         }
       }

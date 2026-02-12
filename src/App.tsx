@@ -63,10 +63,12 @@ import SocialRotatorOverlay from "./pages/SocialRotatorOverlay";
 import GiftFireworkOverlay from "./pages/GiftFireworkOverlay";
 import PromoOverlay from "./pages/PromoOverlay";
 import StreamBorderOverlay from "./pages/StreamBorderOverlay";
+import WebcamFrameOverlay from "./pages/WebcamFrameOverlay";
 import SocialRotatorRenderer from "./pages/renderers/SocialRotatorRenderer";
 import GiftFireworkRenderer from "./pages/renderers/GiftFireworkRenderer";
 import PromoOverlayRenderer from "./pages/renderers/PromoOverlayRenderer";
 import StreamBorderRenderer from "./pages/renderers/StreamBorderRenderer";
+import WebcamFrameRenderer from "./pages/renderers/WebcamFrameRenderer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -101,6 +103,7 @@ const App = () => (
           <Route path="/overlay/gift-firework/:publicToken" element={<GiftFireworkRenderer />} />
           <Route path="/overlay/promo/:publicToken" element={<PromoOverlayRenderer />} />
           <Route path="/overlay/stream-border/:publicToken" element={<StreamBorderRenderer />} />
+          <Route path="/overlay/webcam-frame/:publicToken" element={<WebcamFrameRenderer />} />
 
           {/* All other routes wrapped in AuthProvider */}
           <Route path="/*" element={
@@ -147,6 +150,7 @@ const App = () => (
                 <Route path="/gift-firework" element={<GiftFireworkOverlay />} />
                 <Route path="/promo-overlay" element={<PromoOverlay />} />
                 <Route path="/stream-border" element={<StreamBorderOverlay />} />
+                <Route path="/webcam-frame" element={<WebcamFrameOverlay />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

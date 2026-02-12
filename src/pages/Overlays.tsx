@@ -29,6 +29,7 @@ const SocialRotatorPreview = lazy(() => import("@/components/overlays/previews/S
 const GiftFireworkPreview = lazy(() => import("@/components/overlays/previews/GiftFireworkPreview"));
 const PromoOverlayPreview = lazy(() => import("@/components/overlays/previews/PromoOverlayPreview"));
 const StreamBorderPreview = lazy(() => import("@/components/overlays/previews/StreamBorderPreview"));
+const WebcamFramePreview = lazy(() => import("@/components/overlays/previews/WebcamFramePreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -54,6 +55,7 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Gift Firework": GiftFireworkPreview,
   "Promo Overlay": PromoOverlayPreview,
   "Stream Border": StreamBorderPreview,
+  "Webcam Frame": WebcamFramePreview,
 };
 
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -93,6 +95,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Gift Firework", description: "Cinematic firework explosions triggered by gifts with particle trails and username tags.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/gift-firework", tags: ["Gift", "Firework"] },
     { title: "Promo Overlay", description: "Branded promo overlay with your TikUp logo, animated rings, and follow CTA for stream.", hasPreview: true, color: "160 100% 45%", route: "/promo-overlay", tags: ["Promo", "Brand"] },
     { title: "Stream Border", description: "10 premium animated transparent borders: Neon Pulse, Gold Metallic, Glitch, Electric Spark, Liquid Flow & more.", hasPreview: true, color: "210 100% 55%", pro: true, route: "/stream-border", tags: ["Border", "Frame"] },
+    { title: "Webcam Frame", description: "10 premium animated webcam frames for TikTok Live game layout. Neon, Gold, Circuit, Holographic & more.", hasPreview: true, color: "180 100% 50%", pro: true, route: "/webcam-frame", tags: ["Webcam", "Frame"] },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },

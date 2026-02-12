@@ -7,90 +7,73 @@ interface PromoOverlayPreviewProps {
 
 const PromoOverlayPreview = ({ settings = {} }: PromoOverlayPreviewProps) => {
   const accentColor = settings.accent_color || "160 100% 45%";
-  const logoSize = settings.logo_size || 80;
   const tagline = settings.tagline || "Follow for more!";
-  const showHandle = settings.show_handle ?? true;
-  const handle = settings.handle || "@yourtiktok";
+  const handle = settings.handle || "@tikup";
   const glowIntensity = (settings.glow_intensity || 60) / 100;
-  const style = settings.animation_style || "pulse";
 
   return (
-    <div className="relative w-full h-full flex items-center justify-center">
-      {/* Ambient ring */}
+    <div className="relative w-full h-full flex items-center justify-center p-3">
+      {/* Banner card */}
       <motion.div
-        className="absolute rounded-full"
+        className="relative w-full max-w-[380px] rounded-2xl overflow-hidden flex flex-col items-center py-6 px-8 gap-3"
         style={{
-          width: logoSize * 2.2,
-          height: logoSize * 2.2,
-          border: `2px solid hsl(${accentColor} / 0.15)`,
-          boxShadow: `0 0 ${40 * glowIntensity}px hsl(${accentColor} / 0.1)`,
+          background: "linear-gradient(145deg, rgba(12,16,22,0.95), rgba(8,12,18,0.98))",
+          border: `1.5px solid hsl(${accentColor} / 0.2)`,
+          boxShadow: `0 0 ${30 * glowIntensity}px hsl(${accentColor} / 0.08), inset 0 1px 0 rgba(255,255,255,0.04)`,
         }}
-        animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.8, 0.4] }}
-        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-      />
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Subtle accent line top */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[60%] h-[1px]"
+          style={{ background: `linear-gradient(90deg, transparent, hsl(${accentColor} / 0.4), transparent)` }} />
 
-      {/* Second ring */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{
-          width: logoSize * 2.8,
-          height: logoSize * 2.8,
-          border: `1px solid hsl(${accentColor} / 0.08)`,
-        }}
-        animate={{ scale: [1, 1.05, 1], opacity: [0.2, 0.5, 0.2] }}
-        transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-      />
-
-      <div className="flex flex-col items-center gap-3">
-        {/* Logo */}
+        {/* Logo - big */}
         <motion.div
-          className="rounded-full flex items-center justify-center overflow-hidden"
+          className="rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
           style={{
-            width: logoSize,
-            height: logoSize,
-            background: `linear-gradient(135deg, hsl(${accentColor} / 0.2), hsl(${accentColor} / 0.05))`,
-            border: `2.5px solid hsl(${accentColor} / 0.4)`,
-            boxShadow: `0 0 ${25 * glowIntensity}px hsl(${accentColor} / 0.2), 0 0 ${60 * glowIntensity}px hsl(${accentColor} / 0.08)`,
+            width: 72, height: 72,
+            background: `linear-gradient(135deg, hsl(${accentColor} / 0.15), hsl(${accentColor} / 0.04))`,
+            border: `2.5px solid hsl(${accentColor} / 0.35)`,
+            boxShadow: `0 0 ${20 * glowIntensity}px hsl(${accentColor} / 0.15)`,
           }}
-          animate={
-            style === "pulse"
-              ? { scale: [1, 1.06, 1], boxShadow: [
-                  `0 0 ${20 * glowIntensity}px hsl(${accentColor} / 0.15)`,
-                  `0 0 ${40 * glowIntensity}px hsl(${accentColor} / 0.3)`,
-                  `0 0 ${20 * glowIntensity}px hsl(${accentColor} / 0.15)`,
-                ] }
-              : style === "rotate"
-              ? { rotate: [0, 360] }
-              : { y: [0, -6, 0] }
-          }
-          transition={{ duration: style === "rotate" ? 8 : 2.5, repeat: Infinity, ease: "easeInOut" }}
+          animate={{
+            boxShadow: [
+              `0 0 ${15 * glowIntensity}px hsl(${accentColor} / 0.1)`,
+              `0 0 ${30 * glowIntensity}px hsl(${accentColor} / 0.25)`,
+              `0 0 ${15 * glowIntensity}px hsl(${accentColor} / 0.1)`,
+            ],
+          }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
         >
-          <img src={tikupLogo} alt="TikUp" className="w-[65%] h-[65%] object-contain" />
+          <img src={tikupLogo} alt="TikUp" className="w-[62%] h-[62%] object-contain" />
         </motion.div>
 
         {/* Tagline */}
         <motion.p
-          className="text-sm font-bold text-white text-center"
-          initial={{ opacity: 0, y: 6 }}
+          className="text-base font-bold text-white text-center tracking-tight"
+          initial={{ opacity: 0, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.2 }}
         >
           {tagline}
         </motion.p>
 
         {/* Handle */}
-        {showHandle && (
-          <motion.p
-            className="text-[11px] font-medium text-center"
-            style={{ color: `hsl(${accentColor})` }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            {handle}
-          </motion.p>
-        )}
-      </div>
+        <motion.p
+          className="text-sm font-semibold text-center tracking-wide"
+          style={{ color: `hsl(${accentColor})` }}
+          animate={{ opacity: [0.7, 1, 0.7] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        >
+          {handle}
+        </motion.p>
+
+        {/* Bottom accent line */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[40%] h-[1px]"
+          style={{ background: `linear-gradient(90deg, transparent, hsl(${accentColor} / 0.3), transparent)` }} />
+      </motion.div>
     </div>
   );
 };

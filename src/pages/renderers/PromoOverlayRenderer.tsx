@@ -6,14 +6,14 @@ import useOverlayBody from "@/hooks/use-overlay-body";
 import tikupLogo from "@/assets/tikup_logo.png";
 
 const defaults = {
-  logo_size: 120,
+  logo_size: 140,
   tagline: "Follow for more!",
-  handle: "@yourtiktok",
+  handle: "@tikup",
   show_handle: true,
   accent_color: "160 100% 45%",
   glow_intensity: 60,
   animation_style: "pulse",
-  show_rings: true,
+  show_rings: false,
   transparent_bg: true,
   custom_css: "",
 };
@@ -40,65 +40,58 @@ const PromoOverlayRenderer = () => {
 
   const s = settings;
   const accent = s.accent_color;
-  const glow = (s.glow_intensity) / 100;
+  const glow = s.glow_intensity / 100;
   const logoSize = s.logo_size;
 
   return (
     <div className={`w-screen h-screen overflow-hidden flex items-center justify-center ${s.transparent_bg ? "bg-transparent" : "bg-black"}`}>
-      {/* Rings */}
-      {s.show_rings && (
-        <>
-          <motion.div
-            className="absolute rounded-full"
-            style={{ width: logoSize * 2.2, height: logoSize * 2.2, border: `2px solid hsl(${accent} / 0.15)`, boxShadow: `0 0 ${40 * glow}px hsl(${accent} / 0.1)` }}
-            animate={{ scale: [1, 1.08, 1], opacity: [0.4, 0.8, 0.4] }}
-            transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute rounded-full"
-            style={{ width: logoSize * 2.8, height: logoSize * 2.8, border: `1px solid hsl(${accent} / 0.08)` }}
-            animate={{ scale: [1, 1.05, 1], opacity: [0.2, 0.5, 0.2] }}
-            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-          />
-          <motion.div
-            className="absolute rounded-full"
-            style={{ width: logoSize * 3.5, height: logoSize * 3.5, border: `1px solid hsl(${accent} / 0.04)` }}
-            animate={{ scale: [1, 1.03, 1], opacity: [0.1, 0.3, 0.1] }}
-            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          />
-        </>
-      )}
+      {/* Banner card — wide rectangle */}
+      <motion.div
+        className="relative flex flex-col items-center gap-5 rounded-3xl overflow-hidden"
+        style={{
+          width: "min(90vw, 600px)",
+          padding: "48px 40px",
+          background: "linear-gradient(145deg, rgba(12,16,22,0.96), rgba(6,10,16,0.98))",
+          border: `2px solid hsl(${accent} / 0.2)`,
+          boxShadow: `0 0 ${40 * glow}px hsl(${accent} / 0.1), 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)`,
+        }}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      >
+        {/* Top accent line */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[50%] h-[2px]"
+          style={{ background: `linear-gradient(90deg, transparent, hsl(${accent} / 0.5), transparent)` }} />
 
-      <div className="flex flex-col items-center gap-5 relative z-10">
         {/* Logo */}
         <motion.div
           className="rounded-full flex items-center justify-center overflow-hidden"
           style={{
             width: logoSize, height: logoSize,
-            background: `linear-gradient(135deg, hsl(${accent} / 0.2), hsl(${accent} / 0.05))`,
-            border: `3px solid hsl(${accent} / 0.4)`,
-            boxShadow: `0 0 ${30 * glow}px hsl(${accent} / 0.25), 0 0 ${80 * glow}px hsl(${accent} / 0.1)`,
+            background: `linear-gradient(135deg, hsl(${accent} / 0.18), hsl(${accent} / 0.04))`,
+            border: `3px solid hsl(${accent} / 0.35)`,
+            boxShadow: `0 0 ${30 * glow}px hsl(${accent} / 0.2), 0 0 ${80 * glow}px hsl(${accent} / 0.08)`,
           }}
           animate={
             s.animation_style === "pulse"
-              ? { scale: [1, 1.06, 1], boxShadow: [
-                  `0 0 ${25 * glow}px hsl(${accent} / 0.2)`,
-                  `0 0 ${50 * glow}px hsl(${accent} / 0.35)`,
-                  `0 0 ${25 * glow}px hsl(${accent} / 0.2)`,
+              ? { scale: [1, 1.04, 1], boxShadow: [
+                  `0 0 ${25 * glow}px hsl(${accent} / 0.15)`,
+                  `0 0 ${50 * glow}px hsl(${accent} / 0.3)`,
+                  `0 0 ${25 * glow}px hsl(${accent} / 0.15)`,
                 ] }
               : s.animation_style === "rotate"
               ? { rotate: [0, 360] }
-              : { y: [0, -8, 0] }
+              : { y: [0, -6, 0] }
           }
           transition={{ duration: s.animation_style === "rotate" ? 8 : 2.5, repeat: Infinity, ease: "easeInOut" }}
         >
-          <img src={tikupLogo} alt="TikUp" style={{ width: "65%", height: "65%", objectFit: "contain" }} />
+          <img src={tikupLogo} alt="TikUp" style={{ width: "62%", height: "62%", objectFit: "contain" }} />
         </motion.div>
 
         {/* Tagline */}
         <motion.p
-          className="text-xl font-bold text-white text-center"
-          initial={{ opacity: 0, y: 10 }}
+          className="text-2xl font-bold text-white text-center tracking-tight"
+          initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
         >
@@ -108,15 +101,19 @@ const PromoOverlayRenderer = () => {
         {/* Handle */}
         {s.show_handle && (
           <motion.p
-            className="text-base font-medium text-center"
+            className="text-lg font-semibold text-center tracking-wider"
             style={{ color: `hsl(${accent})` }}
             animate={{ opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2, repeat: Infinity }}
+            transition={{ duration: 2.5, repeat: Infinity }}
           >
             {s.handle}
           </motion.p>
         )}
-      </div>
+
+        {/* Bottom accent line */}
+        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[35%] h-[2px]"
+          style={{ background: `linear-gradient(90deg, transparent, hsl(${accent} / 0.4), transparent)` }} />
+      </motion.div>
 
       {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
     </div>

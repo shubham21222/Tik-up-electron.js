@@ -32,6 +32,10 @@ import ViewerCountRenderer from "./pages/renderers/ViewerCountRenderer";
 import LeaderboardRenderer from "./pages/renderers/LeaderboardRenderer";
 import StreamTimerRenderer from "./pages/renderers/StreamTimerRenderer";
 import CustomTextRenderer from "./pages/renderers/CustomTextRenderer";
+import GiftComboRenderer from "./pages/renderers/GiftComboRenderer";
+import TickerRenderer from "./pages/renderers/TickerRenderer";
+import AnimatedBgRenderer from "./pages/renderers/AnimatedBgRenderer";
+import SoundReactiveRenderer from "./pages/renderers/SoundReactiveRenderer";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
 import Chat from "./pages/Chat";
@@ -51,6 +55,10 @@ import Auth from "./pages/Auth";
 import ScreenRenderer from "./pages/ScreenRenderer";
 import TTSOverlayPage from "./pages/TTSOverlayPage";
 import TTSRenderer from "./pages/renderers/TTSRenderer";
+import GiftComboOverlay from "./pages/GiftComboOverlay";
+import TickerOverlay from "./pages/TickerOverlay";
+import AnimatedBgOverlay from "./pages/AnimatedBgOverlay";
+import SoundReactiveOverlay from "./pages/SoundReactiveOverlay";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -77,6 +85,10 @@ const App = () => (
           <Route path="/overlay/stream-timer/:publicToken" element={<StreamTimerRenderer />} />
           <Route path="/overlay/custom-text/:publicToken" element={<CustomTextRenderer />} />
           <Route path="/overlay/tts/:publicToken" element={<TTSRenderer />} />
+          <Route path="/overlay/gift-combo/:publicToken" element={<GiftComboRenderer />} />
+          <Route path="/overlay/ticker/:publicToken" element={<TickerRenderer />} />
+          <Route path="/overlay/animated-bg/:publicToken" element={<AnimatedBgRenderer />} />
+          <Route path="/overlay/sound-reactive/:publicToken" element={<SoundReactiveRenderer />} />
 
           {/* All other routes wrapped in AuthProvider */}
           <Route path="/*" element={
@@ -115,6 +127,10 @@ const App = () => (
                 <Route path="/tools" element={<Tools />} />
                 <Route path="/pro" element={<Pro />} />
                 <Route path="/tts" element={<TTSOverlayPage />} />
+                <Route path="/gift-combo" element={<GiftComboOverlay />} />
+                <Route path="/ticker" element={<TickerOverlay />} />
+                <Route path="/animated-bg" element={<AnimatedBgOverlay />} />
+                <Route path="/sound-reactive" element={<SoundReactiveOverlay />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

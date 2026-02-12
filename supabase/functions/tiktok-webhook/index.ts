@@ -192,6 +192,7 @@ function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
   switch (event.type) {
     case "gift":
       if (widgetType === "gift_alert") return { event: "new_alert", payload: payloadWithUser };
+      if (widgetType === "gift_combo") return { event: "combo_update", payload: payloadWithUser };
       break;
     case "like":
       if (widgetType === "like_alert" || widgetType === "like_counter")
@@ -200,9 +201,11 @@ function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
     case "follow":
       if (widgetType === "follow_alert" || widgetType === "follower_goal")
         return { event: widgetType === "follow_alert" ? "new_alert" : "follower_update", payload: payloadWithUser };
+      if (widgetType === "ticker") return { event: "ticker_event", payload: { ...payloadWithUser, event_type: "follow" } };
       break;
     case "share":
       if (widgetType === "share_alert") return { event: "new_alert", payload: payloadWithUser };
+      if (widgetType === "ticker") return { event: "ticker_event", payload: { ...payloadWithUser, event_type: "share" } };
       break;
     case "chat":
       if (widgetType === "chat_box") return { event: "new_message", payload: payloadWithUser };
@@ -211,5 +214,7 @@ function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
       if (widgetType === "viewer_count") return { event: "viewer_update", payload: payloadWithUser };
       break;
   }
+  // Ticker gets all event types
+  if (widgetType === "ticker") return { event: "ticker_event", payload: { ...payloadWithUser, event_type: event.type } };
   return null;
 }

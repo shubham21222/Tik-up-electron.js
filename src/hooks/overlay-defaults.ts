@@ -303,6 +303,92 @@ export const defaultTTSSettings = {
   custom_css: "",
 };
 
+// Gift Combo Counter
+export const defaultGiftComboSettings = {
+  combo_timeout: 5,
+  min_combo: 2,
+  animation_style: "escalate" as "escalate" | "pulse" | "shake" | "explode",
+  show_multiplier: true,
+  show_gift_icon: true,
+  font_size: 56,
+  font_family: "heading" as "heading" | "mono" | "sans",
+  glow_intensity: 70,
+  escalation_tiers: [5, 10, 25, 50, 100],
+  tier_colors: ["160 100% 45%", "45 100% 55%", "350 90% 55%", "280 100% 65%", "0 100% 60%"],
+  particle_burst: true,
+  screen_shake: true,
+  combo_sound: true,
+  accent_color: "280 100% 65%",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
+// Notifications Ticker
+export const defaultTickerSettings = {
+  scroll_speed: 40,
+  direction: "left" as "left" | "right",
+  font_size: 14,
+  font_family: "sans" as "heading" | "mono" | "sans",
+  show_icons: true,
+  show_timestamps: false,
+  max_items: 20,
+  event_types: ["follow", "like", "gift", "share"] as string[],
+  separator_style: "dot" as "dot" | "pipe" | "diamond" | "star",
+  glow_intensity: 40,
+  bar_height: 40,
+  bar_position: "bottom" as "top" | "bottom",
+  background_blur: true,
+  accent_color: "200 100% 55%",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
+// Animated Background
+export const defaultAnimatedBgSettings = {
+  bg_type: "gradient" as "gradient" | "particles" | "grid" | "aurora" | "waves",
+  color_1: "280 100% 65%",
+  color_2: "200 100% 55%",
+  color_3: "160 100% 45%",
+  animation_speed: 1,
+  particle_count: 50,
+  particle_size: 3,
+  opacity: 0.6,
+  blur_amount: 0,
+  grid_size: 40,
+  wave_amplitude: 20,
+  react_to_events: false,
+  accent_color: "280 100% 65%",
+  transparent_bg: false,
+  dark_bg: true,
+  fps_limit: 60,
+  custom_css: "",
+};
+
+// Sound Reactive
+export const defaultSoundReactiveSettings = {
+  display_mode: "bars" as "bars" | "waveform" | "circle" | "spectrum",
+  bar_count: 32,
+  bar_width: 4,
+  bar_gap: 2,
+  bar_radius: 2,
+  sensitivity: 70,
+  smoothing: 0.8,
+  mirror: true,
+  color_mode: "gradient" as "solid" | "gradient" | "rainbow" | "reactive",
+  glow_intensity: 50,
+  position: "bottom" as "top" | "bottom" | "center" | "full",
+  height_percent: 30,
+  accent_color: "200 100% 55%",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -317,4 +403,8 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   stream_timer: defaultStreamTimerSettings,
   custom_text: defaultCustomTextSettings,
   tts: defaultTTSSettings,
+  gift_combo: defaultGiftComboSettings,
+  ticker: defaultTickerSettings,
+  animated_bg: defaultAnimatedBgSettings,
+  sound_reactive: defaultSoundReactiveSettings,
 };

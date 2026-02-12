@@ -50,7 +50,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Subscriber Alert", description: "Premium subscriber welcome alert with confetti and badge animation.", hasPreview: false, color: "45 100% 55%", pro: true, tags: ["Sub", "Premium"] },
     { title: "Raid Alert", description: "Epic raid announcement with viewer count and animated entrance.", hasPreview: false, color: "280 100% 65%", pro: true, tags: ["Raid"] },
     { title: "Milestone Alert", description: "Celebration overlay for follower/like milestones (1K, 5K, 10K, 100K).", hasPreview: false, color: "45 100% 55%", tags: ["Milestone", "Celebration"] },
-    { title: "Combo Alert", description: "Stacking gift combo counter with multiplier animation and escalating effects.", hasPreview: false, color: "350 90% 55%", pro: true, tags: ["Gift", "Combo"] },
+    { title: "Combo Alert", description: "Stacking gift combo counter with multiplier animation and escalating effects.", hasPreview: false, color: "350 90% 55%", pro: true, route: "/gift-combo", tags: ["Gift", "Combo"] },
   ],
   "Widgets": [
     { title: "Viewer Count", description: "Live viewer count display with spike animations, peak tracking, and mini graph mode.", hasPreview: false, color: "45 100% 55%", pro: true, route: "/viewer-count", tags: ["Live", "Counter"] },
@@ -63,6 +63,9 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Chat Word Cloud", description: "Real-time word cloud generated from chat messages with dynamic sizing.", hasPreview: false, color: "200 100% 55%", tags: ["Chat", "Visual"] },
     { title: "Emote Wall", description: "Display emotes and stickers sent by viewers in an animated grid.", hasPreview: false, color: "45 100% 55%", tags: ["Emotes", "Chat"] },
     { title: "QR Code Overlay", description: "Display a QR code linking to your TikTok profile or any custom URL.", hasPreview: false, color: "0 0% 70%", tags: ["Utility"] },
+    { title: "Notifications Ticker", description: "Scrolling event ticker bar showing follows, likes, gifts in real-time.", hasPreview: false, color: "200 100% 55%", pro: true, route: "/ticker", tags: ["Ticker", "Events"] },
+    { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/animated-bg", tags: ["Background", "Loop"] },
+    { title: "Sound Reactive", description: "Audio visualizer with peak meters and waveform backgrounds synced to stream audio.", hasPreview: false, color: "200 100% 55%", pro: true, route: "/sound-reactive", tags: ["Audio", "Visual"] },
   ],
   "Interactive": [
     { title: "Poll Overlay", description: "Interactive polls where viewers vote through chat. Real-time animated bar chart results.", hasPreview: false, color: "200 100% 55%", pro: true, tags: ["Polls", "Interactive"] },

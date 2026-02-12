@@ -25,6 +25,7 @@ export {
   defaultGiftFireworkSettings,
   defaultPromoOverlaySettings,
   defaultStreamBorderSettings,
+  defaultWebcamFrameSettings,
 } from "@/hooks/overlay-defaults";
 
 export interface OverlayWidget {

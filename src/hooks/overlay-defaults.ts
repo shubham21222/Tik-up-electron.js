@@ -453,6 +453,22 @@ export const defaultStreamBorderSettings = {
   custom_css: "",
 };
 
+// Webcam Frame
+export const defaultWebcamFrameSettings = {
+  frame_style: "neon_cyber" as "neon_cyber" | "golden_luxe" | "digital_pulse" | "particle_aura" | "circuit_flow" | "electro_corners" | "liquid_glow" | "holographic_shift" | "ember_flicker" | "audio_reactive",
+  frame_thickness: 4,
+  frame_size: 300,
+  animation_speed: 1,
+  glow_intensity: 60,
+  color_1: "180 100% 50%",
+  color_2: "280 100% 65%",
+  corner_radius: 12,
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -475,4 +491,5 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_firework: defaultGiftFireworkSettings,
   promo_overlay: defaultPromoOverlaySettings,
   stream_border: defaultStreamBorderSettings,
+  webcam_frame: defaultWebcamFrameSettings,
 };

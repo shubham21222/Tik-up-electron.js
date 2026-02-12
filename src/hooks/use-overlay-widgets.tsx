@@ -17,6 +17,10 @@ export {
   defaultLeaderboardSettings,
   defaultStreamTimerSettings,
   defaultCustomTextSettings,
+  defaultGiftComboSettings,
+  defaultTickerSettings,
+  defaultAnimatedBgSettings,
+  defaultSoundReactiveSettings,
 } from "@/hooks/overlay-defaults";
 
 export interface OverlayWidget {

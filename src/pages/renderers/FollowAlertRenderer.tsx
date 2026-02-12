@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultFollowAlertSettings } from "@/hooks/use-overlay-widgets";
 import useOverlayBody from "@/hooks/use-overlay-body";
+import tikupLogo from "@/assets/tikup_logo.png";
 
 interface FollowEvent { id: number; user: string; avatar: string; }
 
@@ -58,14 +59,14 @@ const FollowAlertRenderer = () => {
             exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.5 / (settings.animation_speed || 1), type: "spring" }}>
             <div className="rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[260px]"
               style={{ background: "rgba(0,0,0,0.55)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.06)" }}>
-              {settings.show_avatar && (
-                <div className="rounded-full flex items-center justify-center" style={{
-                  width: settings.icon_size, height: settings.icon_size,
-                  background: `hsl(${accent} / 0.12)`, border: `2px solid hsl(${accent} / 0.3)`,
-                  boxShadow: `0 0 ${15 * glow}px hsl(${accent} / 0.15)`,
-                }}>
-                  <span style={{ fontSize: settings.icon_size * 0.45 }}>{a.avatar}</span>
-                </div>
+               {settings.show_avatar && (
+                 <div className="rounded-full flex items-center justify-center overflow-hidden" style={{
+                   width: settings.icon_size, height: settings.icon_size,
+                   background: `hsl(${accent} / 0.12)`, border: `2px solid hsl(${accent} / 0.3)`,
+                   boxShadow: `0 0 ${15 * glow}px hsl(${accent} / 0.15)`,
+                 }}>
+                   <img src={tikupLogo} alt="TikUp" style={{ width: '70%', height: '70%', objectFit: 'contain' }} />
+                 </div>
               )}
               <div>
                 <p className="text-sm font-bold text-white">{a.user}</p>

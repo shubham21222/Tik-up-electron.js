@@ -23,6 +23,7 @@ export {
   defaultSoundReactiveSettings,
   defaultSocialRotatorSettings,
   defaultGiftFireworkSettings,
+  defaultPromoOverlaySettings,
 } from "@/hooks/overlay-defaults";
 
 export interface OverlayWidget {

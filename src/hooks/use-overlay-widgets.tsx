@@ -24,6 +24,7 @@ export {
   defaultSocialRotatorSettings,
   defaultGiftFireworkSettings,
   defaultPromoOverlaySettings,
+  defaultStreamBorderSettings,
 } from "@/hooks/overlay-defaults";
 
 export interface OverlayWidget {

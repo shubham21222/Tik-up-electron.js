@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
+import tikupLogo from "@/assets/tikup_logo.png";
 
 const mockFollows = [
   { user: "StreamLover99", avatar: "🧑‍🎤" },
@@ -99,29 +100,27 @@ const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
                 </motion.div>
               )}
 
-              {/* Avatar */}
-              {showAvatar && (
-                <motion.div
-                  className="flex-shrink-0 rounded-full flex items-center justify-center"
-                  style={{
-                    width: iconSize, height: iconSize,
-                    background: `linear-gradient(135deg, hsl(${accentColor} / 0.2), hsl(${accentColor} / 0.05))`,
-                    border: `2px solid hsl(${accentColor} / 0.3)`,
-                    boxShadow: `0 0 ${15 * glowIntensity}px hsl(${accentColor} / 0.15)`,
-                    borderRadius: settings.avatar_style === "hexagon" ? "30% 70% 70% 30% / 30% 30% 70% 70%" : settings.avatar_style === "rounded_square" ? "20%" : "50%",
-                  }}
-                  animate={{
-                    boxShadow: [
-                      `0 0 ${10 * glowIntensity}px hsl(${accentColor} / 0.1)`,
-                      `0 0 ${25 * glowIntensity}px hsl(${accentColor} / 0.25)`,
-                      `0 0 ${10 * glowIntensity}px hsl(${accentColor} / 0.1)`,
-                    ],
-                  }}
-                  transition={{ duration: 2, repeat: Infinity }}
-                >
-                  <span style={{ fontSize: iconSize * 0.45 }}>{follow.avatar}</span>
-                </motion.div>
-              )}
+              {/* Logo */}
+              <motion.div
+                className="flex-shrink-0 rounded-full flex items-center justify-center overflow-hidden"
+                style={{
+                  width: iconSize, height: iconSize,
+                  background: `linear-gradient(135deg, hsl(${accentColor} / 0.2), hsl(${accentColor} / 0.05))`,
+                  border: `2px solid hsl(${accentColor} / 0.3)`,
+                  boxShadow: `0 0 ${15 * glowIntensity}px hsl(${accentColor} / 0.15)`,
+                  borderRadius: settings.avatar_style === "hexagon" ? "30% 70% 70% 30% / 30% 30% 70% 70%" : settings.avatar_style === "rounded_square" ? "20%" : "50%",
+                }}
+                animate={{
+                  boxShadow: [
+                    `0 0 ${10 * glowIntensity}px hsl(${accentColor} / 0.1)`,
+                    `0 0 ${25 * glowIntensity}px hsl(${accentColor} / 0.25)`,
+                    `0 0 ${10 * glowIntensity}px hsl(${accentColor} / 0.1)`,
+                  ],
+                }}
+                transition={{ duration: 2, repeat: Infinity }}
+              >
+                <img src={tikupLogo} alt="TikUp" className="w-[70%] h-[70%] object-contain" />
+              </motion.div>
 
               {/* Text */}
               <div>

@@ -410,6 +410,45 @@ export type Database = {
         }
         Relationships: []
       }
+      tiktok_gifts: {
+        Row: {
+          category: string | null
+          coin_value: number
+          created_at: string
+          gift_id: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          coin_value?: number
+          created_at?: string
+          gift_id: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          coin_value?: number
+          created_at?: string
+          gift_id?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       tts_queue: {
         Row: {
           audio_url: string | null
@@ -544,6 +583,59 @@ export type Database = {
           volume?: number
         }
         Relationships: []
+      }
+      user_gift_triggers: {
+        Row: {
+          alert_sound_url: string | null
+          animation_effect: string
+          combo_threshold: number | null
+          created_at: string
+          custom_config: Json | null
+          gift_id: string
+          id: string
+          is_enabled: boolean
+          min_value_threshold: number | null
+          priority: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          alert_sound_url?: string | null
+          animation_effect?: string
+          combo_threshold?: number | null
+          created_at?: string
+          custom_config?: Json | null
+          gift_id: string
+          id?: string
+          is_enabled?: boolean
+          min_value_threshold?: number | null
+          priority?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          alert_sound_url?: string | null
+          animation_effect?: string
+          combo_threshold?: number | null
+          created_at?: string
+          custom_config?: Json | null
+          gift_id?: string
+          id?: string
+          is_enabled?: boolean
+          min_value_threshold?: number | null
+          priority?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_gift_triggers_gift_id_fkey"
+            columns: ["gift_id"]
+            isOneToOne: false
+            referencedRelation: "tiktok_gifts"
+            referencedColumns: ["gift_id"]
+          },
+        ]
       }
       user_roles: {
         Row: {

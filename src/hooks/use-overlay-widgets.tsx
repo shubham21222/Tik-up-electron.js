@@ -21,6 +21,8 @@ export {
   defaultTickerSettings,
   defaultAnimatedBgSettings,
   defaultSoundReactiveSettings,
+  defaultSocialRotatorSettings,
+  defaultGiftFireworkSettings,
 } from "@/hooks/overlay-defaults";
 
 export interface OverlayWidget {

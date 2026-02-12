@@ -424,9 +424,9 @@ export const defaultGiftFireworkSettings = {
 
 // Promo Overlay
 export const defaultPromoOverlaySettings = {
-  logo_size: 120,
+  logo_size: 140,
   tagline: "Follow for more!",
-  handle: "@yourtiktok",
+  handle: "@tikup",
   show_handle: true,
   accent_color: "160 100% 45%",
   glow_intensity: 60,

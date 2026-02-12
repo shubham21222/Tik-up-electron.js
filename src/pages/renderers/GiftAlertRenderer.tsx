@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultGiftAlertSettings } from "@/hooks/use-overlay-widgets";
 import useOverlayBody from "@/hooks/use-overlay-body";
+import { applyUrlOverrides } from "@/lib/overlay-params";
 
 interface AlertEvent {
   id: number;
@@ -40,7 +41,7 @@ const GiftAlertRenderer = () => {
         .select("settings")
         .eq("public_token", publicToken)
         .single();
-      if (data) setSettings({ ...defaultGiftAlertSettings, ...(data as any).settings });
+      if (data) setSettings(applyUrlOverrides({ ...defaultGiftAlertSettings, ...(data as any).settings }) as typeof defaultGiftAlertSettings);
     };
     fetch();
   }, [publicToken]);

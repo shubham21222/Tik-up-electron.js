@@ -52,6 +52,7 @@ import Widgets from "./pages/Widgets";
 import Integrations from "./pages/Integrations";
 import BrandSettings from "./pages/BrandSettings";
 import Auth from "./pages/Auth";
+import Admin from "./pages/Admin";
 import ScreenRenderer from "./pages/ScreenRenderer";
 import TTSOverlayPage from "./pages/TTSOverlayPage";
 import TTSRenderer from "./pages/renderers/TTSRenderer";
@@ -138,6 +139,7 @@ const App = () => (
                 <Route path="/widgets" element={<Widgets />} />
                 <Route path="/integrations" element={<Integrations />} />
                 <Route path="/brand-settings" element={<BrandSettings />} />
+                <Route path="/admin" element={<Admin />} />
                 <Route path="/song" element={<Song />} />
                 <Route path="/tools" element={<Tools />} />
                 <Route path="/pro" element={<Pro />} />

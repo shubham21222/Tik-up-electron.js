@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
 import useOverlayBody from "@/hooks/use-overlay-body";
+import { applyUrlOverrides } from "@/lib/overlay-params";
 
 const defaults = {
   border_style: "neon_pulse",
@@ -30,7 +31,7 @@ const StreamBorderRenderer = () => {
   useEffect(() => {
     if (!publicToken) return;
     supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).single()
-      .then(({ data }) => { if (data) setS({ ...defaults, ...(data as any).settings }); });
+      .then(({ data }) => { if (data) setS(applyUrlOverrides({ ...defaults, ...(data as any).settings }) as typeof defaults); });
   }, [publicToken]);
 
   useEffect(() => {

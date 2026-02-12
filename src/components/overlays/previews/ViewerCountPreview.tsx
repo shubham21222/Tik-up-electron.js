@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 interface ViewerCountPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
-const ViewerCountPreview = ({ settings }: ViewerCountPreviewProps) => {
+const ViewerCountPreview = ({ settings = {} }: ViewerCountPreviewProps) => {
   const [count, setCount] = useState(342);
   const [peak, setPeak] = useState(342);
   const [history, setHistory] = useState<number[]>([280, 310, 290, 340, 320, 342]);

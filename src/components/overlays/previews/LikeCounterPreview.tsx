@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 interface LikeCounterPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
-const LikeCounterPreview = ({ settings }: LikeCounterPreviewProps) => {
+const LikeCounterPreview = ({ settings = {} }: LikeCounterPreviewProps) => {
   const [count, setCount] = useState(4821);
   const mode = settings.display_mode || "numeric";
   const fontSize = settings.font_size || 48;

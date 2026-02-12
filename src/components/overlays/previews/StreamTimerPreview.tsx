@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 interface StreamTimerPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
-const StreamTimerPreview = ({ settings }: StreamTimerPreviewProps) => {
+const StreamTimerPreview = ({ settings = {} }: StreamTimerPreviewProps) => {
   const [seconds, setSeconds] = useState(3723); // 1h 2m 3s
   const mode = settings.display_mode || "digital";
   const accent = settings.accent_color || "0 100% 60%";

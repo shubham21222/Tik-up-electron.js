@@ -2,10 +2,10 @@ import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
 interface FollowerGoalPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
-const FollowerGoalPreview = ({ settings }: FollowerGoalPreviewProps) => {
+const FollowerGoalPreview = ({ settings = {} }: FollowerGoalPreviewProps) => {
   const [current, setCurrent] = useState(420);
   const target = settings.target_value || 1000;
   const style = settings.display_style || "glass_bar";

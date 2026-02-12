@@ -10,7 +10,7 @@ const mockLikes = [
 ];
 
 interface LikeAlertPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
 const HeartParticle = ({ index, total, color }: { index: number; total: number; color: string }) => {
@@ -44,7 +44,7 @@ const getColors = (mode: string) => {
   }
 };
 
-const LikeAlertPreview = ({ settings }: LikeAlertPreviewProps) => {
+const LikeAlertPreview = ({ settings = {} }: LikeAlertPreviewProps) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [visible, setVisible] = useState(true);
   const duration = settings.duration || 4;

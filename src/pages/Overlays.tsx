@@ -27,6 +27,7 @@ const LikeAlertPreview = lazy(() => import("@/components/overlays/previews/LikeA
 const ChatBoxPreview = lazy(() => import("@/components/overlays/previews/ChatBoxPreview"));
 const SocialRotatorPreview = lazy(() => import("@/components/overlays/previews/SocialRotatorPreview"));
 const GiftFireworkPreview = lazy(() => import("@/components/overlays/previews/GiftFireworkPreview"));
+const PromoOverlayPreview = lazy(() => import("@/components/overlays/previews/PromoOverlayPreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -50,6 +51,7 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Like Alert": LikeAlertPreview,
   "Social Media Rotator": SocialRotatorPreview,
   "Gift Firework": GiftFireworkPreview,
+  "Promo Overlay": PromoOverlayPreview,
 };
 
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -87,6 +89,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Custom Text", description: "Dynamic text overlay supporting real-time variable binding ({viewers}, {likes}, etc).", hasPreview: true, color: "160 100% 45%", pro: true, route: "/custom-text", tags: ["Text", "Variables"] },
     { title: "Social Media Rotator", description: "Animated 3D carousel of your social media links with glow effects and smooth rotation.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/social-rotator", tags: ["Social", "Links"] },
     { title: "Gift Firework", description: "Cinematic firework explosions triggered by gifts with particle trails and username tags.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/gift-firework", tags: ["Gift", "Firework"] },
+    { title: "Promo Overlay", description: "Branded promo overlay with your TikUp logo, animated rings, and follow CTA for stream.", hasPreview: true, color: "160 100% 45%", route: "/promo-overlay", tags: ["Promo", "Brand"] },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },

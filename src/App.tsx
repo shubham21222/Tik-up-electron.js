@@ -61,8 +61,10 @@ import AnimatedBgOverlay from "./pages/AnimatedBgOverlay";
 import SoundReactiveOverlay from "./pages/SoundReactiveOverlay";
 import SocialRotatorOverlay from "./pages/SocialRotatorOverlay";
 import GiftFireworkOverlay from "./pages/GiftFireworkOverlay";
+import PromoOverlay from "./pages/PromoOverlay";
 import SocialRotatorRenderer from "./pages/renderers/SocialRotatorRenderer";
 import GiftFireworkRenderer from "./pages/renderers/GiftFireworkRenderer";
+import PromoOverlayRenderer from "./pages/renderers/PromoOverlayRenderer";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -95,6 +97,7 @@ const App = () => (
           <Route path="/overlay/sound-reactive/:publicToken" element={<SoundReactiveRenderer />} />
           <Route path="/overlay/social-rotator/:publicToken" element={<SocialRotatorRenderer />} />
           <Route path="/overlay/gift-firework/:publicToken" element={<GiftFireworkRenderer />} />
+          <Route path="/overlay/promo/:publicToken" element={<PromoOverlayRenderer />} />
 
           {/* All other routes wrapped in AuthProvider */}
           <Route path="/*" element={
@@ -139,6 +142,7 @@ const App = () => (
                 <Route path="/sound-reactive" element={<SoundReactiveOverlay />} />
                 <Route path="/social-rotator" element={<SocialRotatorOverlay />} />
                 <Route path="/gift-firework" element={<GiftFireworkOverlay />} />
+                <Route path="/promo-overlay" element={<PromoOverlay />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

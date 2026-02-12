@@ -422,6 +422,22 @@ export const defaultGiftFireworkSettings = {
   custom_css: "",
 };
 
+// Promo Overlay
+export const defaultPromoOverlaySettings = {
+  logo_size: 120,
+  tagline: "Follow for more!",
+  handle: "@yourtiktok",
+  show_handle: true,
+  accent_color: "160 100% 45%",
+  glow_intensity: 60,
+  animation_style: "pulse" as "pulse" | "rotate" | "float",
+  show_rings: true,
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -442,4 +458,5 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   sound_reactive: defaultSoundReactiveSettings,
   social_rotator: defaultSocialRotatorSettings,
   gift_firework: defaultGiftFireworkSettings,
+  promo_overlay: defaultPromoOverlaySettings,
 };

@@ -9,9 +9,8 @@ const mockAlerts = [
 ];
 
 interface GiftAlertPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
-
 const getEntryVariants = (style: string) => {
   switch (style) {
     case "slide": return { initial: { x: -100, opacity: 0 }, animate: { x: 0, opacity: 1 } };
@@ -22,7 +21,7 @@ const getEntryVariants = (style: string) => {
   }
 };
 
-const GiftAlertPreview = ({ settings }: GiftAlertPreviewProps) => {
+const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
   const [currentAlert, setCurrentAlert] = useState(0);
   const [visible, setVisible] = useState(true);
   const duration = settings.duration || 5;

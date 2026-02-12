@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 interface LeaderboardPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
 const mockEntries = [
@@ -15,7 +15,7 @@ const mockEntries = [
 
 const medals = ["🥇", "🥈", "🥉"];
 
-const LeaderboardPreview = ({ settings }: LeaderboardPreviewProps) => {
+const LeaderboardPreview = ({ settings = {} }: LeaderboardPreviewProps) => {
   const [entries, setEntries] = useState(mockEntries);
   const mode = settings.display_mode || "vertical";
   const accent = settings.accent_color || "45 100% 55%";

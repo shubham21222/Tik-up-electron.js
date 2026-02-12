@@ -10,10 +10,10 @@ const mockFollows = [
 ];
 
 interface FollowAlertPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
-const FollowAlertPreview = ({ settings }: FollowAlertPreviewProps) => {
+const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [visible, setVisible] = useState(true);
   const [streak, setStreak] = useState(1);

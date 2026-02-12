@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 
 
 interface CustomTextPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
 const mockVars: Record<string, string> = {
@@ -19,7 +19,7 @@ const resolveVars = (text: string) => {
   return result;
 };
 
-const CustomTextPreview = ({ settings }: CustomTextPreviewProps) => {
+const CustomTextPreview = ({ settings = {} }: CustomTextPreviewProps) => {
   const text = settings.text_content || "Welcome to {streamer}'s stream!";
   const fontSize = settings.font_size || 28;
   const fontClass = settings.font_family === "mono" ? "font-mono" : settings.font_family === "heading" ? "font-heading" : "";

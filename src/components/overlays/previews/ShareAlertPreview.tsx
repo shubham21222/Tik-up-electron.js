@@ -9,10 +9,10 @@ const mockShares = [
 ];
 
 interface ShareAlertPreviewProps {
-  settings: Record<string, any>;
+  settings?: Record<string, any>;
 }
 
-const ShareAlertPreview = ({ settings }: ShareAlertPreviewProps) => {
+const ShareAlertPreview = ({ settings = {} }: ShareAlertPreviewProps) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [visible, setVisible] = useState(true);
   const duration = settings.duration || 5;

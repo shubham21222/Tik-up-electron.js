@@ -11,6 +11,28 @@ interface TikTokEvent {
   data: Record<string, unknown>;
 }
 
+/** Broadcast via Realtime REST API — reliably reaches WebSocket subscribers */
+async function broadcast(channel: string, event: string, payload: Record<string, unknown>) {
+  const url = `${Deno.env.get("SUPABASE_URL")!}/realtime/v1/api/broadcast`;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  // Try both topic formats to ensure delivery
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+    },
+    body: JSON.stringify({
+      messages: [{ topic: channel, event, payload }],
+    }),
+  });
+  const resText = await res.text();
+  if (!res.ok) {
+    console.error(`Broadcast failed for ${channel}: ${resText}`);
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -50,6 +72,7 @@ Deno.serve(async (req) => {
     }
 
     const userId = profile.user_id;
+
     // Get overlay widgets
     const { data: widgets } = await supabase
       .from("overlay_widgets")
@@ -57,7 +80,7 @@ Deno.serve(async (req) => {
       .eq("user_id", userId)
       .eq("is_active", true);
 
-    // Get TTS settings (available to all users)
+    // Get TTS settings
     const { data: ttsSettings } = await supabase
       .from("tts_settings")
       .select("*")
@@ -75,7 +98,6 @@ Deno.serve(async (req) => {
     let ttsTriggered = 0;
 
     for (const event of events) {
-      // Find matching automation
       const matchingAuto = automations?.find(a => a.trigger_type === event.type);
 
       // Log the event
@@ -86,35 +108,27 @@ Deno.serve(async (req) => {
         triggered_automation_id: matchingAuto?.id || null,
       });
 
-      // Broadcast to overlay widgets
+      // Broadcast to overlay widgets via REST API
       if (widgets) {
         for (const widget of widgets) {
           const channelName = `${widget.widget_type}-${widget.public_token}`;
           const broadcastEvent = mapEventToOverlay(event, widget.widget_type);
           if (broadcastEvent) {
-            await supabase.channel(channelName).send({
-              type: "broadcast",
-              event: broadcastEvent.event,
-              payload: broadcastEvent.payload,
-            });
+            await broadcast(channelName, broadcastEvent.event, broadcastEvent.payload);
           }
         }
       }
 
       // Broadcast to screen-based overlays (automations)
       if (matchingAuto?.screen_id) {
-        await supabase.channel(`screen-${matchingAuto.screen_id}`).send({
-          type: "broadcast",
-          event: "overlay_action",
-          payload: {
-            event_type: event.type,
-            payload: event.data,
-            automations: matchingAuto ? [matchingAuto] : [],
-          },
+        await broadcast(`screen-${matchingAuto.screen_id}`, "overlay_action", {
+          event_type: event.type,
+          payload: event.data,
+          automations: matchingAuto ? [matchingAuto] : [],
         });
       }
 
-      // TTS triggering for chat events — browser-based (no ElevenLabs needed)
+      // TTS triggering for chat events
       if (ttsSettings?.enabled && event.type === "chat") {
         const message = (event.data.message as string) || "";
         const minChars = ttsSettings.min_chars || 3;
@@ -127,11 +141,9 @@ Deno.serve(async (req) => {
 
           if (!isBlocked) {
             const truncated = message.slice(0, maxLength);
-
-            // Find TTS overlay widgets
             const ttsWidgets = widgets?.filter(w => w.widget_type === "tts") || [];
+
             for (const ttsWidget of ttsWidgets) {
-              // Log to queue
               await supabase.from("tts_queue").insert({
                 user_id: userId,
                 overlay_token: ttsWidget.public_token,
@@ -142,18 +154,13 @@ Deno.serve(async (req) => {
                 processed_at: new Date().toISOString(),
               });
 
-              // Broadcast text to TTS overlay (browser SpeechSynthesis handles audio)
-              await supabase.channel(`tts-${ttsWidget.public_token}`).send({
-                type: "broadcast",
-                event: "play_tts",
-                payload: {
-                  username: event.username,
-                  text: truncated,
-                  volume: ttsSettings.volume || 80,
-                  speed: ttsSettings.speed || 50,
-                  pitch: ttsSettings.pitch || 50,
-                  interrupt: ttsSettings.interrupt_mode || false,
-                },
+              await broadcast(`tts-${ttsWidget.public_token}`, "play_tts", {
+                username: event.username,
+                text: truncated,
+                volume: ttsSettings.volume || 80,
+                speed: ttsSettings.speed || 50,
+                pitch: ttsSettings.pitch || 50,
+                interrupt: ttsSettings.interrupt_mode || false,
               });
 
               ttsTriggered++;

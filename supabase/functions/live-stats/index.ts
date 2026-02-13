@@ -23,17 +23,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Auth: get user from token
     const authHeader = req.headers.get("authorization") || "";
     const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
       global: { headers: { Authorization: authHeader } },
     });
 
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
@@ -41,7 +36,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Get user's tiktok username
     const adminClient = createClient(supabaseUrl, serviceKey);
     const { data: profile } = await adminClient
       .from("profiles")
@@ -57,8 +51,6 @@ Deno.serve(async (req) => {
     }
 
     const uniqueId = profile.tiktok_username;
-
-    // Connect to EulerStream WebSocket briefly to get room info
     const stats = await fetchLiveStats(uniqueId, apiKey);
 
     return new Response(JSON.stringify(stats), {
@@ -79,19 +71,20 @@ async function fetchLiveStats(
   apiKey: string
 ): Promise<Record<string, unknown>> {
   return new Promise((resolve) => {
-    // 6s max wait — if no events arrive, user is not live
+    let resolved = false;
+
+    // 8s max wait
     const timeout = setTimeout(() => {
       try { ws.close(); } catch (_) { /* ignore */ }
       if (!resolved) {
         resolved = true;
-        resolve({ is_live: false, username: uniqueId });
+        resolve(collected.is_live ? collected : { is_live: false, username: uniqueId });
       }
-    }, 6000);
+    }, 8000);
 
-    const wsUrl = `wss://ws.eulerstream.com?uniqueId=${encodeURIComponent(uniqueId)}&&apiKey=${encodeURIComponent(apiKey)}`;
+    const wsUrl = `wss://ws.eulerstream.com?uniqueId=${encodeURIComponent(uniqueId)}&apiKey=${encodeURIComponent(apiKey)}`;
     const ws = new WebSocket(wsUrl);
 
-    let resolved = false;
     const collected = {
       is_live: false,
       username: uniqueId,
@@ -105,6 +98,9 @@ async function fetchLiveStats(
       start_time: 0,
     };
 
+    let gotRoomInfo = false;
+    let resolveTimer: ReturnType<typeof setTimeout> | null = null;
+
     ws.onopen = () => {
       console.log(`WebSocket connected for @${uniqueId}`);
     };
@@ -112,64 +108,99 @@ async function fetchLiveStats(
     ws.onmessage = (event) => {
       try {
         const raw = JSON.parse(typeof event.data === "string" ? event.data : "{}");
-
-        // Handle messages array format from EulerStream
         const messages = raw.messages || [raw];
+
         for (const msg of messages) {
-          const msgType = msg.type || "";
+          const msgType = msg.type || msg.event || "";
           const data = msg.data || msg;
 
-          // roomInfo contains all the stats we need
-          if (msgType === "roomInfo" && data.roomInfo) {
-            const ri = data.roomInfo;
-            collected.is_live = ri.isLive === true || ri.status === 2;
+          // Log first few message types for debugging
+          if (!gotRoomInfo) {
+            console.log(`MSG type: ${msgType}, keys: ${Object.keys(data).slice(0, 8).join(",")}`);
+          }
+
+          // roomInfo — first message from EulerStream WebSocket
+          if (msgType === "roomInfo" || data.roomInfo) {
+            const ri = data.roomInfo || data;
+            gotRoomInfo = true;
+            collected.is_live = true;
+
             if (ri.id) collected.room_id = String(ri.id);
             if (ri.title) collected.title = ri.title;
             if (ri.startTime) collected.start_time = Number(ri.startTime);
-            if (ri.totalViewers !== undefined) collected.viewer_count = Number(ri.totalViewers);
-            if (ri.likeCount !== undefined) collected.like_count = Number(ri.likeCount);
-            if (ri.shareCount !== undefined) collected.share_count = Number(ri.shareCount);
-            if (ri.diamondCount !== undefined) collected.diamond_count = Number(ri.diamondCount);
+
+            // Various field name patterns for stats
+            collected.viewer_count = Number(ri.totalViewers || ri.viewerCount || ri.viewer_count || ri.liveRoomStats?.totalUser || collected.viewer_count) || 0;
+            collected.like_count = Number(ri.likeCount || ri.like_count || ri.totalLikes || ri.liveRoomStats?.likeCount || collected.like_count) || 0;
+            collected.share_count = Number(ri.shareCount || ri.share_count || ri.totalShares || collected.share_count) || 0;
+            collected.diamond_count = Number(ri.diamondCount || ri.diamond_count || ri.totalDiamonds || collected.diamond_count) || 0;
+            collected.follower_count = Number(ri.followerCount || ri.follower_count || collected.follower_count) || 0;
+
+            // Also check nested liveRoomStats
+            if (ri.liveRoomStats) {
+              const s = ri.liveRoomStats;
+              if (s.totalUser) collected.viewer_count = Number(s.totalUser);
+              if (s.likeCount) collected.like_count = Number(s.likeCount);
+              if (s.shareCount) collected.share_count = Number(s.shareCount);
+              if (s.diamondCount) collected.diamond_count = Number(s.diamondCount);
+            }
+
+            console.log(`roomInfo parsed: viewers=${collected.viewer_count}, likes=${collected.like_count}, shares=${collected.share_count}, diamonds=${collected.diamond_count}`);
+            console.log(`roomInfo raw keys: ${JSON.stringify(Object.keys(ri).slice(0, 20))}`);
           }
 
-          // WebcastRoomUserSeqMessage has viewer & like counts
+          // tiktok.connect confirms live
+          if (msgType === "tiktok.connect") {
+            collected.is_live = true;
+          }
+
+          // WebcastRoomUserSeqMessage — viewer counts
           if (msgType === "WebcastRoomUserSeqMessage") {
             collected.is_live = true;
             if (data.viewerCount !== undefined) collected.viewer_count = Number(data.viewerCount);
             if (data.total !== undefined) collected.viewer_count = Number(data.total);
           }
 
-          // WebcastLikeMessage accumulates likes
-          if (msgType === "WebcastLikeMessage" && data.totalLikeCount !== undefined) {
-            collected.like_count = Number(data.totalLikeCount);
+          // Like messages
+          if (msgType === "WebcastLikeMessage") {
+            if (data.totalLikeCount !== undefined) collected.like_count = Number(data.totalLikeCount);
+            if (data.likeCount !== undefined && !data.totalLikeCount) collected.like_count = Number(data.likeCount);
           }
 
-          // tiktok.connect confirms we're connected to a live room
-          if (msgType === "tiktok.connect") {
-            collected.is_live = true;
+          // Social/share messages
+          if (msgType === "WebcastSocialMessage") {
+            collected.share_count += 1;
           }
 
-          // WebcastRoomUserSeqMessage has viewer count
-          if (msgType === "WebcastRoomUserSeqMessage" && data.viewerCount !== undefined) {
-            collected.is_live = true;
-            collected.viewer_count = data.viewerCount;
+          // Gift messages — accumulate diamond value
+          if (msgType === "WebcastGiftMessage") {
+            const diamondValue = Number(data.diamondCount || data.diamond_count || 0);
+            if (diamondValue > 0) collected.diamond_count += diamondValue;
           }
 
-          // Fallback: check data directly
-          if (data.viewerCount !== undefined && !collected.viewer_count) {
+          // Member join (follow-like)
+          if (msgType === "WebcastMemberMessage") {
+            // Not exactly follower count, but indicates engagement
+          }
+
+          // Fallback: any data with viewerCount
+          if (data.viewerCount !== undefined && collected.viewer_count === 0) {
             collected.is_live = true;
-            collected.viewer_count = data.viewerCount;
+            collected.viewer_count = Number(data.viewerCount);
           }
         }
 
-        // Once we have roomInfo, wait 1.5s more then resolve
-        if (collected.is_live && !resolved) {
-          resolved = true;
-          setTimeout(() => {
-            clearTimeout(timeout);
-            try { ws.close(); } catch (_) { /* ignore */ }
-            resolve(collected);
-          }, 1500);
+        // Once we have roomInfo, wait 3.5s more to accumulate live event messages
+        if (collected.is_live && !resolveTimer) {
+          resolveTimer = setTimeout(() => {
+            if (!resolved) {
+              resolved = true;
+              clearTimeout(timeout);
+              try { ws.close(); } catch (_) { /* ignore */ }
+              console.log(`Final stats: viewers=${collected.viewer_count}, likes=${collected.like_count}, shares=${collected.share_count}, diamonds=${collected.diamond_count}`);
+              resolve(collected);
+            }
+          }, 3500);
         }
       } catch (e) {
         console.error("WS parse error:", e);
@@ -178,6 +209,7 @@ async function fetchLiveStats(
 
     ws.onerror = () => {
       clearTimeout(timeout);
+      if (resolveTimer) clearTimeout(resolveTimer);
       if (!resolved) {
         resolved = true;
         resolve({ is_live: false, username: uniqueId });
@@ -186,6 +218,7 @@ async function fetchLiveStats(
 
     ws.onclose = () => {
       clearTimeout(timeout);
+      if (resolveTimer) clearTimeout(resolveTimer);
       if (!resolved) {
         resolved = true;
         resolve(collected.is_live ? collected : { is_live: false, username: uniqueId });

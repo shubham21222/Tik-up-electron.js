@@ -79,9 +79,10 @@ function createUserConnection(username) {
   });
 
   tiktok.on(WebcastEvent.FOLLOW, (data) => {
-    console.log(`  ➕ [${username}] ${data.uniqueId}`);
-    queueEvent("follow", data.uniqueId, {
-      avatar: data.profilePictureUrl,
+    const followUser = data.user?.uniqueId || data.uniqueId;
+    console.log(`  ➕ [${username}] ${followUser}`);
+    queueEvent("follow", followUser, {
+      avatar: data.user?.profilePictureUrl || data.profilePictureUrl,
     });
   });
 
@@ -100,10 +101,10 @@ function createUserConnection(username) {
     });
   });
 
-  tiktok.on(WebcastEvent.ROOM_USER, (data) => {
-    console.log(`  👁 [${username}] Viewers: ${data.viewerCount}`);
+  tiktok.on(WebcastEvent.VIEWERS, (data) => {
+    console.log(`  👁 [${username}] Viewers: ${data.viewers}`);
     queueEvent("viewer_count", username, {
-      viewer_count: data.viewerCount,
+      viewer_count: data.viewers,
     });
   });
 

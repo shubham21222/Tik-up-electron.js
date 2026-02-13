@@ -1,16 +1,31 @@
 import AppLayout from "@/components/AppLayout";
 import { motion, useMotionValue, useTransform, animate } from "framer-motion";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import {
-  Eye, Heart, Share2, UserPlus, DollarSign, Radio,
+  Eye, Heart, Share2, UserPlus, Radio,
   TrendingUp, ArrowUpRight, Activity, Gift, Star,
-  Play, Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight,
-  Wifi, WifiOff, Loader2, AlertCircle, CheckCircle2, Settings
+  Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight,
+  Wifi, WifiOff, Loader2, AlertCircle, CheckCircle2, Settings,
+  Clock, Gem, RefreshCw
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+
+interface LiveStats {
+  is_live: boolean;
+  username: string;
+  viewer_count: number;
+  like_count: number;
+  share_count: number;
+  follower_count: number;
+  diamond_count: number;
+  room_id: string;
+  title: string;
+  start_time: number;
+  error?: string;
+}
 
 const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
   const mv = useMotionValue(0);
@@ -23,14 +38,6 @@ const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; p
 
   return <motion.span>{display}</motion.span>;
 };
-
-const stats = [
-  { label: "Current Viewers", value: 1247, icon: Eye, change: "+12%", color: "160 100% 45%" },
-  { label: "Total Likes", value: 84320, icon: Heart, change: "+8.4%", color: "350 90% 55%" },
-  { label: "Total Shares", value: 2156, icon: Share2, change: "+23%", color: "200 100% 55%" },
-  { label: "New Followers", value: 892, icon: UserPlus, change: "+15%", color: "160 100% 45%" },
-  { label: "Revenue", value: 324, icon: DollarSign, change: "+5.2%", prefix: "$", color: "45 100% 55%" },
-];
 
 const recentEvents = [
   { icon: Gift, user: "StreamFan42", action: "sent a Rose", time: "2s ago", color: "hsl(350,90%,55%)" },
@@ -51,13 +58,75 @@ const updates = [
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
+function formatDuration(startTime: number): string {
+  if (!startTime) return "";
+  const now = Math.floor(Date.now() / 1000);
+  const diff = now - startTime;
+  const h = Math.floor(diff / 3600);
+  const m = Math.floor((diff % 3600) / 60);
+  const s = diff % 60;
+  if (h > 0) return `${h}h ${m}m`;
+  if (m > 0) return `${m}m ${s}s`;
+  return `${s}s`;
+}
+
 const Index = () => {
   const { user } = useAuth();
-  const [isLive, setIsLive] = useState(true);
+  const [isLive, setIsLive] = useState(false);
   const [tiktokUsername, setTiktokUsername] = useState("");
   const [inputUsername, setInputUsername] = useState("");
   const [connectionStatus, setConnectionStatus] = useState<ConnectionStatus>("disconnected");
   const [connectionError, setConnectionError] = useState("");
+  const [liveStats, setLiveStats] = useState<LiveStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [streamDuration, setStreamDuration] = useState("");
+  const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+  const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const fetchLiveStats = useCallback(async () => {
+    if (!user) return;
+    setStatsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/live-stats`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      const data: LiveStats = await res.json();
+      setLiveStats(data);
+      setIsLive(data.is_live);
+      if (data.is_live && data.start_time) {
+        setStreamDuration(formatDuration(data.start_time));
+      }
+    } catch (err) {
+      console.error("Failed to fetch live stats:", err);
+    } finally {
+      setStatsLoading(false);
+    }
+  }, [user]);
+
+  // Poll live stats every 30s when connected
+  useEffect(() => {
+    if (connectionStatus === "connected" && user) {
+      fetchLiveStats();
+      statsInterval.current = setInterval(fetchLiveStats, 30_000);
+      durationInterval.current = setInterval(() => {
+        if (liveStats?.start_time) {
+          setStreamDuration(formatDuration(liveStats.start_time));
+        }
+      }, 1000);
+    }
+    return () => {
+      if (statsInterval.current) clearInterval(statsInterval.current);
+      if (durationInterval.current) clearInterval(durationInterval.current);
+    };
+  }, [connectionStatus, user, fetchLiveStats, liveStats?.start_time]);
 
   useEffect(() => {
     if (!user) return;
@@ -246,47 +315,94 @@ const Index = () => {
           </div>
         </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {stats.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
-                whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                className="rounded-2xl p-[1px] group cursor-default"
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
-                }}
-              >
-                <div
-                  className="rounded-2xl p-4 h-full transition-shadow duration-300 group-hover:shadow-[0_0_25px_hsl(160_100%_45%/0.06)]"
-                  style={{ background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" }}
-                >
-                  <div className="flex items-center justify-between mb-3">
+        {/* Live Stats Grid */}
+        {(() => {
+          const liveStatsCards = [
+            { label: "Current Viewers", value: liveStats?.viewer_count ?? 0, icon: Eye, color: "160 100% 45%" },
+            { label: "Total Likes", value: liveStats?.like_count ?? 0, icon: Heart, color: "350 90% 55%" },
+            { label: "Total Shares", value: liveStats?.share_count ?? 0, icon: Share2, color: "200 100% 55%" },
+            { label: "Followers", value: liveStats?.follower_count ?? 0, icon: UserPlus, color: "160 100% 45%" },
+            { label: "Diamonds", value: liveStats?.diamond_count ?? 0, icon: Gem, color: "45 100% 55%" },
+          ];
+
+          return (
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+              {liveStatsCards.map((stat, i) => {
+                const Icon = stat.icon;
+                return (
+                  <motion.div
+                    key={stat.label}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.35, delay: i * 0.06, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ y: -3, transition: { duration: 0.2 } }}
+                    className="rounded-2xl p-[1px] group cursor-default"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
+                    }}
+                  >
                     <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center"
-                      style={{ background: `hsl(${stat.color} / 0.1)` }}
+                      className="rounded-2xl p-4 h-full transition-shadow duration-300 group-hover:shadow-[0_0_25px_hsl(160_100%_45%/0.06)]"
+                      style={{ background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" }}
                     >
-                      <Icon size={16} style={{ color: `hsl(${stat.color})` }} />
+                      <div className="flex items-center justify-between mb-3">
+                        <div
+                          className="w-8 h-8 rounded-xl flex items-center justify-center"
+                          style={{ background: `hsl(${stat.color} / 0.1)` }}
+                        >
+                          <Icon size={16} style={{ color: `hsl(${stat.color})` }} />
+                        </div>
+                        {isLive && (
+                          <div className="flex items-center gap-1 text-[11px] font-medium text-primary">
+                            <Radio size={10} className="animate-pulse" />
+                            LIVE
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-2xl font-heading font-bold text-foreground mb-0.5">
+                        <AnimatedCounter value={stat.value} />
+                      </p>
+                      <p className="text-[11px] text-muted-foreground font-medium">{stat.label}</p>
                     </div>
-                    <div className="flex items-center gap-1 text-[11px] font-medium text-primary">
-                      <ArrowUpRight size={12} />
-                      {stat.change}
-                    </div>
-                  </div>
-                  <p className="text-2xl font-heading font-bold text-foreground mb-0.5">
-                    <AnimatedCounter value={stat.value} prefix={stat.prefix} />
-                  </p>
-                  <p className="text-[11px] text-muted-foreground font-medium">{stat.label}</p>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Stream Info Bar */}
+        {isLive && liveStats?.title && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 flex items-center gap-4 px-5 py-3 rounded-xl border border-primary/10"
+            style={{ background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" }}
+          >
+            <div className="flex items-center gap-2 text-xs text-primary font-semibold">
+              <div className="relative">
+                <div className="w-2 h-2 rounded-full bg-destructive" />
+                <div className="w-2 h-2 rounded-full bg-destructive absolute inset-0 animate-ping" />
+              </div>
+              LIVE
+            </div>
+            <p className="text-sm text-foreground font-medium flex-1 truncate">{liveStats.title}</p>
+            {streamDuration && (
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                <Clock size={12} />
+                {streamDuration}
+              </div>
+            )}
+            <button
+              onClick={fetchLiveStats}
+              disabled={statsLoading}
+              className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+            >
+              <RefreshCw size={12} className={statsLoading ? "animate-spin" : ""} />
+              Refresh
+            </button>
+          </motion.div>
+        )}
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">

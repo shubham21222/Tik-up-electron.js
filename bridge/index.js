@@ -10,7 +10,7 @@ const WEBHOOK_URL =
   process.env.WEBHOOK_URL ||
   `${SUPABASE_URL}/functions/v1/tiktok-webhook`;
 const EULER_API_KEY = process.env.TIKTOK_DATA_API_KEY;
-const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS) || 30_000; // check for new users every 30s
+const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS) || 30_000;
 
 if (!SUPABASE_SERVICE_KEY) {
   console.error("❌ SUPABASE_SERVICE_ROLE_KEY env variable is required");
@@ -22,8 +22,34 @@ if (!EULER_API_KEY) {
   process.exit(1);
 }
 
-// EulerStream API key is passed per-connection now
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+
+// ── Diamond lookup map: gift name → diamond value ──────────────
+let diamondMap = {};
+
+async function fetchDiamondMap() {
+  try {
+    const res = await fetch(
+      "https://tiktok.eulerstream.com/webcast/gift_info?client=ttlive-other",
+      { headers: { "x-api-key": EULER_API_KEY } }
+    );
+    if (!res.ok) {
+      console.error(`❌ gift_info API error: ${res.status}`);
+      return;
+    }
+    const json = await res.json();
+    const gifts = json.data || [];
+    diamondMap = {};
+    for (const gift of gifts) {
+      if (gift.name && gift.diamond !== undefined) {
+        diamondMap[gift.name.toLowerCase()] = Number(gift.diamond);
+      }
+    }
+    console.log(`💎 Loaded ${Object.keys(diamondMap).length} gift diamond values`);
+  } catch (err) {
+    console.error("❌ Failed to fetch diamond map:", err.message);
+  }
+}
 
 // ── Active connections map: tiktok_username → { connection, buffer, timer }
 const connections = new Map();
@@ -32,7 +58,7 @@ const connections = new Map();
 const FLUSH_INTERVAL_MS = 500;
 
 function createUserConnection(username) {
-  if (connections.has(username)) return; // already connected
+  if (connections.has(username)) return;
 
   console.log(`🔄 Connecting to @${username}...`);
 
@@ -58,12 +84,19 @@ function createUserConnection(username) {
 
   // ── Event Handlers ───────────────────────────────────────────
   tiktok.on(WebcastEvent.GIFT, (data) => {
-    console.log(`  🎁 [${username}] ${data.uniqueId} sent ${data.repeatCount}x ${data.giftName}`);
+    const giftName = (data.giftName || "").toLowerCase();
+    const repeatCount = data.repeatCount || 1;
+    // Look up diamond value from our map, fall back to data.diamondCount
+    const diamondValue = diamondMap[giftName] || data.diamondCount || 0;
+    const totalDiamonds = diamondValue * repeatCount;
+
+    console.log(`  🎁 [${username}] ${data.uniqueId} sent ${repeatCount}x ${data.giftName} (${totalDiamonds} 💎)`);
     queueEvent("gift", data.uniqueId, {
       gift_name: data.giftName,
       gift_id: data.giftId,
-      repeat_count: data.repeatCount,
-      diamond_count: data.diamondCount,
+      repeat_count: repeatCount,
+      diamond_count: diamondValue, // per-unit diamond value
+      total_diamonds: totalDiamonds, // total for this event
       repeat_end: data.repeatEnd,
       avatar: data.profilePictureUrl,
     });
@@ -187,14 +220,12 @@ async function pollUsernames() {
       (profiles || []).map((p) => p.tiktok_username.toLowerCase())
     );
 
-    // Connect to new usernames
     for (const username of activeUsernames) {
       if (!connections.has(username)) {
         createUserConnection(username);
       }
     }
 
-    // Disconnect removed usernames
     for (const username of connections.keys()) {
       if (!activeUsernames.has(username)) {
         console.log(`🔌 [${username}] User disconnected — closing`);
@@ -213,14 +244,24 @@ async function pollUsernames() {
 }
 
 // ── Startup ────────────────────────────────────────────────────
-console.log(`\n🚀 TikUp Bridge v2.0`);
-console.log(`   EulerStream API key: ${EULER_API_KEY.slice(0, 8)}...`);
-console.log(`   Webhook: ${WEBHOOK_URL}`);
-console.log(`   Polling every ${POLL_INTERVAL_MS / 1000}s for new users\n`);
+async function main() {
+  console.log(`\n🚀 TikUp Bridge v2.1`);
+  console.log(`   EulerStream API key: ${EULER_API_KEY.slice(0, 8)}...`);
+  console.log(`   Webhook: ${WEBHOOK_URL}`);
+  console.log(`   Polling every ${POLL_INTERVAL_MS / 1000}s for new users\n`);
 
-// Initial poll, then repeat
-pollUsernames();
-setInterval(pollUsernames, POLL_INTERVAL_MS);
+  // Load diamond values before connecting
+  await fetchDiamondMap();
+
+  // Refresh diamond map every hour
+  setInterval(fetchDiamondMap, 60 * 60 * 1000);
+
+  // Initial poll, then repeat
+  pollUsernames();
+  setInterval(pollUsernames, POLL_INTERVAL_MS);
+}
+
+main();
 
 // Graceful shutdown
 process.on("SIGINT", async () => {

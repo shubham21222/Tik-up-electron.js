@@ -52,21 +52,28 @@ Deno.serve(async (req) => {
 
     const uniqueId = profile.tiktok_username;
 
-    // Fetch WebSocket stats and DB-accumulated diamonds in parallel
-    const [wsStats, dbDiamonds] = await Promise.all([
+    // Fetch diamond map, WebSocket stats, and DB diamonds in parallel
+    const [diamondMap, wsStats, dbDiamonds] = await Promise.all([
+      fetchDiamondMap(apiKey),
       fetchLiveStats(uniqueId, apiKey),
       fetchAccumulatedDiamonds(adminClient, user.id),
     ]);
 
-    // Merge: use DB diamonds if WebSocket didn't capture any
+    // Calculate diamonds from WebSocket gift events using the diamond map
     const stats = { ...wsStats } as Record<string, unknown>;
-    if (dbDiamonds > 0 && (Number(stats.diamond_count) || 0) === 0) {
-      stats.diamond_count = dbDiamonds;
+    const wsGifts = (stats._gift_events as Array<{ name: string; count: number }>) || [];
+    let wsDiamonds = 0;
+    for (const gift of wsGifts) {
+      const value = diamondMap[gift.name] || 0;
+      wsDiamonds += value * gift.count;
     }
-    // Always prefer DB diamonds if they're higher (more accurate over time)
-    if (dbDiamonds > (Number(stats.diamond_count) || 0)) {
-      stats.diamond_count = dbDiamonds;
-    }
+    delete stats._gift_events;
+
+    // Use the highest diamond count from all sources
+    const finalDiamonds = Math.max(wsDiamonds, dbDiamonds, Number(stats.diamond_count) || 0);
+    stats.diamond_count = finalDiamonds;
+
+    console.log(`Diamond sources: WS=${wsDiamonds}, DB=${dbDiamonds}, final=${finalDiamonds}`);
 
     return new Response(JSON.stringify(stats), {
       status: 200,
@@ -81,10 +88,34 @@ Deno.serve(async (req) => {
   }
 });
 
-/**
- * Query events_log for gift events and sum up diamond_count from payloads.
- * Only counts events from the last 12 hours (approximate stream session).
- */
+/** Fetch gift name → diamond value map from EulerStream API */
+async function fetchDiamondMap(apiKey: string): Promise<Record<string, number>> {
+  try {
+    const res = await fetch(
+      "https://tiktok.eulerstream.com/webcast/gift_info?client=ttlive-other",
+      { headers: { "x-api-key": apiKey } }
+    );
+    if (!res.ok) {
+      console.error(`gift_info API error: ${res.status}`);
+      return {};
+    }
+    const json = await res.json();
+    const gifts = json.data || [];
+    const map: Record<string, number> = {};
+    for (const gift of gifts) {
+      if (gift.name && gift.diamond !== undefined) {
+        map[gift.name.toLowerCase()] = Number(gift.diamond);
+      }
+    }
+    console.log(`Loaded ${Object.keys(map).length} gift diamond values`);
+    return map;
+  } catch (e) {
+    console.error("Failed to fetch diamond map:", e);
+    return {};
+  }
+}
+
+/** Query events_log for gift events and sum diamonds using total_diamonds field */
 async function fetchAccumulatedDiamonds(
   adminClient: ReturnType<typeof createClient>,
   userId: string
@@ -104,16 +135,19 @@ async function fetchAccumulatedDiamonds(
     for (const event of giftEvents) {
       const payload = event.payload as Record<string, unknown> | null;
       if (!payload) continue;
-      const diamondCount = Number(payload.diamond_count || payload.diamondCount || 0);
-      const repeatCount = Number(payload.repeat_count || payload.repeatCount || 1);
-      // diamond_count from bridge is per-gift diamond value
-      // For repeat gifts, multiply diamond value × repeat count
-      if (diamondCount > 0) {
+      // Prefer total_diamonds (pre-calculated by bridge v2.1)
+      const total = Number(payload.total_diamonds || 0);
+      if (total > 0) {
+        totalDiamonds += total;
+      } else {
+        // Fallback: diamond_count × repeat_count
+        const diamondCount = Number(payload.diamond_count || payload.diamondCount || 0);
+        const repeatCount = Number(payload.repeat_count || payload.repeatCount || 1);
         totalDiamonds += diamondCount * repeatCount;
       }
     }
 
-    console.log(`DB accumulated diamonds for user: ${totalDiamonds} from ${giftEvents.length} gift events`);
+    console.log(`DB diamonds: ${totalDiamonds} from ${giftEvents.length} gift events`);
     return totalDiamonds;
   } catch (e) {
     console.error("Failed to fetch accumulated diamonds:", e);
@@ -132,7 +166,7 @@ async function fetchLiveStats(
       try { ws.close(); } catch (_) { /* ignore */ }
       if (!resolved) {
         resolved = true;
-        resolve(collected.is_live ? collected : { is_live: false, username: uniqueId });
+        resolve(collected.is_live ? { ...collected, _gift_events: giftEvents } : { is_live: false, username: uniqueId, _gift_events: [] });
       }
     }, 8000);
 
@@ -152,6 +186,9 @@ async function fetchLiveStats(
       start_time: 0,
     };
 
+    // Collect gift events for diamond calculation with the lookup map
+    const giftEvents: Array<{ name: string; count: number }> = [];
+
     let gotRoomInfo = false;
     let resolveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -169,10 +206,9 @@ async function fetchLiveStats(
           const data = msg.data || msg;
 
           if (!gotRoomInfo) {
-            console.log(`MSG type: ${msgType}, keys: ${Object.keys(data).slice(0, 8).join(",")}`);
+            console.log(`MSG type: ${msgType}`);
           }
 
-          // roomInfo — first message from EulerStream WebSocket
           if (msgType === "roomInfo" || data.roomInfo) {
             const ri = data.roomInfo || data;
             gotRoomInfo = true;
@@ -181,11 +217,9 @@ async function fetchLiveStats(
             if (ri.id) collected.room_id = String(ri.id);
             if (ri.title) collected.title = ri.title;
             if (ri.startTime) collected.start_time = Number(ri.startTime);
-
             collected.viewer_count = Number(ri.totalViewers || ri.viewerCount || ri.currentViewers || collected.viewer_count) || 0;
             collected.like_count = Number(ri.likeCount || ri.totalLikes || collected.like_count) || 0;
             collected.share_count = Number(ri.shareCount || ri.totalShares || collected.share_count) || 0;
-            collected.diamond_count = Number(ri.diamondCount || ri.totalDiamonds || collected.diamond_count) || 0;
             collected.follower_count = Number(ri.followerCount || collected.follower_count) || 0;
 
             if (ri.liveRoomStats) {
@@ -193,10 +227,9 @@ async function fetchLiveStats(
               if (s.totalUser) collected.viewer_count = Number(s.totalUser);
               if (s.likeCount) collected.like_count = Number(s.likeCount);
               if (s.shareCount) collected.share_count = Number(s.shareCount);
-              if (s.diamondCount) collected.diamond_count = Number(s.diamondCount);
             }
 
-            console.log(`roomInfo: viewers=${collected.viewer_count}, likes=${collected.like_count}, diamonds=${collected.diamond_count}`);
+            console.log(`roomInfo: viewers=${collected.viewer_count}, likes=${collected.like_count}`);
           }
 
           if (msgType === "tiktok.connect") collected.is_live = true;
@@ -216,14 +249,12 @@ async function fetchLiveStats(
             collected.share_count += 1;
           }
 
-          // Gift messages — accumulate diamond value × repeat count
+          // Collect gift events — diamond calculation happens after with the lookup map
           if (msgType === "WebcastGiftMessage") {
-            const diamondValue = Number(data.diamondCount || data.diamond_count || 0);
+            const giftName = (data.giftName || data.gift_name || "unknown").toLowerCase();
             const repeatCount = Number(data.repeatCount || data.repeat_count || 1);
-            if (diamondValue > 0) {
-              collected.diamond_count += diamondValue * repeatCount;
-              console.log(`Gift: ${data.giftName || 'unknown'} x${repeatCount} = ${diamondValue * repeatCount} diamonds`);
-            }
+            giftEvents.push({ name: giftName, count: repeatCount });
+            console.log(`Gift captured: ${giftName} x${repeatCount}`);
           }
 
           if (data.viewerCount !== undefined && collected.viewer_count === 0) {
@@ -232,15 +263,14 @@ async function fetchLiveStats(
           }
         }
 
-        // Once live, wait 3.5s to accumulate event messages
         if (collected.is_live && !resolveTimer) {
           resolveTimer = setTimeout(() => {
             if (!resolved) {
               resolved = true;
               clearTimeout(timeout);
               try { ws.close(); } catch (_) { /* ignore */ }
-              console.log(`Final WS stats: viewers=${collected.viewer_count}, likes=${collected.like_count}, diamonds=${collected.diamond_count}`);
-              resolve(collected);
+              console.log(`Final WS: viewers=${collected.viewer_count}, likes=${collected.like_count}, gifts=${giftEvents.length}`);
+              resolve({ ...collected, _gift_events: giftEvents });
             }
           }, 3500);
         }
@@ -254,7 +284,7 @@ async function fetchLiveStats(
       if (resolveTimer) clearTimeout(resolveTimer);
       if (!resolved) {
         resolved = true;
-        resolve({ is_live: false, username: uniqueId });
+        resolve({ is_live: false, username: uniqueId, _gift_events: [] });
       }
     };
 
@@ -263,7 +293,7 @@ async function fetchLiveStats(
       if (resolveTimer) clearTimeout(resolveTimer);
       if (!resolved) {
         resolved = true;
-        resolve(collected.is_live ? collected : { is_live: false, username: uniqueId });
+        resolve(collected.is_live ? { ...collected, _gift_events: giftEvents } : { is_live: false, username: uniqueId, _gift_events: [] });
       }
     };
   });

@@ -79,10 +79,14 @@ async function fetchLiveStats(
   apiKey: string
 ): Promise<Record<string, unknown>> {
   return new Promise((resolve) => {
+    // 6s max wait — if no events arrive, user is not live
     const timeout = setTimeout(() => {
       try { ws.close(); } catch (_) { /* ignore */ }
-      resolve({ is_live: false, username: uniqueId, error: "timeout" });
-    }, 8000);
+      if (!resolved) {
+        resolved = true;
+        resolve({ is_live: false, username: uniqueId });
+      }
+    }, 6000);
 
     const wsUrl = `wss://ws.eulerstream.com?uniqueId=${encodeURIComponent(uniqueId)}&apiKey=${encodeURIComponent(apiKey)}`;
     const ws = new WebSocket(wsUrl);
@@ -107,60 +111,49 @@ async function fetchLiveStats(
 
     ws.onmessage = (event) => {
       try {
-        const data = JSON.parse(event.data);
+        const raw = JSON.parse(event.data);
 
-        // Room info events contain the stats we need
-        if (data.event === "roomUser" || data.viewerCount !== undefined) {
+        // EulerStream can send events in different formats
+        // Try to extract room/viewer info from any message
+        const data = raw.data || raw;
+
+        if (data.viewerCount !== undefined) {
           collected.is_live = true;
-          collected.viewer_count = data.viewerCount || collected.viewer_count;
+          collected.viewer_count = data.viewerCount;
         }
+        if (data.likeCount !== undefined) collected.like_count = data.likeCount;
+        if (data.shareCount !== undefined) collected.share_count = data.shareCount;
+        if (data.followerCount !== undefined) collected.follower_count = data.followerCount;
+        if (data.diamondCount !== undefined) collected.diamond_count = data.diamondCount;
+        if (data.roomId) collected.room_id = String(data.roomId);
+        if (data.title) collected.title = data.title;
+        if (data.startTime) collected.start_time = data.startTime;
+        if (data.create_time) collected.start_time = data.create_time;
 
-        if (data.event === "roomInfo" || data.likeCount !== undefined) {
+        // Any message means the room is alive
+        if (raw.event || raw.type) {
           collected.is_live = true;
-          if (data.likeCount) collected.like_count = data.likeCount;
-          if (data.shareCount) collected.share_count = data.shareCount;
-          if (data.followerCount) collected.follower_count = data.followerCount;
-          if (data.diamondCount) collected.diamond_count = data.diamondCount;
-          if (data.roomId) collected.room_id = String(data.roomId);
-          if (data.title) collected.title = data.title;
-          if (data.startTime) collected.start_time = data.startTime;
         }
 
-        // Also handle wrapper format
-        if (data.data) {
-          const d = data.data;
-          if (d.viewerCount !== undefined) {
-            collected.is_live = true;
-            collected.viewer_count = d.viewerCount;
-          }
-          if (d.likeCount !== undefined) collected.like_count = d.likeCount;
-          if (d.shareCount !== undefined) collected.share_count = d.shareCount;
-          if (d.followerCount !== undefined) collected.follower_count = d.followerCount;
-          if (d.roomId) collected.room_id = String(d.roomId);
-          if (d.title) collected.title = d.title;
-        }
-
-        // After getting room info, wait a bit for viewer count then resolve
+        // Once we have viewer data, wait 1.5s more for additional stats then resolve
         if (collected.is_live && !resolved) {
           resolved = true;
-          // Give it 2 more seconds to collect more data
           setTimeout(() => {
             clearTimeout(timeout);
             try { ws.close(); } catch (_) { /* ignore */ }
             resolve(collected);
-          }, 2000);
+          }, 1500);
         }
       } catch (e) {
         console.error("WS parse error:", e);
       }
     };
 
-    ws.onerror = (e) => {
-      console.error("WS error:", e);
+    ws.onerror = () => {
       clearTimeout(timeout);
       if (!resolved) {
         resolved = true;
-        resolve({ is_live: false, username: uniqueId, error: "connection_failed" });
+        resolve({ is_live: false, username: uniqueId });
       }
     };
 

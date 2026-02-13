@@ -6,7 +6,7 @@ import {
   TrendingUp, ArrowUpRight, Activity, Gift, Star,
   Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight,
   Wifi, WifiOff, Loader2, AlertCircle, CheckCircle2, Settings,
-  Clock, Gem, RefreshCw
+  Clock, Gem, RefreshCw, Trophy, Medal
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -25,6 +25,15 @@ interface LiveStats {
   title: string;
   start_time: number;
   error?: string;
+}
+
+interface RankEntry {
+  rank: number;
+  diamonds: number;
+  diamonds_description: string;
+  nickname: string;
+  unique_id: string;
+  avatar: string;
 }
 
 const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
@@ -80,6 +89,8 @@ const Index = () => {
   const [liveStats, setLiveStats] = useState<LiveStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(false);
   const [streamDuration, setStreamDuration] = useState("");
+  const [rankings, setRankings] = useState<RankEntry[]>([]);
+  const [rankingsLoading, setRankingsLoading] = useState(false);
   const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -111,6 +122,30 @@ const Index = () => {
     }
   }, [user]);
 
+  const fetchRankings = useCallback(async () => {
+    if (!user) return;
+    setRankingsLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tiktok-rankings?region=GB&rank_type=DAILY_RANK`,
+        {
+          headers: {
+            Authorization: `Bearer ${session?.access_token}`,
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          },
+        }
+      );
+      const data = await res.json();
+      if (data.ranks) setRankings(data.ranks);
+    } catch (err) {
+      console.error("Failed to fetch rankings:", err);
+    } finally {
+      setRankingsLoading(false);
+    }
+  }, [user]);
+
   // Poll live stats every 30s when connected
   useEffect(() => {
     if (connectionStatus === "connected" && user) {
@@ -127,6 +162,11 @@ const Index = () => {
       if (durationInterval.current) clearInterval(durationInterval.current);
     };
   }, [connectionStatus, user, fetchLiveStats, liveStats?.start_time]);
+
+  // Fetch rankings on mount
+  useEffect(() => {
+    if (user) fetchRankings();
+  }, [user, fetchRankings]);
 
   useEffect(() => {
     if (!user) return;
@@ -403,6 +443,96 @@ const Index = () => {
             </button>
           </motion.div>
         )}
+
+        {/* TikTok LIVE Rankings */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.25 }}
+          className="mb-8 rounded-2xl p-[1px]"
+          style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" }}
+        >
+          <div className="rounded-2xl p-5" style={{ background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Trophy size={16} className="text-secondary" />
+                <h2 className="text-sm font-heading font-bold text-foreground">TikTok LIVE Rankings</h2>
+                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Daily · GB</span>
+              </div>
+              <button
+                onClick={fetchRankings}
+                disabled={rankingsLoading}
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors"
+              >
+                <RefreshCw size={12} className={rankingsLoading ? "animate-spin" : ""} />
+                Refresh
+              </button>
+            </div>
+
+            {rankingsLoading && rankings.length === 0 ? (
+              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
+                <Loader2 size={16} className="animate-spin mr-2" />
+                Loading rankings...
+              </div>
+            ) : rankings.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground text-sm">
+                No ranking data available
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+                {rankings.slice(0, 8).map((entry, i) => {
+                  const medalEmojis = ["🥇", "🥈", "🥉"];
+                  const isTop3 = i < 3;
+                  const rankColors = ["45 100% 55%", "0 0% 65%", "25 70% 45%"];
+                  return (
+                    <motion.div
+                      key={entry.unique_id || i}
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.04 }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/20 transition-colors"
+                      style={{
+                        background: isTop3
+                          ? `linear-gradient(90deg, hsl(${rankColors[i]} / 0.05), transparent)`
+                          : "transparent",
+                        border: isTop3
+                          ? `1px solid hsl(${rankColors[i]} / 0.1)`
+                          : "1px solid transparent",
+                      }}
+                    >
+                      <span className="text-sm font-heading font-bold w-6 text-center">
+                        {isTop3 ? medalEmojis[i] : (
+                          <span className="text-[11px] text-muted-foreground">#{entry.rank}</span>
+                        )}
+                      </span>
+                      {entry.avatar ? (
+                        <img
+                          src={entry.avatar}
+                          alt={entry.nickname}
+                          className="w-7 h-7 rounded-full object-cover flex-shrink-0"
+                        />
+                      ) : (
+                        <div className="w-7 h-7 rounded-full bg-muted/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground flex-shrink-0">
+                          {entry.nickname.charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-[12px] font-medium text-foreground truncate">{entry.nickname}</p>
+                        <p className="text-[10px] text-muted-foreground truncate">@{entry.unique_id}</p>
+                      </div>
+                      <div className="flex items-center gap-1 flex-shrink-0">
+                        <Gem size={11} style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }} />
+                        <span className="text-[11px] font-bold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
+                          {entry.diamonds?.toLocaleString() || "0"}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </motion.div>
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">

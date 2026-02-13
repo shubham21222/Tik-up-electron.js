@@ -1,4 +1,4 @@
-const { WebcastPushConnection, SignConfig } = require("tiktok-live-connector");
+const { TikTokLiveConnection, WebcastEvent } = require("tiktok-live-connector");
 const { createClient } = require("@supabase/supabase-js");
 
 // ── Configuration ──────────────────────────────────────────────
@@ -22,9 +22,7 @@ if (!EULER_API_KEY) {
   process.exit(1);
 }
 
-// Configure EulerStream API key for signed WebSocket connections
-SignConfig.apiKey = EULER_API_KEY;
-
+// EulerStream API key is passed per-connection now
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // ── Active connections map: tiktok_username → { connection, buffer, timer }
@@ -38,8 +36,9 @@ function createUserConnection(username) {
 
   console.log(`🔄 Connecting to @${username}...`);
 
-  const tiktok = new WebcastPushConnection(username, {
+  const tiktok = new TikTokLiveConnection(username, {
     enableExtendedGiftInfo: true,
+    apiKey: EULER_API_KEY,
   });
 
   const state = {
@@ -58,7 +57,7 @@ function createUserConnection(username) {
   }
 
   // ── Event Handlers ───────────────────────────────────────────
-  tiktok.on("gift", (data) => {
+  tiktok.on(WebcastEvent.GIFT, (data) => {
     console.log(`  🎁 [${username}] ${data.uniqueId} sent ${data.repeatCount}x ${data.giftName}`);
     queueEvent("gift", data.uniqueId, {
       gift_name: data.giftName,
@@ -70,7 +69,7 @@ function createUserConnection(username) {
     });
   });
 
-  tiktok.on("like", (data) => {
+  tiktok.on(WebcastEvent.LIKE, (data) => {
     console.log(`  ❤️ [${username}] ${data.uniqueId} x${data.likeCount}`);
     queueEvent("like", data.uniqueId, {
       like_count: data.likeCount,
@@ -79,21 +78,21 @@ function createUserConnection(username) {
     });
   });
 
-  tiktok.on("follow", (data) => {
+  tiktok.on(WebcastEvent.FOLLOW, (data) => {
     console.log(`  ➕ [${username}] ${data.uniqueId}`);
     queueEvent("follow", data.uniqueId, {
       avatar: data.profilePictureUrl,
     });
   });
 
-  tiktok.on("share", (data) => {
+  tiktok.on(WebcastEvent.SHARE, (data) => {
     console.log(`  🔗 [${username}] ${data.uniqueId}`);
     queueEvent("share", data.uniqueId, {
       avatar: data.profilePictureUrl,
     });
   });
 
-  tiktok.on("chat", (data) => {
+  tiktok.on(WebcastEvent.CHAT, (data) => {
     console.log(`  💬 [${username}] ${data.uniqueId}: ${data.comment}`);
     queueEvent("chat", data.uniqueId, {
       message: data.comment,
@@ -101,27 +100,27 @@ function createUserConnection(username) {
     });
   });
 
-  tiktok.on("roomUser", (data) => {
+  tiktok.on(WebcastEvent.ROOM_USER, (data) => {
     console.log(`  👁 [${username}] Viewers: ${data.viewerCount}`);
     queueEvent("viewer_count", username, {
       viewer_count: data.viewerCount,
     });
   });
 
-  tiktok.on("subscribe", (data) => {
+  tiktok.on(WebcastEvent.SUBSCRIBE, (data) => {
     console.log(`  ⭐ [${username}] ${data.uniqueId}`);
     queueEvent("subscribe", data.uniqueId, {
       avatar: data.profilePictureUrl,
     });
   });
 
-  tiktok.on("disconnected", () => {
+  tiktok.on(WebcastEvent.DISCONNECTED, () => {
     console.log(`🔴 [${username}] Disconnected from LIVE`);
     flushEvents(username);
     connections.delete(username);
   });
 
-  tiktok.on("error", (err) => {
+  tiktok.on(WebcastEvent.ERROR, (err) => {
     console.error(`⚠️ [${username}] Stream error:`, err.message);
   });
 

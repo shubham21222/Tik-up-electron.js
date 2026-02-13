@@ -88,7 +88,7 @@ async function fetchLiveStats(
       }
     }, 6000);
 
-    const wsUrl = `wss://ws.eulerstream.com?uniqueId=${encodeURIComponent(uniqueId)}&apiKey=${encodeURIComponent(apiKey)}`;
+    const wsUrl = `wss://ws.eulerstream.com?uniqueId=${encodeURIComponent(uniqueId)}&&apiKey=${encodeURIComponent(apiKey)}`;
     const ws = new WebSocket(wsUrl);
 
     let resolved = false;
@@ -111,31 +111,58 @@ async function fetchLiveStats(
 
     ws.onmessage = (event) => {
       try {
-        const raw = JSON.parse(event.data);
+        const raw = JSON.parse(typeof event.data === "string" ? event.data : "{}");
 
-        // EulerStream can send events in different formats
-        // Try to extract room/viewer info from any message
-        const data = raw.data || raw;
+        // Handle messages array format from EulerStream
+        const messages = raw.messages || [raw];
+        for (const msg of messages) {
+          const msgType = msg.type || "";
+          const data = msg.data || msg;
 
-        if (data.viewerCount !== undefined) {
-          collected.is_live = true;
-          collected.viewer_count = data.viewerCount;
+          // roomInfo contains all the stats we need
+          if (msgType === "roomInfo" && data.roomInfo) {
+            const ri = data.roomInfo;
+            collected.is_live = ri.isLive === true || ri.status === 2;
+            if (ri.id) collected.room_id = String(ri.id);
+            if (ri.title) collected.title = ri.title;
+            if (ri.startTime) collected.start_time = Number(ri.startTime);
+            if (ri.totalViewers !== undefined) collected.viewer_count = Number(ri.totalViewers);
+            if (ri.likeCount !== undefined) collected.like_count = Number(ri.likeCount);
+            if (ri.shareCount !== undefined) collected.share_count = Number(ri.shareCount);
+            if (ri.diamondCount !== undefined) collected.diamond_count = Number(ri.diamondCount);
+          }
+
+          // WebcastRoomUserSeqMessage has viewer & like counts
+          if (msgType === "WebcastRoomUserSeqMessage") {
+            collected.is_live = true;
+            if (data.viewerCount !== undefined) collected.viewer_count = Number(data.viewerCount);
+            if (data.total !== undefined) collected.viewer_count = Number(data.total);
+          }
+
+          // WebcastLikeMessage accumulates likes
+          if (msgType === "WebcastLikeMessage" && data.totalLikeCount !== undefined) {
+            collected.like_count = Number(data.totalLikeCount);
+          }
+
+          // tiktok.connect confirms we're connected to a live room
+          if (msgType === "tiktok.connect") {
+            collected.is_live = true;
+          }
+
+          // WebcastRoomUserSeqMessage has viewer count
+          if (msgType === "WebcastRoomUserSeqMessage" && data.viewerCount !== undefined) {
+            collected.is_live = true;
+            collected.viewer_count = data.viewerCount;
+          }
+
+          // Fallback: check data directly
+          if (data.viewerCount !== undefined && !collected.viewer_count) {
+            collected.is_live = true;
+            collected.viewer_count = data.viewerCount;
+          }
         }
-        if (data.likeCount !== undefined) collected.like_count = data.likeCount;
-        if (data.shareCount !== undefined) collected.share_count = data.shareCount;
-        if (data.followerCount !== undefined) collected.follower_count = data.followerCount;
-        if (data.diamondCount !== undefined) collected.diamond_count = data.diamondCount;
-        if (data.roomId) collected.room_id = String(data.roomId);
-        if (data.title) collected.title = data.title;
-        if (data.startTime) collected.start_time = data.startTime;
-        if (data.create_time) collected.start_time = data.create_time;
 
-        // Any message means the room is alive
-        if (raw.event || raw.type) {
-          collected.is_live = true;
-        }
-
-        // Once we have viewer data, wait 1.5s more for additional stats then resolve
+        // Once we have roomInfo, wait 1.5s more then resolve
         if (collected.is_live && !resolved) {
           resolved = true;
           setTimeout(() => {

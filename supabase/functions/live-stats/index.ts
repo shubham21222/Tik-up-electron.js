@@ -51,7 +51,22 @@ Deno.serve(async (req) => {
     }
 
     const uniqueId = profile.tiktok_username;
-    const stats = await fetchLiveStats(uniqueId, apiKey);
+
+    // Fetch WebSocket stats and DB-accumulated diamonds in parallel
+    const [wsStats, dbDiamonds] = await Promise.all([
+      fetchLiveStats(uniqueId, apiKey),
+      fetchAccumulatedDiamonds(adminClient, user.id),
+    ]);
+
+    // Merge: use DB diamonds if WebSocket didn't capture any
+    const stats = { ...wsStats } as Record<string, unknown>;
+    if (dbDiamonds > 0 && (Number(stats.diamond_count) || 0) === 0) {
+      stats.diamond_count = dbDiamonds;
+    }
+    // Always prefer DB diamonds if they're higher (more accurate over time)
+    if (dbDiamonds > (Number(stats.diamond_count) || 0)) {
+      stats.diamond_count = dbDiamonds;
+    }
 
     return new Response(JSON.stringify(stats), {
       status: 200,
@@ -66,6 +81,46 @@ Deno.serve(async (req) => {
   }
 });
 
+/**
+ * Query events_log for gift events and sum up diamond_count from payloads.
+ * Only counts events from the last 12 hours (approximate stream session).
+ */
+async function fetchAccumulatedDiamonds(
+  adminClient: ReturnType<typeof createClient>,
+  userId: string
+): Promise<number> {
+  try {
+    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+    const { data: giftEvents, error } = await adminClient
+      .from("events_log")
+      .select("payload")
+      .eq("user_id", userId)
+      .eq("event_type", "gift")
+      .gte("created_at", twelveHoursAgo);
+
+    if (error || !giftEvents) return 0;
+
+    let totalDiamonds = 0;
+    for (const event of giftEvents) {
+      const payload = event.payload as Record<string, unknown> | null;
+      if (!payload) continue;
+      const diamondCount = Number(payload.diamond_count || payload.diamondCount || 0);
+      const repeatCount = Number(payload.repeat_count || payload.repeatCount || 1);
+      // diamond_count from bridge is per-gift diamond value
+      // For repeat gifts, multiply diamond value × repeat count
+      if (diamondCount > 0) {
+        totalDiamonds += diamondCount * repeatCount;
+      }
+    }
+
+    console.log(`DB accumulated diamonds for user: ${totalDiamonds} from ${giftEvents.length} gift events`);
+    return totalDiamonds;
+  } catch (e) {
+    console.error("Failed to fetch accumulated diamonds:", e);
+    return 0;
+  }
+}
+
 async function fetchLiveStats(
   uniqueId: string,
   apiKey: string
@@ -73,7 +128,6 @@ async function fetchLiveStats(
   return new Promise((resolve) => {
     let resolved = false;
 
-    // 8s max wait
     const timeout = setTimeout(() => {
       try { ws.close(); } catch (_) { /* ignore */ }
       if (!resolved) {
@@ -114,7 +168,6 @@ async function fetchLiveStats(
           const msgType = msg.type || msg.event || "";
           const data = msg.data || msg;
 
-          // Log first few message types for debugging
           if (!gotRoomInfo) {
             console.log(`MSG type: ${msgType}, keys: ${Object.keys(data).slice(0, 8).join(",")}`);
           }
@@ -129,14 +182,12 @@ async function fetchLiveStats(
             if (ri.title) collected.title = ri.title;
             if (ri.startTime) collected.start_time = Number(ri.startTime);
 
-            // Various field name patterns for stats
-            collected.viewer_count = Number(ri.totalViewers || ri.viewerCount || ri.viewer_count || ri.liveRoomStats?.totalUser || collected.viewer_count) || 0;
-            collected.like_count = Number(ri.likeCount || ri.like_count || ri.totalLikes || ri.liveRoomStats?.likeCount || collected.like_count) || 0;
-            collected.share_count = Number(ri.shareCount || ri.share_count || ri.totalShares || collected.share_count) || 0;
-            collected.diamond_count = Number(ri.diamondCount || ri.diamond_count || ri.totalDiamonds || collected.diamond_count) || 0;
-            collected.follower_count = Number(ri.followerCount || ri.follower_count || collected.follower_count) || 0;
+            collected.viewer_count = Number(ri.totalViewers || ri.viewerCount || ri.currentViewers || collected.viewer_count) || 0;
+            collected.like_count = Number(ri.likeCount || ri.totalLikes || collected.like_count) || 0;
+            collected.share_count = Number(ri.shareCount || ri.totalShares || collected.share_count) || 0;
+            collected.diamond_count = Number(ri.diamondCount || ri.totalDiamonds || collected.diamond_count) || 0;
+            collected.follower_count = Number(ri.followerCount || collected.follower_count) || 0;
 
-            // Also check nested liveRoomStats
             if (ri.liveRoomStats) {
               const s = ri.liveRoomStats;
               if (s.totalUser) collected.viewer_count = Number(s.totalUser);
@@ -145,59 +196,50 @@ async function fetchLiveStats(
               if (s.diamondCount) collected.diamond_count = Number(s.diamondCount);
             }
 
-            console.log(`roomInfo parsed: viewers=${collected.viewer_count}, likes=${collected.like_count}, shares=${collected.share_count}, diamonds=${collected.diamond_count}`);
-            console.log(`roomInfo raw keys: ${JSON.stringify(Object.keys(ri).slice(0, 20))}`);
+            console.log(`roomInfo: viewers=${collected.viewer_count}, likes=${collected.like_count}, diamonds=${collected.diamond_count}`);
           }
 
-          // tiktok.connect confirms live
-          if (msgType === "tiktok.connect") {
-            collected.is_live = true;
-          }
+          if (msgType === "tiktok.connect") collected.is_live = true;
 
-          // WebcastRoomUserSeqMessage — viewer counts
           if (msgType === "WebcastRoomUserSeqMessage") {
             collected.is_live = true;
             if (data.viewerCount !== undefined) collected.viewer_count = Number(data.viewerCount);
             if (data.total !== undefined) collected.viewer_count = Number(data.total);
           }
 
-          // Like messages
           if (msgType === "WebcastLikeMessage") {
             if (data.totalLikeCount !== undefined) collected.like_count = Number(data.totalLikeCount);
-            if (data.likeCount !== undefined && !data.totalLikeCount) collected.like_count = Number(data.likeCount);
+            else if (data.likeCount !== undefined) collected.like_count = Number(data.likeCount);
           }
 
-          // Social/share messages
           if (msgType === "WebcastSocialMessage") {
             collected.share_count += 1;
           }
 
-          // Gift messages — accumulate diamond value
+          // Gift messages — accumulate diamond value × repeat count
           if (msgType === "WebcastGiftMessage") {
             const diamondValue = Number(data.diamondCount || data.diamond_count || 0);
-            if (diamondValue > 0) collected.diamond_count += diamondValue;
+            const repeatCount = Number(data.repeatCount || data.repeat_count || 1);
+            if (diamondValue > 0) {
+              collected.diamond_count += diamondValue * repeatCount;
+              console.log(`Gift: ${data.giftName || 'unknown'} x${repeatCount} = ${diamondValue * repeatCount} diamonds`);
+            }
           }
 
-          // Member join (follow-like)
-          if (msgType === "WebcastMemberMessage") {
-            // Not exactly follower count, but indicates engagement
-          }
-
-          // Fallback: any data with viewerCount
           if (data.viewerCount !== undefined && collected.viewer_count === 0) {
             collected.is_live = true;
             collected.viewer_count = Number(data.viewerCount);
           }
         }
 
-        // Once we have roomInfo, wait 3.5s more to accumulate live event messages
+        // Once live, wait 3.5s to accumulate event messages
         if (collected.is_live && !resolveTimer) {
           resolveTimer = setTimeout(() => {
             if (!resolved) {
               resolved = true;
               clearTimeout(timeout);
               try { ws.close(); } catch (_) { /* ignore */ }
-              console.log(`Final stats: viewers=${collected.viewer_count}, likes=${collected.like_count}, shares=${collected.share_count}, diamonds=${collected.diamond_count}`);
+              console.log(`Final WS stats: viewers=${collected.viewer_count}, likes=${collected.like_count}, diamonds=${collected.diamond_count}`);
               resolve(collected);
             }
           }, 3500);

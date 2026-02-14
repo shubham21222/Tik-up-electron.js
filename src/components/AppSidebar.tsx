@@ -65,11 +65,14 @@ const AppSidebar = () => {
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4" style={{ scrollbarWidth: "none" }}>
         {sections.map((section) => (
           <div key={section.label}>
-            {!collapsed && (
-              <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/60 font-bold px-2 mb-2 mt-1">
-                {section.label}
+            <div className={cn("mb-2 mt-1", collapsed ? "flex justify-center" : "px-2")}>
+              <p className={cn(
+                "uppercase tracking-[0.12em] text-muted-foreground/60 font-bold",
+                collapsed ? "text-[8px] text-center" : "text-[11px]"
+              )}>
+                {collapsed ? section.label.split(" ")[0].slice(0, 3) : section.label}
               </p>
-            )}
+            </div>
             <div className="space-y-1">
               {section.items.map((item) => {
                 const isActive = location.pathname === item.id;

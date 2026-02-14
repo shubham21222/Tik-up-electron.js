@@ -74,6 +74,91 @@ const THEMES = [
   { id: "cyber_pulse", label: "Cyber Pulse", color: "180 100% 50%", desc: "Electric lines, FX sparks" },
 ];
 
+/* ─── Per-theme visual config ─── */
+const getThemeStyles = (themeId: string, themeColor: string) => {
+  const base = {
+    previewBg: "rgba(15,15,23,0.8)",
+    previewBorder: `1px solid hsl(${themeColor} / 0.12)`,
+    cardBg: (eventColor: string) => `linear-gradient(135deg, hsl(${themeColor} / 0.05), hsl(${eventColor} / 0.04))`,
+    cardBorder: `1px solid hsl(${themeColor} / 0.08)`,
+    cardRadius: "0.75rem",
+    fontClass: "font-heading",
+    overlayElement: null as React.ReactNode,
+    avatarRadius: "9999px",
+    cardExtra: {} as React.CSSProperties,
+    usernameColor: undefined as string | undefined,
+    detailColor: undefined as string | undefined,
+  };
+
+  switch (themeId) {
+    case "neon_gamer":
+      return {
+        ...base,
+        previewBg: "rgba(20,8,30,0.9)",
+        previewBorder: `1px solid hsl(280 100% 65% / 0.25)`,
+        cardBg: (ec: string) => `linear-gradient(135deg, hsl(280 80% 20% / 0.2), hsl(${ec} / 0.08))`,
+        cardBorder: `1px solid hsl(280 100% 65% / 0.2)`,
+        cardExtra: { boxShadow: "inset 0 0 20px hsl(280 100% 65% / 0.05), 0 0 15px hsl(280 100% 65% / 0.08)" },
+        usernameColor: "hsl(280 100% 80%)",
+      };
+    case "space_hud":
+      return {
+        ...base,
+        previewBg: "rgba(5,12,25,0.95)",
+        previewBorder: `1px solid hsl(200 100% 55% / 0.2)`,
+        cardBg: (ec: string) => `linear-gradient(180deg, hsl(200 80% 15% / 0.15), hsl(${ec} / 0.05))`,
+        cardBorder: `1px solid hsl(200 100% 55% / 0.15)`,
+        cardRadius: "0.5rem",
+        cardExtra: { boxShadow: "0 0 1px hsl(200 100% 55% / 0.4), inset 0 1px 0 hsl(200 100% 55% / 0.1)" },
+        usernameColor: "hsl(200 100% 75%)",
+        overlayElement: (
+          <div className="absolute inset-0 pointer-events-none opacity-[0.03]"
+            style={{ backgroundImage: "linear-gradient(0deg, transparent 24%, hsl(200 100% 55% / 0.15) 25%, hsl(200 100% 55% / 0.15) 26%, transparent 27%, transparent 74%, hsl(200 100% 55% / 0.15) 75%, hsl(200 100% 55% / 0.15) 76%, transparent 77%), linear-gradient(90deg, transparent 24%, hsl(200 100% 55% / 0.15) 25%, hsl(200 100% 55% / 0.15) 26%, transparent 27%, transparent 74%, hsl(200 100% 55% / 0.15) 75%, hsl(200 100% 55% / 0.15) 76%, transparent 77%)", backgroundSize: "50px 50px" }} />
+        ),
+      };
+    case "fortnite":
+      return {
+        ...base,
+        previewBg: "rgba(8,18,12,0.9)",
+        previewBorder: `2px solid hsl(120 80% 50% / 0.25)`,
+        cardBg: (ec: string) => `linear-gradient(135deg, hsl(120 60% 15% / 0.2), hsl(${ec} / 0.06))`,
+        cardBorder: `2px solid hsl(120 80% 50% / 0.15)`,
+        cardRadius: "0.5rem",
+        cardExtra: { boxShadow: "0 2px 0 hsl(120 80% 50% / 0.15), inset 0 0 15px hsl(120 80% 50% / 0.04)" },
+        usernameColor: "hsl(120 80% 70%)",
+        avatarRadius: "0.5rem",
+      };
+    case "cod_tactical":
+      return {
+        ...base,
+        previewBg: "rgba(15,14,10,0.95)",
+        previewBorder: `1px solid hsl(45 80% 40% / 0.25)`,
+        cardBg: (ec: string) => `linear-gradient(90deg, hsl(45 60% 12% / 0.2), hsl(${ec} / 0.04), transparent)`,
+        cardBorder: `1px solid hsl(45 80% 40% / 0.15)`,
+        cardRadius: "0.25rem",
+        cardExtra: { boxShadow: "inset 2px 0 0 hsl(45 100% 55% / 0.3)" },
+        usernameColor: "hsl(45 100% 70%)",
+        avatarRadius: "0.25rem",
+        overlayElement: (
+          <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
+            style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 2px, hsl(45 100% 55% / 0.2) 2px, hsl(45 100% 55% / 0.2) 3px)", backgroundSize: "100% 4px" }} />
+        ),
+      };
+    case "cyber_pulse":
+      return {
+        ...base,
+        previewBg: "rgba(5,15,20,0.95)",
+        previewBorder: `1px solid hsl(180 100% 50% / 0.25)`,
+        cardBg: (ec: string) => `linear-gradient(135deg, hsl(180 80% 15% / 0.15), hsl(${ec} / 0.06))`,
+        cardBorder: `1px solid hsl(180 100% 50% / 0.18)`,
+        cardExtra: { boxShadow: "0 0 12px hsl(180 100% 50% / 0.06), inset 0 0 20px hsl(180 100% 50% / 0.03)" },
+        usernameColor: "hsl(180 100% 70%)",
+      };
+    default:
+      return base;
+  }
+};
+
 const eventTypeMap: Record<string, { icon: typeof Heart; emoji: string; color: string; filterKey: string }> = {
   like:    { icon: Heart, emoji: "❤️", color: "350 90% 55%", filterKey: "likes" },
   gift:    { icon: Gift, emoji: "🎁", color: "280 100% 65%", filterKey: "gifts" },
@@ -145,6 +230,7 @@ const RecentActivity = () => {
   const activeTheme = THEMES.find(t => t.id === activePreset.theme) || THEMES[0];
   const themeColor = activeTheme.color;
   const currentAnim = animVariants[activePreset.animationStyle] || animVariants.slide_in;
+  const themeStyles = getThemeStyles(activePreset.theme, themeColor);
 
   const feedUrl = `https://tikup.xyz/overlay/event-feed/${activePreset.id}`;
 
@@ -395,10 +481,13 @@ const RecentActivity = () => {
           {/* ─── CENTER: Live Preview ─── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="lg:col-span-5">
-            <div className="rounded-2xl overflow-hidden transition-all duration-500"
-              style={{ background: "rgba(15,15,23,0.8)", border: `1px solid hsl(${themeColor} / 0.12)` }}>
+            <div className="rounded-2xl overflow-hidden transition-all duration-500 relative"
+              style={{ background: themeStyles.previewBg, border: themeStyles.previewBorder }}>
+              {/* Theme overlay (scanlines, grids, etc.) */}
+              {themeStyles.overlayElement}
+
               {/* Preview Header */}
-              <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: `1px solid hsl(${themeColor} / 0.08)` }}>
+              <div className="flex items-center justify-between px-4 py-3 relative z-10" style={{ borderBottom: `1px solid hsl(${themeColor} / 0.08)` }}>
                 <div className="flex items-center gap-2">
                   <motion.div animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity }}>
                     <Eye size={14} style={{ color: `hsl(${themeColor})` }} />
@@ -420,7 +509,7 @@ const RecentActivity = () => {
               </div>
 
               {/* Real-time event filter toggles */}
-              <div className="px-4 py-2.5 flex flex-wrap gap-1.5" style={{ borderBottom: `1px solid hsl(${themeColor} / 0.05)` }}>
+              <div className="px-4 py-2.5 flex flex-wrap gap-1.5 relative z-10" style={{ borderBottom: `1px solid hsl(${themeColor} / 0.05)` }}>
                 {EVENT_TYPES.map(et => {
                   const isActive = activePreset.eventTypes.includes(et.id);
                   return (
@@ -443,7 +532,7 @@ const RecentActivity = () => {
               </div>
 
               {/* Preview Area */}
-              <div className="px-4 py-3 min-h-[360px] max-h-[460px] overflow-y-auto space-y-2" style={{ scrollbarWidth: "none" }}>
+              <div className="px-4 py-3 min-h-[360px] max-h-[460px] overflow-y-auto space-y-2 relative z-10" style={{ scrollbarWidth: "none" }}>
                 <AnimatePresence mode="popLayout">
                   {(isPlaying ? playbackEvents : displayEvents).map((event, i) => {
                     const config = eventTypeMap[event.type];
@@ -451,18 +540,23 @@ const RecentActivity = () => {
                       <motion.div key={`${event.user}-${event.type}-${i}-${isPlaying}-${activePreset.animationStyle}-${activePreset.theme}`}
                         {...currentAnim}
                         transition={{ duration: activePreset.animationDuration / activePreset.animationSpeed, delay: isPlaying ? 0 : i * 0.04 }}
-                        className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-300"
+                        className="flex items-center gap-3 px-4 py-3 transition-all duration-300"
                         style={{
-                          background: `linear-gradient(135deg, hsl(${themeColor} / 0.05), hsl(${config?.color || "0 0% 50%"} / 0.04))`,
-                          border: `1px solid hsl(${themeColor} / 0.08)`,
+                          background: themeStyles.cardBg(config?.color || "0 0% 50%"),
+                          border: themeStyles.cardBorder,
+                          borderRadius: themeStyles.cardRadius,
+                          ...themeStyles.cardExtra,
                         }}>
-                        <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white"
-                          style={{ background: getAvatarColor(event.user) }}>
+                        <div className="w-9 h-9 flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white"
+                          style={{ background: getAvatarColor(event.user), borderRadius: themeStyles.avatarRadius }}>
                           {getInitials(event.user)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-heading font-bold text-foreground">{event.user}</p>
-                          <p className="text-xs text-muted-foreground">{event.detail}</p>
+                          <p className={`text-sm ${themeStyles.fontClass} font-bold`}
+                            style={{ color: themeStyles.usernameColor || "hsl(0 0% 88%)" }}>
+                            {event.user}
+                          </p>
+                          <p className="text-xs" style={{ color: themeStyles.detailColor || "hsl(0 0% 40%)" }}>{event.detail}</p>
                         </div>
                         <motion.span className="text-lg flex-shrink-0"
                           animate={{ scale: [1, 1.2, 1] }}

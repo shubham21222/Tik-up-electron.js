@@ -116,6 +116,7 @@ const App = () => (
           <Route path="/overlay/webcam-frame/:publicToken" element={<WebcamFrameRenderer />} />
           <Route path="/overlay/event-feed/:publicToken" element={<EventFeedRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
+          <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 
           {/* All other routes wrapped in AuthProvider */}
           <Route path="/*" element={

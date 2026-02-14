@@ -31,7 +31,6 @@ const sections: SidebarSection[] = [
   {
     label: "PRO Features",
     items: [
-      { id: "/gift-alerts", label: "Gift Reactions", icon: Gift, pro: true },
       { id: "/share-alerts", label: "Share Reactions", icon: Share2, pro: true },
       { id: "/follow-alerts", label: "Follow Reactions", icon: UserPlus, pro: true },
       { id: "/like-alerts", label: "Like Reactions", icon: Heart, pro: true },

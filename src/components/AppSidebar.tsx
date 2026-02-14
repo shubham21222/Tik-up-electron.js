@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, Gift, MessageCircle, Users, BarChart3, Timer,
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
-  Shield, PartyPopper, BarChart, Link2, Palette, Settings,
+  Shield, BarChart, Link2, Palette, Settings,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
   Star
 } from "lucide-react";
@@ -60,7 +60,7 @@ const sections: SidebarSection[] = [
     items: [
       { id: "/chat-commands", label: "Chat Commands", icon: Terminal },
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
-      { id: "/giveaways", label: "Giveaways", icon: PartyPopper, pro: true },
+      
       { id: "/polls", label: "Polls", icon: BarChart, pro: true },
       { id: "/gift-browser", label: "Gift Browser", icon: Gift },
     ],

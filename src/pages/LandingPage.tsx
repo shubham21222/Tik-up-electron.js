@@ -254,10 +254,23 @@ const LandingPage = () => {
           borderBottom: scrolled ? "1px solid hsl(0 0% 10% / 0.6)" : "1px solid transparent",
         }}
       >
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src={tikupLogo} alt="TikUp" className="w-20 h-20 object-contain" />
-            <span className="text-lg font-heading font-bold text-foreground tracking-tight">TIKUP</span>
+        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+          <div className="w-24" /> {/* spacer */}
+          <Link to="/" className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
+            <motion.img
+              src={tikupLogo}
+              alt="TikUp"
+              className="w-16 h-16 object-contain"
+              animate={{
+                filter: [
+                  "drop-shadow(0 0 8px hsl(160 100% 50% / 0.3))",
+                  "drop-shadow(0 0 20px hsl(160 100% 50% / 0.5))",
+                  "drop-shadow(0 0 8px hsl(160 100% 50% / 0.3))",
+                ],
+              }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              whileHover={{ scale: 1.1 }}
+            />
           </Link>
           <div className="flex items-center gap-3">
             <Link to="/auth" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">

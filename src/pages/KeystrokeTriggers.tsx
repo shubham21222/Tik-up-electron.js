@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Keyboard, Search, ChevronDown, ChevronLeft, ChevronRight, Coins,
-  Play, Save, Volume2, VolumeX, Check, Zap, HelpCircle, Command
+  Play, Save, Volume2, VolumeX, Check, Zap, HelpCircle, Command,
+  Trash2, Pencil
 } from "lucide-react";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import { toast } from "sonner";
@@ -98,6 +99,7 @@ const KeystrokeTriggers = () => {
   const [showSoundPicker, setShowSoundPicker] = useState(false);
   const [previewPlaying, setPreviewPlaying] = useState(false);
   const [justSaved, setJustSaved] = useState(false);
+  const [triggerName, setTriggerName] = useState("");
 
   useEffect(() => {
     const seen = localStorage.getItem("tikup_guide_seen_keystroke_triggers");
@@ -115,8 +117,34 @@ const KeystrokeTriggers = () => {
   // Extract keystroke config from custom_config
   const keystrokeConfig = useMemo(() => {
     const cc = currentTrigger?.custom_config as any;
-    return cc?.keystroke || { key: "", modifiers: [], sound_enabled: false, sound_type: "default_chime" };
+    return cc?.keystroke || { key: "", modifiers: [], sound_enabled: false, sound_type: "default_chime", name: "" };
   }, [currentTrigger]);
+
+  // Sync triggerName when switching gifts
+  useEffect(() => {
+    setTriggerName(keystrokeConfig.name || "");
+  }, [currentGift?.gift_id, keystrokeConfig.name]);
+
+  // All triggers that have keystroke config set
+  const activeTriggers = useMemo(() => {
+    return triggers.filter(t => {
+      const cc = t.custom_config as any;
+      return cc?.keystroke?.key;
+    }).map(t => {
+      const cc = t.custom_config as any;
+      const ks = cc.keystroke;
+      const gift = gifts.find(g => g.gift_id === t.gift_id);
+      return {
+        ...t,
+        giftName: gift?.name || "Unknown",
+        giftImage: gift?.image_url || null,
+        giftCoins: gift?.coin_value || 0,
+        keystrokeDisplay: [...(ks.modifiers || []), ks.key].join(" + "),
+        keystrokeName: ks.name || "",
+        soundEnabled: ks.sound_enabled || false,
+      };
+    });
+  }, [triggers, gifts]);
 
   const goNext = useCallback(() => setCurrentIndex(i => (i + 1) % filtered.length), [filtered.length]);
   const goPrev = useCallback(() => setCurrentIndex(i => (i - 1 + filtered.length) % filtered.length), [filtered.length]);
@@ -178,9 +206,32 @@ const KeystrokeTriggers = () => {
   };
 
   const handleSave = () => {
+    if (!currentGift) return;
+    const existingConfig = (currentTrigger?.custom_config as any) || {};
+    const name = triggerName || currentGift.name;
+    updateTrigger(currentGift.gift_id, {
+      custom_config: {
+        ...existingConfig,
+        keystroke: { ...keystrokeConfig, name },
+      },
+    });
     setJustSaved(true);
-    toast.success(`Trigger saved! 🎉 ${currentGift?.name} now sends ${displayKeystroke}`);
+    toast.success(`Trigger saved! 🎉 ${name} → ${displayKeystroke}`);
     setTimeout(() => setJustSaved(false), 2000);
+  };
+
+  const removeKeystroke = (giftId: string) => {
+    const trigger = triggers.find(t => t.gift_id === giftId);
+    const existingConfig = (trigger?.custom_config as any) || {};
+    updateTrigger(giftId, {
+      custom_config: { ...existingConfig, keystroke: undefined },
+    });
+    toast.success("Trigger removed");
+  };
+
+  const jumpToGift = (giftId: string) => {
+    const idx = filtered.findIndex(g => g.gift_id === giftId);
+    if (idx >= 0) setCurrentIndex(idx);
   };
 
   const handleCustomKeyDown = (e: React.KeyboardEvent) => {
@@ -469,6 +520,17 @@ const KeystrokeTriggers = () => {
                       )}
                     </div>
 
+                    {/* ── Trigger Name ─────────────────────── */}
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold mb-2">✏️ Preset Name</p>
+                      <input type="text" value={triggerName}
+                        onChange={e => setTriggerName(e.target.value)}
+                        placeholder={currentGift?.name || "e.g. Scene Switch, Confetti…"}
+                        className="w-full bg-muted/30 border border-border/50 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
+                      />
+                      <p className="text-[10px] text-muted-foreground/50 mt-1">Give it a name so you remember what it does</p>
+                    </div>
+
                     {/* ── Step 5: Save ──────────────────────── */}
                     <button onClick={handleSave} disabled={!keystrokeConfig.key}
                       className="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5 disabled:opacity-40 disabled:hover:translate-y-0"
@@ -482,6 +544,55 @@ const KeystrokeTriggers = () => {
                       {justSaved ? <><Check size={16} /> Saved!</> : <><Save size={16} /> Save Trigger</>}
                     </button>
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* ── Active Triggers List ──────────────────────── */}
+            {activeTriggers.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                className="mt-8">
+                <div className="flex items-center gap-2 mb-4">
+                  <Zap size={16} className="text-primary" />
+                  <h2 className="text-sm font-bold text-foreground">Active Triggers</h2>
+                  <span className="text-[10px] text-muted-foreground bg-muted/40 px-2 py-0.5 rounded-full">{activeTriggers.length}</span>
+                </div>
+                <div className="space-y-2">
+                  {activeTriggers.map(t => (
+                    <motion.div key={t.gift_id} layout
+                      className="rounded-xl p-[1px]"
+                      style={{ background: "linear-gradient(135deg, hsl(160 100% 45% / 0.1), hsl(200 100% 55% / 0.05))" }}>
+                      <div className="rounded-xl px-4 py-3 flex items-center gap-3"
+                        style={{ background: "rgba(12,10,20,0.85)", backdropFilter: "blur(16px)" }}>
+                        <img src={t.giftImage || "/placeholder.svg"} alt={t.giftName}
+                          className="w-9 h-9 object-contain flex-shrink-0"
+                          onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm font-bold text-foreground truncate">
+                              {t.keystrokeName || t.giftName}
+                            </p>
+                            {t.soundEnabled && <Volume2 size={10} className="text-primary flex-shrink-0" />}
+                          </div>
+                          <div className="flex items-center gap-2 mt-0.5">
+                            <span className="text-[10px] text-muted-foreground">{t.giftName}</span>
+                            <span className="text-[10px] text-muted-foreground/40">→</span>
+                            <span className="text-[10px] font-mono font-bold" style={{ color: "hsl(200 100% 65%)" }}>{t.keystrokeDisplay}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1 flex-shrink-0">
+                          <button onClick={() => jumpToGift(t.gift_id)}
+                            className="p-2 rounded-lg hover:bg-white/[0.04] transition-colors text-muted-foreground hover:text-foreground" title="Edit">
+                            <Pencil size={13} />
+                          </button>
+                          <button onClick={() => removeKeystroke(t.gift_id)}
+                            className="p-2 rounded-lg hover:bg-red-500/10 transition-colors text-muted-foreground hover:text-red-400" title="Remove">
+                            <Trash2 size={13} />
+                          </button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
                 </div>
               </motion.div>
             )}

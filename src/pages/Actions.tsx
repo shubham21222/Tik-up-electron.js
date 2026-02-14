@@ -6,14 +6,15 @@ import {
   ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff
 } from "lucide-react";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
+import AnimationPreview from "@/components/actions/AnimationPreview";
 
 const animationOptions = [
-  { value: "bounce", label: "Bounce In" },
-  { value: "slide", label: "Slide Up" },
-  { value: "explosion", label: "Explosion" },
-  { value: "3d_flip", label: "3D Flip" },
-  { value: "glitch", label: "Glitch" },
-  { value: "firework", label: "Firework" },
+  { value: "bounce", label: "Bounce In", emoji: "🎯", premium: false },
+  { value: "slide", label: "Slide Up", emoji: "⬆️", premium: false },
+  { value: "explosion", label: "Explosion", emoji: "💥", premium: false },
+  { value: "3d_flip", label: "3D Flip", emoji: "🔄", premium: true },
+  { value: "glitch", label: "Glitch", emoji: "⚡", premium: true },
+  { value: "firework", label: "Firework", emoji: "🎆", premium: true },
 ];
 
 const Actions = () => {
@@ -232,6 +233,15 @@ const Actions = () => {
                       When this gift is sent…
                     </p>
 
+                    {/* Animation Preview */}
+                    <AnimationPreview
+                      style={currentTrigger?.animation_effect || "bounce"}
+                      emoji="🌹"
+                      giftName={currentGift.name}
+                      giftImage={getImageUrl(currentGift.image_url)}
+                      isPremium={["3d_flip", "glitch", "firework"].includes(currentTrigger?.animation_effect || "bounce")}
+                    />
+
                     {/* Animation Style */}
                     <div>
                       <label className="text-xs font-medium text-foreground mb-2 block">Animation Style</label>
@@ -242,11 +252,17 @@ const Actions = () => {
                             <button
                               key={opt.value}
                               onClick={() => updateTrigger(currentGift.gift_id, { animation_effect: opt.value })}
-                              className={`px-2.5 py-2 rounded-xl text-[11px] font-medium transition-all ${
-                                isActive ? "bg-primary/10 text-primary border border-primary/20" : "bg-muted/30 text-muted-foreground border border-transparent hover:border-border/50"
+                              className={`relative px-2.5 py-2.5 rounded-xl text-[11px] font-medium transition-all ${
+                                isActive ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_12px_hsl(160,100%,45%,0.15)]" : "bg-muted/30 text-muted-foreground border border-transparent hover:border-border/50"
                               }`}
                             >
-                              {opt.label}
+                              <span className="mr-1">{opt.emoji}</span> {opt.label}
+                              {opt.premium && (
+                                <span className="absolute -top-1 -right-1 text-[7px] px-1 py-px rounded-full font-bold"
+                                  style={{ background: "linear-gradient(135deg, hsl(45 100% 50%), hsl(280 100% 60%))", color: "hsl(0 0% 0%)" }}>
+                                  PRO
+                                </span>
+                              )}
                             </button>
                           );
                         })}

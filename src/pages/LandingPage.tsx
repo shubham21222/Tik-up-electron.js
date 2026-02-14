@@ -401,7 +401,7 @@ const LandingPage = () => {
             <motion.img
               src={tikupLogo}
               alt="TikUp"
-              className="w-36 h-36 md:w-48 md:h-48 object-contain relative z-10 drop-shadow-[0_0_40px_hsl(160,100%,45%,0.25)]"
+              className="w-[280px] h-[280px] md:w-[400px] md:h-[400px] object-contain relative z-10 drop-shadow-[0_0_60px_hsl(160,100%,45%,0.35)]"
               animate={{
                 filter: [
                   "drop-shadow(0 0 20px hsl(160 100% 45% / 0.2))",

@@ -26,23 +26,6 @@ const sections: SidebarSection[] = [
       { id: "/stream-timer", label: "Stream Timer", icon: Timer },
       { id: "/viewer-count", label: "Viewer Count", icon: Users },
       { id: "/sounds", label: "Sound Alerts", icon: Volume2 },
-    ],
-  },
-  {
-    label: "PRO Features",
-    items: [
-      { id: "/share-alerts", label: "Share Reactions", icon: Share2, pro: true },
-      { id: "/follow-alerts", label: "Follow Reactions", icon: UserPlus, pro: true },
-      { id: "/like-alerts", label: "Like Reactions", icon: Heart, pro: true },
-      { id: "/leaderboard", label: "Top Gifters Board", icon: Trophy, pro: true },
-      { id: "/custom-text", label: "Custom Text", icon: Type, pro: true },
-      { id: "/chat-commands", label: "Chat Commands", icon: Terminal, pro: true },
-      { id: "/tts", label: "Text-to-Speech", icon: Mic, pro: true },
-    ],
-  },
-  {
-    label: "More",
-    items: [
       { id: "/overlays", label: "All Overlays", icon: Layers },
       { id: "/presets", label: "Stream Themes", icon: Sparkles },
       { id: "/gift-browser", label: "Gift Browser", icon: Gift },

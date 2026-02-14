@@ -329,33 +329,84 @@ const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: Anim
         </>
       )}
 
-      {/* Flames Rising — fire particles rising from bottom */}
+      {/* Flames Rising — dramatic fire rising from bottom */}
       {isFlames && (
         <>
-          {[...Array(12)].map((_, i) => (
+          {/* Large flame tongues */}
+          {[...Array(8)].map((_, i) => (
             <motion.div
-              key={`flame-${key}-${i}`}
-              className="absolute pointer-events-none rounded-full"
+              key={`flame-lg-${key}-${i}`}
+              className="absolute pointer-events-none"
               style={{
-                width: 6 + Math.random() * 8,
-                height: 12 + Math.random() * 16,
-                left: `${10 + i * 7 + Math.random() * 5}%`,
+                width: 14 + (i % 3) * 8,
+                height: 50 + (i % 4) * 20,
+                left: `${5 + i * 12}%`,
                 bottom: 0,
-                background: `linear-gradient(180deg, ${colors[i % colors.length]}, transparent)`,
-                filter: "blur(2px)",
-                borderRadius: "50% 50% 20% 20%",
+                background: `linear-gradient(180deg, transparent 0%, ${
+                  i % 3 === 0 ? "hsl(45 100% 60% / 0.6)" : i % 3 === 1 ? "hsl(25 100% 55% / 0.7)" : "hsl(10 100% 50% / 0.6)"
+                } 40%, ${
+                  i % 2 === 0 ? "hsl(15 100% 50% / 0.9)" : "hsl(35 100% 55% / 0.8)"
+                } 100%)`,
+                borderRadius: "50% 50% 30% 30%",
+                filter: "blur(3px)",
               }}
-              initial={{ y: 0, opacity: 0, scale: 0.3 }}
-              animate={{ y: [-20, -80 - Math.random() * 60], opacity: [0, 0.8, 0], scale: [0.3, 1, 0.5] }}
-              transition={{ duration: 1.2 + Math.random() * 0.5, delay: i * 0.08, repeat: Infinity, repeatDelay: 0.5 }}
+              animate={{
+                y: [10, -30 - (i % 3) * 15, -50 - (i % 4) * 10, 10],
+                scaleX: [0.8, 1.2, 0.9, 0.8],
+                scaleY: [0.6, 1.1, 0.8, 0.6],
+                opacity: [0.3, 0.8, 0.5, 0.3],
+              }}
+              transition={{
+                duration: 0.8 + (i % 3) * 0.3,
+                delay: i * 0.1,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
             />
           ))}
+          {/* Small ember particles */}
+          {[...Array(16)].map((_, i) => (
+            <motion.div
+              key={`ember-${key}-${i}`}
+              className="absolute pointer-events-none rounded-full"
+              style={{
+                width: 3 + (i % 3) * 2,
+                height: 3 + (i % 3) * 2,
+                left: `${8 + i * 5.5}%`,
+                bottom: 10,
+                background: i % 4 === 0 ? "hsl(50 100% 70%)" : i % 4 === 1 ? "hsl(30 100% 60%)" : i % 4 === 2 ? "hsl(10 100% 55%)" : "hsl(40 100% 65%)",
+                boxShadow: `0 0 4px ${i % 2 === 0 ? "hsl(35 100% 55%)" : "hsl(15 100% 50%)"}`,
+              }}
+              initial={{ y: 0, opacity: 0, scale: 0.3 }}
+              animate={{
+                y: [-10, -60 - (i % 5) * 20, -100 - (i % 3) * 15],
+                x: [(i % 2 === 0 ? -1 : 1) * (3 + i % 4 * 2), (i % 2 === 0 ? 1 : -1) * 5],
+                opacity: [0, 0.9, 0],
+                scale: [0.3, 1, 0.2],
+              }}
+              transition={{
+                duration: 1.0 + (i % 3) * 0.3,
+                delay: i * 0.07,
+                repeat: Infinity,
+                ease: "easeOut",
+              }}
+            />
+          ))}
+          {/* Bottom fire glow */}
           <motion.div
             key={`flame-glow-${key}`}
             className="absolute bottom-0 left-0 right-0 pointer-events-none blur-2xl"
-            style={{ height: 60, background: "linear-gradient(180deg, transparent, hsl(25 100% 50% / 0.15))" }}
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 1.5, repeat: Infinity }}
+            style={{ height: 80, background: "linear-gradient(180deg, transparent, hsl(25 100% 50% / 0.25), hsl(15 100% 45% / 0.35))" }}
+            animate={{ opacity: [0.5, 0.8, 0.5] }}
+            transition={{ duration: 1.2, repeat: Infinity }}
+          />
+          {/* Hot core glow at center bottom */}
+          <motion.div
+            key={`flame-core-${key}`}
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 pointer-events-none rounded-full blur-xl"
+            style={{ width: 120, height: 50, background: "radial-gradient(ellipse, hsl(40 100% 60% / 0.3), transparent)" }}
+            animate={{ scaleX: [0.9, 1.2, 0.9], opacity: [0.4, 0.7, 0.4] }}
+            transition={{ duration: 1.0, repeat: Infinity }}
           />
         </>
       )}

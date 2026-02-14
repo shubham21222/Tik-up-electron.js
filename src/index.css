@@ -116,3 +116,46 @@
     background-color: hsl(var(--surface-overlay));
   }
 }
+
+/* ── Mobile responsive utilities ── */
+@media (max-width: 768px) {
+  /* Cards & grids stack vertically */
+  .grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Touch-friendly buttons */
+  button, a[role="button"], .icon-btn {
+    min-height: 44px;
+  }
+
+  /* Overlay URL boxes */
+  .overlay-url-box {
+    flex-direction: column;
+  }
+
+  /* Full-width inputs on mobile */
+  input, select, textarea {
+    font-size: 16px !important; /* Prevent iOS zoom */
+  }
+
+  /* Reduce heading sizes */
+  h1 { font-size: 1.5rem !important; }
+  h2 { font-size: 1.25rem !important; }
+  h3 { font-size: 1.1rem !important; }
+
+  /* Hide horizontal overflow */
+  body {
+    overflow-x: hidden;
+  }
+
+  /* Tab navs scroll horizontally */
+  .tab-nav-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .tab-nav-scroll::-webkit-scrollbar {
+    display: none;
+  }
+}

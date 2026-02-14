@@ -3,13 +3,14 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Palette, Lock, Star, Copy, Play, Check,
-  Sparkles, Monitor, Type, Sliders, Zap, ChevronRight
+  Sparkles, Monitor, Type, Sliders, Zap, ChevronRight, ExternalLink
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import PageHelpButton from "@/components/PageHelpButton";
+import { getOverlayBaseUrl } from "@/lib/overlay-url";
 
 /* ─── Room Background Definitions ─── */
 interface RoomBackground {
@@ -355,6 +356,13 @@ const BackgroundsPage = () => {
     ? backgrounds
     : backgrounds.filter(b => b.category === activeCategory);
 
+  const buildUrl = (bgId: string, extra = "") => {
+    const base = `${getOverlayBaseUrl()}/overlay/backgrounds/${bgId}`;
+    const colorEncoded = ledColor.replace(/ /g, "_").replace(/%/g, "");
+    const params = `led=${encodeURIComponent(ledText)}&color=${colorEncoded}&anim=${ledAnimation}&font=${ledFont.toLowerCase()}&speed=${animSpeed}&glow=${glowIntensity}`;
+    return `${base}?${params}${extra ? "&" + extra : ""}`;
+  };
+
   const copyUrl = (url: string, label: string) => {
     navigator.clipboard.writeText(url);
     setCopied(label);
@@ -551,6 +559,35 @@ const BackgroundsPage = () => {
               glowIntensity={glowIntensity}
               speed={animSpeed}
             />
+            <div className="flex items-center gap-2 mt-3 justify-end">
+              <button
+                onClick={() => {
+                  if (!isPro) { toast.error("Upgrade to Pro"); return; }
+                  window.open(buildUrl(selectedBg.id), "_blank");
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold transition-all hover:-translate-y-0.5"
+                style={{
+                  background: `hsl(${selectedBg.accentColor} / 0.1)`,
+                  color: `hsl(${selectedBg.accentColor})`,
+                  border: `1px solid hsl(${selectedBg.accentColor} / 0.2)`,
+                }}
+              >
+                <Play size={12} /> Play Demo
+              </button>
+              <button
+                onClick={() => {
+                  if (!isPro) { toast.error("Upgrade to Pro"); return; }
+                  window.open(buildUrl(selectedBg.id), "_blank");
+                }}
+                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold text-muted-foreground hover:text-foreground transition-all"
+                style={{
+                  background: "hsl(0 0% 100% / 0.03)",
+                  border: "1px solid hsl(0 0% 100% / 0.06)",
+                }}
+              >
+                <ExternalLink size={12} /> Open Full Screen
+              </button>
+            </div>
           </div>
         </motion.div>
 
@@ -750,11 +787,11 @@ const BackgroundsPage = () => {
 
           <div className="space-y-3">
             {[
-              { label: "Primary Background", suffix: "" },
-              { label: "Preview Mode", suffix: "?mode=preview" },
-              { label: "LED Only", suffix: "?mode=led" },
+              { label: "Primary Background", extra: "" },
+              { label: "Preview Mode", extra: "mode=preview" },
+              { label: "LED Only", extra: "mode=led" },
             ].map(url => {
-              const fullUrl = `https://tikup.xyz/widget/backgrounds/${selectedBg.id}${url.suffix}`;
+              const fullUrl = buildUrl(selectedBg.id, url.extra);
               const isCopied = copied === url.label;
               return (
                 <div key={url.label} className="flex items-center gap-3">

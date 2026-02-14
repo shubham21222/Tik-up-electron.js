@@ -6,7 +6,7 @@ import { Search, Bell, HelpCircle, User, LogOut } from "lucide-react";
 import { SidebarStateProvider, useSidebarState } from "@/hooks/use-sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -15,6 +15,7 @@ interface AppLayoutProps {
 const LayoutInner = ({ children }: AppLayoutProps) => {
   const { collapsed } = useSidebarState();
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -50,7 +51,10 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
               <div className="flex items-center gap-2">
                 <span className="text-xs text-muted-foreground truncate max-w-[120px]">{user.email}</span>
                 <button
-                  onClick={() => signOut()}
+                  onClick={async () => {
+                    await signOut();
+                    navigate("/");
+                  }}
                   className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
                   title="Sign out"
                 >

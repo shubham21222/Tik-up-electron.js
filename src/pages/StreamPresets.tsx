@@ -6,6 +6,7 @@ import { useState, Suspense } from "react";
 import { toast } from "sonner";
 import StreamBorderPreview from "@/components/overlays/previews/StreamBorderPreview";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface Preset {
   id: string;
@@ -114,8 +115,7 @@ const StreamPresets = () => {
 
   const copyUrl = (style: string) => {
     const url = `${getOverlayBaseUrl()}/overlay/stream-border/preview?style=${style}`;
-    navigator.clipboard.writeText(url);
-    toast.success("Border URL copied! Paste into OBS or TikTok LIVE Studio.");
+    copyToClipboard(url, "Border URL copied! Paste into OBS or TikTok LIVE Studio.");
   };
 
   return (

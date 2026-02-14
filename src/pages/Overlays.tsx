@@ -3,6 +3,7 @@ import TabNav from "@/components/TabNav";
 import { Info, Eye, Maximize2, X, Target, Copy, ExternalLink, Settings, Crown, Sparkles, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { copyToClipboard } from "@/lib/clipboard";
 import { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -287,20 +288,7 @@ const Overlays = () => {
                           <button
                             onClick={() => {
                               const url = `${getOverlayBaseUrl()}/overlay/${overlay.route?.replace("/", "")}`;
-                              navigator.clipboard.writeText(url).then(() => {
-                                toast.success("Overlay URL copied!");
-                              }).catch(() => {
-                                // Fallback for iframe
-                                const ta = document.createElement("textarea");
-                                ta.value = url;
-                                ta.style.position = "fixed";
-                                ta.style.opacity = "0";
-                                document.body.appendChild(ta);
-                                ta.select();
-                                document.execCommand("copy");
-                                document.body.removeChild(ta);
-                                toast.success("Overlay URL copied!");
-                              });
+                              copyToClipboard(url, "Overlay URL copied!");
                             }}
                             className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
                           >
@@ -367,7 +355,14 @@ const Overlays = () => {
                         <Eye size={11} /> Preview
                       </button>
                     )}
-                    <button className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5">
+                    <button
+                      onClick={() => {
+                        const path = overlay.route?.replace("/", "") || overlay.title.toLowerCase().replace(/\s+/g, "-");
+                        const url = `${getOverlayBaseUrl()}/overlay/${path}`;
+                        copyToClipboard(url, "Overlay URL copied!");
+                      }}
+                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
+                    >
                       <Copy size={11} /> URL
                     </button>
                     {activeTab === "Browser Sources" && (

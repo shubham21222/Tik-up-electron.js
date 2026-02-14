@@ -5,6 +5,7 @@ import { Zap, Gamepad2, Camera, MessageCircle, Check, Copy, ArrowLeft, ExternalL
 import { useState } from "react";
 import { toast } from "sonner";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface PresetFeature {
   name: string;
@@ -123,8 +124,7 @@ const PresetDetail = () => {
 
   const copyUrl = (overlayPath: string) => {
     const url = `${getOverlayBaseUrl()}/overlay/${overlayPath}/YOUR_TOKEN`;
-    navigator.clipboard.writeText(url);
-    toast.success("Overlay URL copied!");
+    copyToClipboard(url, "Overlay URL copied!");
   };
 
   return (

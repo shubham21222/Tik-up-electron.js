@@ -99,6 +99,75 @@ export type Database = {
           },
         ]
       }
+      banned_users: {
+        Row: {
+          auto_timeout: boolean
+          block_alerts: boolean
+          block_chat: boolean
+          block_tts: boolean
+          created_at: string
+          id: string
+          reason: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          auto_timeout?: boolean
+          block_alerts?: boolean
+          block_chat?: boolean
+          block_tts?: boolean
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id: string
+          username: string
+        }
+        Update: {
+          auto_timeout?: boolean
+          block_alerts?: boolean
+          block_chat?: boolean
+          block_tts?: boolean
+          created_at?: string
+          id?: string
+          reason?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      banned_words: {
+        Row: {
+          apply_to_chat: boolean
+          apply_to_tts: boolean
+          category: string
+          created_at: string
+          id: string
+          severity: string
+          user_id: string
+          word: string
+        }
+        Insert: {
+          apply_to_chat?: boolean
+          apply_to_tts?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          severity?: string
+          user_id: string
+          word: string
+        }
+        Update: {
+          apply_to_chat?: boolean
+          apply_to_tts?: boolean
+          category?: string
+          created_at?: string
+          id?: string
+          severity?: string
+          user_id?: string
+          word?: string
+        }
+        Relationships: []
+      }
       events_log: {
         Row: {
           created_at: string
@@ -208,6 +277,90 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      moderation_config: {
+        Row: {
+          allow_subscriber_links: boolean
+          block_banned_words: boolean
+          block_links: boolean
+          caps_filter: boolean
+          created_at: string
+          emoji_only_filter: boolean
+          first_message_review: boolean
+          id: string
+          safe_mode: boolean
+          slow_mode: boolean
+          slow_mode_seconds: number
+          spam_detection: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_subscriber_links?: boolean
+          block_banned_words?: boolean
+          block_links?: boolean
+          caps_filter?: boolean
+          created_at?: string
+          emoji_only_filter?: boolean
+          first_message_review?: boolean
+          id?: string
+          safe_mode?: boolean
+          slow_mode?: boolean
+          slow_mode_seconds?: number
+          spam_detection?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_subscriber_links?: boolean
+          block_banned_words?: boolean
+          block_links?: boolean
+          caps_filter?: boolean
+          created_at?: string
+          emoji_only_filter?: boolean
+          first_message_review?: boolean
+          id?: string
+          safe_mode?: boolean
+          slow_mode?: boolean
+          slow_mode_seconds?: number
+          spam_detection?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      moderation_log: {
+        Row: {
+          action_taken: string
+          created_at: string
+          filter_type: string
+          id: string
+          original_message: string
+          triggered_word: string | null
+          user_id: string
+          username: string
+        }
+        Insert: {
+          action_taken?: string
+          created_at?: string
+          filter_type?: string
+          id?: string
+          original_message: string
+          triggered_word?: string | null
+          user_id: string
+          username?: string
+        }
+        Update: {
+          action_taken?: string
+          created_at?: string
+          filter_type?: string
+          id?: string
+          original_message?: string
+          triggered_word?: string | null
+          user_id?: string
+          username?: string
+        }
+        Relationships: []
       }
       overlay_widgets: {
         Row: {

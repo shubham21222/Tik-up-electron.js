@@ -87,7 +87,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Like/Follow Overlay", description: "Elegant floating notifications with heart particle animations.", hasPreview: true, color: "350 90% 55%", route: "/like-alerts" },
     { title: "Gift Alert Overlay", description: "Animated gift alerts with glow pulse and ring expansion effects.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-alerts" },
     { title: "Goal Progress Bar", description: "Animated progress bars for likes, follows, shares & stars with shimmer effects.", hasPreview: true, color: "45 100% 55%", route: "/goal-overlays" },
-    { title: "Super Gift Combo", description: "Stacking combo counter with escalating tiers — Combo, Super, Epic, Legendary.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/gift-combo", tags: ["Gift", "Combo"] },
+    { title: "Super Gift Combo", description: "Stacking combo counter with escalating tiers: Combo, Super, Epic, Legendary.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/gift-combo", tags: ["Gift", "Combo"] },
     { title: "Notifications Ticker", description: "Scrolling event ticker bar showing follows, likes, gifts in real-time.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/ticker", tags: ["Ticker", "Events"] },
     { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/animated-bg", tags: ["Background", "Loop"] },
     { title: "Sound Reactive", description: "Audio visualizer with peak meters and waveform backgrounds synced to stream audio.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/sound-reactive", tags: ["Audio", "Visual"] },
@@ -141,10 +141,10 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Prediction Overlay", description: "Viewers predict outcomes and compete. Animated reveal of correct answer.", hasPreview: false, color: "200 100% 55%", pro: true, tags: ["Game", "Predict"] },
   ],
   "Quick Setup": [
-    { title: "Starter Pack", description: "Pre-configured set with chat, alerts, and TTS — one-click setup for beginners.", hasPreview: false, color: "160 100% 45%", tags: ["Bundle"] },
+    { title: "Starter Pack", description: "Pre-configured set with chat, alerts, and TTS. One-click setup for beginners.", hasPreview: false, color: "160 100% 45%", tags: ["Bundle"] },
     { title: "Pro Gaming Pack", description: "Overlay set optimized for gaming streams with game integration alerts.", hasPreview: false, color: "280 100% 65%", pro: true, tags: ["Bundle", "Gaming"] },
     { title: "Music Pack", description: "Song request overlay, now playing widget, and music-themed alerts.", hasPreview: false, color: "141 73% 42%", pro: true, tags: ["Bundle", "Music"] },
-    { title: "IRL Stream Pack", description: "Lightweight overlays for IRL streams — chat box, location tag, and timer.", hasPreview: false, color: "45 100% 55%", tags: ["Bundle", "IRL"] },
+    { title: "IRL Stream Pack", description: "Lightweight overlays for IRL streams. Chat box, location tag, and timer.", hasPreview: false, color: "45 100% 55%", tags: ["Bundle", "IRL"] },
     { title: "Full Suite", description: "Every overlay included. Complete streaming toolkit with all widgets and alerts.", hasPreview: false, color: "350 90% 55%", pro: true, tags: ["Bundle", "All"] },
   ],
   "Browser Sources": [
@@ -228,7 +228,7 @@ const Overlays = () => {
           <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
           <div className="text-sm text-muted-foreground leading-relaxed">
             {activeTab === "Overlays"
-              ? <p>Live preview of your <span className="text-primary font-medium">Overlay Widgets</span>. Click expand to see them fullscreen — each overlay is a browser source URL for OBS.</p>
+              ? <p>Live preview of your <span className="text-primary font-medium">Overlay Widgets</span>. Click expand to see them fullscreen. Each overlay is a browser source URL for OBS.</p>
               : activeTab === "Browser Sources"
               ? <p>Copy these URLs and add them as <span className="text-primary font-medium">Browser Sources</span> in OBS Studio or Streamlabs.</p>
               : <p>Browse all available <span className="text-primary font-medium">{activeTab}</span> for your TikTok LIVE stream.</p>}
@@ -403,7 +403,7 @@ const Overlays = () => {
               <X size={18} />
             </button>
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl bg-white/5 backdrop-blur-sm border border-white/10">
-              <p className="text-xs text-white/50 font-medium">{fullscreenOverlay} — Live Preview</p>
+              <p className="text-xs text-white/50 font-medium">{fullscreenOverlay} · Live Preview</p>
             </div>
           </motion.div>
         )}

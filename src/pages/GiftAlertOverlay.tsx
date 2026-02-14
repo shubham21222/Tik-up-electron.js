@@ -103,7 +103,7 @@ const GiftAlertOverlay = () => {
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.15)", color: "hsl(280 100% 75%)" }}>3</span>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Go live</span> — gifts trigger animated alerts automatically</p>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Go live</span> and gifts trigger animated alerts automatically</p>
                 </div>
               </div>
             </div>

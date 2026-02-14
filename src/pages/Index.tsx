@@ -287,8 +287,8 @@ const Index = () => {
     {
       icon: <UserPlus size={20} />,
       title: "Enter Your Username",
-      subtitle: "Just type your TikTok @username — that's it!",
-      bullets: ["Find the connection box on your dashboard", "Type your TikTok username (no @ needed)", "Hit Connect — done in one click", "We'll automatically find your LIVE stream"],
+      subtitle: "Just type your TikTok @username, that's it!",
+      bullets: ["Find the connection box on your dashboard", "Type your TikTok username (no @ needed)", "Hit Connect, done in one click", "We'll automatically find your LIVE stream"],
       visual: (
         <div className="flex items-center justify-center h-full px-6">
           <div className="w-full max-w-[240px]">

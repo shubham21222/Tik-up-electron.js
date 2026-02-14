@@ -31,7 +31,7 @@ const QuickControls = () => {
       toast.success("All effects paused for 5 minutes");
       setTimeout(() => {
         setCooldownActive(false);
-        toast.info("Cooldown ended — effects are back!");
+        toast.info("Cooldown ended, effects are back!");
       }, 5 * 60 * 1000);
     } else {
       toast.success("Cooldown cancelled");

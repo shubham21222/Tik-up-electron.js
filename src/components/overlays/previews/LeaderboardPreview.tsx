@@ -6,11 +6,11 @@ interface LeaderboardPreviewProps {
 }
 
 const mockEntries = [
-  { name: "GiftKing99", value: 12500, avatar: "👑" },
-  { name: "StreamFan42", value: 8400, avatar: "🌟" },
-  { name: "NightVibes", value: 6200, avatar: "🌙" },
-  { name: "CoolCreator", value: 3800, avatar: "🎨" },
-  { name: "MusicLover", value: 2100, avatar: "🎵" },
+  { name: "GiftKing99", value: 12500, avatar: "👑", avatar_url: "https://p16-sign-sg.tiktokcdn.com/aweme/100x100/tos-alisg-avt-0068/smg.jpeg" },
+  { name: "StreamFan42", value: 8400, avatar: "🌟", avatar_url: "" },
+  { name: "NightVibes", value: 6200, avatar: "🌙", avatar_url: "" },
+  { name: "CoolCreator", value: 3800, avatar: "🎨", avatar_url: "" },
+  { name: "MusicLover", value: 2100, avatar: "🎵", avatar_url: "" },
 ];
 
 const medals = ["🥇", "🥈", "🥉"];
@@ -47,7 +47,7 @@ const LeaderboardPreview = ({ settings = {} }: LeaderboardPreviewProps) => {
           const rank = i === 1 ? 0 : i === 0 ? 1 : 2;
           return (
             <motion.div key={entry.name} className="flex flex-col items-center" initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: i * 0.15 }}>
-              <span className="text-xl mb-1">{entry.avatar}</span>
+              {entry.avatar_url ? <img src={entry.avatar_url} alt={entry.name} className="w-7 h-7 rounded-full object-cover border border-white/10" /> : <span className="text-xl mb-1">{entry.avatar}</span>}
               <p className="text-[10px] font-bold text-white truncate max-w-[60px]">{entry.name}</p>
               {showValues && <p className="text-[9px] mb-1" style={{ color: `hsl(${accent})` }}>{entry.value.toLocaleString()}</p>}
               <motion.div className="w-16 rounded-t-lg flex items-start justify-center pt-2" style={{
@@ -97,7 +97,11 @@ const LeaderboardPreview = ({ settings = {} }: LeaderboardPreviewProps) => {
             }}
             initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.08 }}>
             <span className="text-sm w-6 text-center">{i < 3 ? medals[i] : <span className="text-[10px] text-white/30">#{i + 1}</span>}</span>
-            {settings.show_avatars !== false && <span className="text-sm">{entry.avatar}</span>}
+            {settings.show_avatars !== false && (
+              entry.avatar_url
+                ? <img src={entry.avatar_url} alt={entry.name} className="w-6 h-6 rounded-full object-cover border border-white/10" />
+                : <span className="text-sm">{entry.avatar}</span>
+            )}
             <span className="text-xs font-bold text-white flex-1 truncate">{entry.name}</span>
             {showValues && (
               <motion.span className="text-[11px] font-bold" style={{ color: i === 0 ? `hsl(${accent})` : "rgba(255,255,255,0.5)" }}

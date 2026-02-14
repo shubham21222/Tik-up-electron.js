@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { defaultLeaderboardSettings } from "@/hooks/overlay-defaults";
 import useOverlayBody from "@/hooks/use-overlay-body";
 
-interface Entry { name: string; value: number; avatar: string; }
+interface Entry { name: string; value: number; avatar: string; avatar_url?: string; }
 
 const LeaderboardRenderer = () => {
   useOverlayBody();
@@ -51,7 +51,11 @@ const LeaderboardRenderer = () => {
             style={{ background: i === 0 ? `linear-gradient(90deg, hsl(${accent} / 0.1), transparent)` : "rgba(255,255,255,0.02)", border: `1px solid ${i === 0 ? `hsl(${accent} / 0.15)` : "rgba(255,255,255,0.03)"}` }}
             initial={{ x: 20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: i * 0.08 }}>
             <span className="text-sm w-6 text-center">{i < 3 ? medals[i] : `#${i + 1}`}</span>
-            {settings.show_avatars && <span className="text-sm">{entry.avatar}</span>}
+            {settings.show_avatars && (
+              entry.avatar_url
+                ? <img src={entry.avatar_url} alt={entry.name} className="w-6 h-6 rounded-full object-cover border border-white/10" />
+                : <span className="text-sm">{entry.avatar}</span>
+            )}
             <span className="text-xs font-bold text-white flex-1 truncate">{entry.name}</span>
             {settings.show_values && <span className="text-[11px] font-bold" style={{ color: i === 0 ? `hsl(${accent})` : "rgba(255,255,255,0.5)" }}>{entry.value.toLocaleString()}</span>}
           </motion.div>

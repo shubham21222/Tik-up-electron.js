@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import FeatureGuideModal, { type GuideStep } from "@/components/FeatureGuideModal";
 import tikupLogo from "@/assets/tikup_logo.png";
+import DashboardModeration from "@/components/dashboard/DashboardModeration";
 
 interface LiveStats {
   is_live: boolean;
@@ -653,6 +654,9 @@ const Index = () => {
             </button>
           </motion.div>
         )}
+
+        {/* Auto Moderation Quick Controls */}
+        <DashboardModeration />
 
         {/* TikTok LIVE Rankings */}
         <motion.div

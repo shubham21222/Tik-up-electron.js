@@ -1,6 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import TabNav from "@/components/TabNav";
-import { Info, Eye, Maximize2, X, Target, Copy, ExternalLink, Settings, Crown, Sparkles } from "lucide-react";
+import { Info, Eye, Maximize2, X, Target, Copy, ExternalLink, Settings, Crown, Sparkles, Lock } from "lucide-react";
 import { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -150,12 +150,14 @@ const overlayData: Record<string, OverlayItem[]> = {
 };
 
 const tabs = Object.keys(overlayData);
+const lockedTabs = new Set(["Widgets", "Interactive", "Quick Setup", "Browser Sources"]);
 
 const Overlays = () => {
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [fullscreenOverlay, setFullscreenOverlay] = useState<string | null>(null);
   const items = overlayData[activeTab as keyof typeof overlayData];
   const FullscreenComponent = fullscreenOverlay ? overlayPreviews[fullscreenOverlay] : null;
+  const isLocked = lockedTabs.has(activeTab);
 
   return (
     <AppLayout>
@@ -192,6 +194,19 @@ const Overlays = () => {
 
         <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
+        {isLocked ? (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-24">
+            <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.08)", border: "1px solid hsl(280 100% 65% / 0.15)" }}>
+              <Lock size={28} style={{ color: "hsl(280 100% 75%)" }} />
+            </div>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold mb-4" style={{ background: "hsl(280 100% 65% / 0.12)", color: "hsl(280 100% 75%)" }}>
+              <Lock size={10} /> Coming Soon
+            </div>
+            <h2 className="text-xl font-heading font-bold text-foreground mb-2">{activeTab}</h2>
+            <p className="text-sm text-muted-foreground text-center max-w-sm">This section is currently under development. Stay tuned for updates!</p>
+          </motion.div>
+        ) : (
+        <>
         <motion.div
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
@@ -338,6 +353,8 @@ const Overlays = () => {
               </motion.div>
             ))}
           </div>
+        )}
+        </>
         )}
       </div>
 

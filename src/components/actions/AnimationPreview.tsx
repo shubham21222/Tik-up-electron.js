@@ -84,6 +84,42 @@ const getAnimation = (style: string) => {
         animate: { scale: [0, 0.5, 1.3, 0.9, 1], opacity: [0, 0.8, 1, 1, 1], rotate: [-90, 0, 10, -5, 0] },
         transition: { duration: 1.1, ease: "easeOut" },
       };
+    case "flames_rising":
+      return {
+        initial: { scale: 0.6, opacity: 0, y: 40 },
+        animate: { scale: [0.6, 1.2, 0.95, 1], opacity: 1, y: [40, -8, 2, 0] },
+        transition: { duration: 0.8, ease: "easeOut" },
+      };
+    case "icy_blast":
+      return {
+        initial: { scale: 1.8, opacity: 0 },
+        animate: { scale: [1.8, 0.85, 1.05, 1], opacity: [0, 0.8, 1, 1] },
+        transition: { duration: 0.7, ease: "easeOut" },
+      };
+    case "christmas_spark":
+      return {
+        initial: { scale: 0, opacity: 0, rotate: -30 },
+        animate: { scale: [0, 1.2, 0.9, 1.05, 1], opacity: 1, rotate: [-30, 5, -2, 0] },
+        transition: { duration: 1.0, ease: "easeOut" },
+      };
+    case "snowfall":
+      return {
+        initial: { scale: 0.5, opacity: 0, y: -30 },
+        animate: { scale: [0.5, 1.05, 1], opacity: 1, y: [-30, 5, 0] },
+        transition: { duration: 0.9, ease: "easeOut" },
+      };
+    case "cyber_pulse":
+      return {
+        initial: { scaleX: 2, scaleY: 0.3, opacity: 0 },
+        animate: { scaleX: [2, 0.8, 1.1, 1], scaleY: [0.3, 1.2, 0.95, 1], opacity: 1 },
+        transition: { duration: 0.6, ease: "easeOut" },
+      };
+    case "explosion_burst":
+      return {
+        initial: { scale: 0, opacity: 0 },
+        animate: { scale: [0, 2.5, 0.8, 1.1, 1], opacity: [0, 1, 1, 1, 1] },
+        transition: { duration: 0.7, ease: "easeOut" },
+      };
     default:
       return {
         initial: { scale: 0.5, opacity: 0 },
@@ -105,6 +141,12 @@ const particleColors: Record<string, string[]> = {
   glitch: ["hsl(0 100% 55%)", "hsl(120 100% 55%)", "hsl(200 100% 65%)", "hsl(50 100% 60%)"],
   firework: ["hsl(50 100% 60%)", "hsl(30 100% 55%)", "hsl(0 100% 55%)", "hsl(280 100% 65%)", "hsl(160 100% 55%)", "hsl(200 100% 65%)"],
   arc_reactor: ["hsl(200 100% 70%)", "hsl(180 100% 65%)", "hsl(220 100% 75%)", "hsl(160 100% 60%)"],
+  flames_rising: ["hsl(15 100% 55%)", "hsl(35 100% 55%)", "hsl(50 100% 60%)", "hsl(0 100% 50%)"],
+  icy_blast: ["hsl(200 100% 75%)", "hsl(190 100% 80%)", "hsl(210 80% 85%)", "hsl(180 100% 65%)"],
+  christmas_spark: ["hsl(0 100% 50%)", "hsl(120 100% 40%)", "hsl(45 100% 55%)", "hsl(0 80% 60%)"],
+  snowfall: ["hsl(210 30% 90%)", "hsl(200 40% 85%)", "hsl(220 20% 95%)", "hsl(0 0% 100%)"],
+  cyber_pulse: ["hsl(180 100% 55%)", "hsl(300 100% 60%)", "hsl(200 100% 65%)", "hsl(320 80% 55%)"],
+  explosion_burst: ["hsl(40 100% 55%)", "hsl(20 100% 50%)", "hsl(0 100% 55%)", "hsl(50 100% 65%)", "hsl(30 90% 50%)"],
 };
 
 const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: AnimationPreviewProps) => {
@@ -126,7 +168,13 @@ const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: Anim
   const isLiquidWave = style === "liquid_wave";
   const isArcReactor = style === "arc_reactor";
   const isTikupSignature = style === "tikup_signature";
-  const particleCount = isFirework || isCosmicBurst ? 20 : isArcReactor ? 16 : is3dFlip ? 8 : isGlitch ? 14 : isNeonPulse ? 12 : 6;
+  const isFlames = style === "flames_rising";
+  const isIcyBlast = style === "icy_blast";
+  const isChristmas = style === "christmas_spark";
+  const isSnowfall = style === "snowfall";
+  const isCyberPulse = style === "cyber_pulse";
+  const isExplosionBurst = style === "explosion_burst";
+  const particleCount = isFirework || isCosmicBurst || isExplosionBurst ? 20 : isArcReactor || isFlames ? 16 : is3dFlip ? 8 : isGlitch || isCyberPulse ? 14 : isNeonPulse || isIcyBlast ? 12 : isChristmas || isSnowfall ? 18 : 6;
 
   return (
     <div className="relative w-full h-[200px] rounded-2xl overflow-hidden flex items-center justify-center"
@@ -281,6 +329,176 @@ const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: Anim
         </>
       )}
 
+      {/* Flames Rising — fire particles rising from bottom */}
+      {isFlames && (
+        <>
+          {[...Array(12)].map((_, i) => (
+            <motion.div
+              key={`flame-${key}-${i}`}
+              className="absolute pointer-events-none rounded-full"
+              style={{
+                width: 6 + Math.random() * 8,
+                height: 12 + Math.random() * 16,
+                left: `${10 + i * 7 + Math.random() * 5}%`,
+                bottom: 0,
+                background: `linear-gradient(180deg, ${colors[i % colors.length]}, transparent)`,
+                filter: "blur(2px)",
+                borderRadius: "50% 50% 20% 20%",
+              }}
+              initial={{ y: 0, opacity: 0, scale: 0.3 }}
+              animate={{ y: [-20, -80 - Math.random() * 60], opacity: [0, 0.8, 0], scale: [0.3, 1, 0.5] }}
+              transition={{ duration: 1.2 + Math.random() * 0.5, delay: i * 0.08, repeat: Infinity, repeatDelay: 0.5 }}
+            />
+          ))}
+          <motion.div
+            key={`flame-glow-${key}`}
+            className="absolute bottom-0 left-0 right-0 pointer-events-none blur-2xl"
+            style={{ height: 60, background: "linear-gradient(180deg, transparent, hsl(25 100% 50% / 0.15))" }}
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
+        </>
+      )}
+
+      {/* Icy Blast — frost shards */}
+      {isIcyBlast && (
+        <>
+          {[...Array(10)].map((_, i) => {
+            const angle = (i / 10) * 360;
+            return (
+              <motion.div
+                key={`ice-${key}-${i}`}
+                className="absolute top-1/2 left-1/2 pointer-events-none"
+                style={{
+                  width: 3,
+                  height: 20 + Math.random() * 15,
+                  background: `linear-gradient(180deg, ${colors[i % colors.length]}, transparent)`,
+                  transformOrigin: "center bottom",
+                  rotate: `${angle}deg`,
+                }}
+                initial={{ scaleY: 0, opacity: 0 }}
+                animate={{ scaleY: [0, 1.2, 0.8], opacity: [0, 0.7, 0] }}
+                transition={{ duration: 0.8, delay: 0.1 + i * 0.05 }}
+              />
+            );
+          })}
+          <motion.div
+            key={`frost-${key}`}
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: "radial-gradient(circle, hsl(200 100% 80% / 0.08), transparent)" }}
+            initial={{ scale: 0.5, opacity: 0 }}
+            animate={{ scale: [0.5, 1.5], opacity: [0.4, 0] }}
+            transition={{ duration: 1.0 }}
+          />
+        </>
+      )}
+
+      {/* Christmas Spark — sparkle bursts + ornament colors */}
+      {isChristmas && (
+        <>
+          {[...Array(8)].map((_, i) => (
+            <motion.div
+              key={`xmas-star-${key}-${i}`}
+              className="absolute pointer-events-none"
+              style={{
+                width: 4,
+                height: 4,
+                borderRadius: "50%",
+                background: colors[i % colors.length],
+                top: `${20 + Math.random() * 60}%`,
+                left: `${10 + Math.random() * 80}%`,
+                boxShadow: `0 0 8px ${colors[i % colors.length]}`,
+              }}
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
+              transition={{ duration: 1.0, delay: i * 0.12, repeat: Infinity, repeatDelay: 1.5 }}
+            />
+          ))}
+        </>
+      )}
+
+      {/* Snowfall — gentle particles drifting down */}
+      {isSnowfall && (
+        <>
+          {[...Array(16)].map((_, i) => (
+            <motion.div
+              key={`snow-${key}-${i}`}
+              className="absolute pointer-events-none rounded-full"
+              style={{
+                width: 3 + Math.random() * 4,
+                height: 3 + Math.random() * 4,
+                background: colors[i % colors.length],
+                left: `${5 + i * 6}%`,
+                top: -10,
+                filter: "blur(0.5px)",
+              }}
+              initial={{ y: -10, opacity: 0 }}
+              animate={{ y: [null, 220], x: [0, (Math.random() - 0.5) * 30], opacity: [0, 0.7, 0.5, 0] }}
+              transition={{ duration: 2.5 + Math.random(), delay: i * 0.15, repeat: Infinity, ease: "linear" }}
+            />
+          ))}
+        </>
+      )}
+
+      {/* Cyber Pulse — electric lines + scan effect */}
+      {isCyberPulse && (
+        <>
+          {[...Array(4)].map((_, i) => (
+            <motion.div
+              key={`cyber-line-${key}-${i}`}
+              className="absolute left-0 right-0 pointer-events-none"
+              style={{
+                height: 2,
+                top: `${20 + i * 20}%`,
+                background: `linear-gradient(90deg, transparent, ${colors[i % colors.length].replace(")", " / 0.6)")}, transparent)`,
+              }}
+              initial={{ scaleX: 0, opacity: 0 }}
+              animate={{ scaleX: [0, 1.2, 0], opacity: [0, 0.9, 0] }}
+              transition={{ duration: 0.5, delay: 0.15 + i * 0.1, repeat: Infinity, repeatDelay: 2 }}
+            />
+          ))}
+          {[0, 1].map(i => (
+            <motion.div
+              key={`cyber-ring-${key}-${i}`}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+              style={{
+                width: 50,
+                height: 50,
+                border: `1.5px solid ${colors[i].replace(")", " / 0.5)")}`,
+                boxShadow: `0 0 12px ${colors[i].replace(")", " / 0.3)")}`,
+              }}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: [0.5, 2 + i], opacity: [0.8, 0] }}
+              transition={{ duration: 1.0, delay: 0.2 + i * 0.2, repeat: Infinity, repeatDelay: 1.5 }}
+            />
+          ))}
+        </>
+      )}
+
+      {/* Explosion Burst — bright burst + debris */}
+      {isExplosionBurst && (
+        <>
+          <motion.div
+            key={`burst-flash-${key}`}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none blur-xl"
+            style={{ width: 120, height: 120, background: `radial-gradient(circle, ${colors[0].replace(")", " / 0.4)")}, transparent)` }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: [0, 2, 1], opacity: [0, 0.8, 0] }}
+            transition={{ duration: 0.6 }}
+          />
+          {[0, 1, 2].map(i => (
+            <motion.div
+              key={`burst-ring-${key}-${i}`}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
+              style={{ width: 40, height: 40, border: `2px solid ${colors[i % colors.length].replace(")", " / 0.5)")}` }}
+              initial={{ scale: 0, opacity: 1 }}
+              animate={{ scale: [0, 3 + i], opacity: [1, 0] }}
+              transition={{ duration: 0.6 + i * 0.1, delay: 0.1 + i * 0.08 }}
+            />
+          ))}
+        </>
+      )}
+
       {/* Glitch scanlines */}
       {isGlitch && (
         <AnimatePresence>
@@ -340,15 +558,17 @@ const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: Anim
         >
           {/* Particles */}
           {[...Array(particleCount)].map((_, i) => {
-            const angle = (i / particleCount) * 360 + (isFirework || isCosmicBurst ? Math.random() * 20 : 0);
-            const dist = isFirework ? 40 + Math.random() * 60
+            const angle = (i / particleCount) * 360 + (isFirework || isCosmicBurst || isExplosionBurst ? Math.random() * 20 : 0);
+            const dist = isFirework || isExplosionBurst ? 40 + Math.random() * 60
               : isCosmicBurst ? 50 + Math.random() * 50
               : isArcReactor ? 30 + Math.random() * 40
               : is3dFlip ? 35 + Math.random() * 25
-              : isGlitch ? 25 + Math.random() * 40
-              : isNeonPulse ? 35 + Math.random() * 30
+              : isGlitch || isCyberPulse ? 25 + Math.random() * 40
+              : isNeonPulse || isIcyBlast ? 35 + Math.random() * 30
+              : isFlames ? 20 + Math.random() * 50
+              : isChristmas || isSnowfall ? 30 + Math.random() * 40
               : 50;
-            const size = isFirework ? 2 + Math.random() * 4 : isGlitch ? 1 + Math.random() * 6 : isCosmicBurst ? 2 + Math.random() * 3 : 3;
+            const size = isFirework || isExplosionBurst ? 2 + Math.random() * 4 : isGlitch || isCyberPulse ? 1 + Math.random() * 6 : isCosmicBurst ? 2 + Math.random() * 3 : isSnowfall ? 2 + Math.random() * 3 : 3;
 
             return (
               <motion.div

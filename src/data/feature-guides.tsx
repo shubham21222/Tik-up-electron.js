@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import {
   Sparkles, Eye, Palette, Volume2, Rocket, Target, Shield,
   MessageCircle, Gift, Heart, Users, BarChart3, Timer,
-  Trophy, Terminal, Keyboard, Share2, Layers, Activity, Coins
+  Trophy, Terminal, Keyboard, Share2, Layers, Activity, Coins, Image
 } from "lucide-react";
 import type { GuideStep } from "@/components/FeatureGuideModal";
 
@@ -461,6 +461,36 @@ export const featureGuides: Record<string, FeatureGuide> = {
         subtitle: "Use the settings icon to fine-tune each feature",
         bullets: ["Hover over any card to reveal the settings button", "Customize alerts, timers, and counters per overlay", "All changes sync in real-time to your stream"],
         visual: <EmojiVisual emoji="💡" />,
+      },
+    ],
+  },
+
+  "animated-backgrounds": {
+    title: "Animated Backgrounds",
+    steps: [
+      {
+        icon: <Image size={20} />, title: "What are Backgrounds?",
+        subtitle: "Live animated room scenes for your stream",
+        bullets: ["5 professionally designed room themes", "Each with unique animated elements and effects", "Works as a browser source in OBS or TikTok LIVE Studio"],
+        visual: <IconGlowVisual icon={Image} color="#A855F7" />,
+      },
+      {
+        icon: <Palette size={20} />, title: "Customize Your LED Sign",
+        subtitle: "Add your own text with glowing effects",
+        bullets: ["Type any custom text for your LED sign", "Choose from multiple font styles and colors", "Pick an animation: pulse, rainbow, flicker, or sparkle"],
+        visual: <EmojiVisual emoji="💡" />,
+      },
+      {
+        icon: <Eye size={20} />, title: "Preview & Adjust",
+        subtitle: "See changes live before going on stream",
+        bullets: ["The preview updates instantly as you customize", "Adjust glow intensity and animation speed", "Fine-tune environment effects for each room"],
+        visual: <EmojiVisual emoji="🎨" />,
+      },
+      {
+        icon: <Rocket size={20} />, title: "Add to Your Stream",
+        subtitle: "Copy the overlay URL into OBS",
+        bullets: ["Copy the background URL as a browser source", "Set to 1920×1080 at 30 FPS for best results", "Use LED-only mode for transparent text overlays"],
+        visual: <EmojiVisual emoji="🚀" />,
       },
     ],
   },

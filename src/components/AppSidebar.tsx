@@ -5,7 +5,7 @@ import {
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, BarChart, Link2, Palette, Settings,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
-  Star, Keyboard, Coins
+  Star, Keyboard, Coins, Image
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -43,6 +43,7 @@ const sections: SidebarSection[] = [
     items: [
       { id: "/sounds", label: "Spotify Connect", icon: Volume2, pro: true },
       { id: "/overlays", label: "Effects Browser", icon: Layers },
+      { id: "/backgrounds", label: "Backgrounds", icon: Image, pro: true },
       { id: "/recent-activity", label: "Event Feed", icon: Activity },
     ],
   },

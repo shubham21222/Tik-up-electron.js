@@ -6,12 +6,14 @@ import {
   TrendingUp, ArrowUpRight, Activity, Gift, Star,
   Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight,
   Wifi, WifiOff, Loader2, AlertCircle, CheckCircle2, Settings,
-  Clock, Gem, RefreshCw, Trophy, Medal
+  Clock, Gem, RefreshCw, Trophy, Medal, HelpCircle
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import FeatureGuideModal, { type GuideStep } from "@/components/FeatureGuideModal";
+import tikupLogo from "@/assets/tikup_logo.png";
 
 interface LiveStats {
   is_live: boolean;
@@ -91,6 +93,7 @@ const Index = () => {
   const [streamDuration, setStreamDuration] = useState("");
   const [rankings, setRankings] = useState<RankEntry[]>([]);
   const [rankingsLoading, setRankingsLoading] = useState(false);
+  const [showConnectGuide, setShowConnectGuide] = useState(false);
   const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -178,7 +181,14 @@ const Index = () => {
             setTiktokUsername(d.tiktok_username);
             setInputUsername(d.tiktok_username);
             if (d.tiktok_connected) setConnectionStatus("connected");
+          } else {
+            // First-time user — show guide if never seen
+            const seen = localStorage.getItem("tikup_guide_seen_connect_live");
+            if (!seen) setShowConnectGuide(true);
           }
+        } else {
+          const seen = localStorage.getItem("tikup_guide_seen_connect_live");
+          if (!seen) setShowConnectGuide(true);
         }
       });
   }, [user]);
@@ -216,6 +226,155 @@ const Index = () => {
     toast.info("Disconnected from TikTok");
   };
 
+  const connectGuideSteps: GuideStep[] = [
+    {
+      icon: <Wifi size={20} />,
+      title: "Welcome to TikUp!",
+      subtitle: "Let's connect your TikTok LIVE in under 30 seconds 💜",
+      bullets: [
+        "See real-time viewer stats on your dashboard",
+        "Trigger alerts when viewers send gifts",
+        "Add overlays to your LIVE stream",
+        "No developer account needed!",
+      ],
+      visual: (
+        <div className="relative flex items-center justify-center h-full">
+          <motion.img src={tikupLogo} alt="TikUp" className="w-16 h-16 object-contain relative z-10"
+            animate={{ y: [0, -6, 0], scale: [1, 1.05, 1], filter: ["drop-shadow(0 0 10px hsl(160 100% 50% / 0.3))", "drop-shadow(0 0 22px hsl(160 100% 50% / 0.6))", "drop-shadow(0 0 10px hsl(160 100% 50% / 0.3))"] }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {[...Array(5)].map((_, i) => (
+            <motion.div key={i} className="absolute rounded-full"
+              style={{ width: 5 + Math.random() * 5, height: 5 + Math.random() * 5, background: i % 2 === 0 ? "hsl(160 100% 50% / 0.5)" : "hsl(280 100% 65% / 0.4)" }}
+              animate={{ x: [0, (Math.random() - 0.5) * 70], y: [0, (Math.random() - 0.5) * 50], opacity: [0, 0.8, 0] }}
+              transition={{ duration: 2 + Math.random() * 2, repeat: Infinity, delay: i * 0.3 }}
+            />
+          ))}
+        </div>
+      ),
+    },
+    {
+      icon: <UserPlus size={20} />,
+      title: "Enter Your Username",
+      subtitle: "Just type your TikTok @username — that's it!",
+      bullets: [
+        "Find the connection box on your dashboard",
+        "Type your TikTok username (no @ needed)",
+        "Hit Connect — done in one click",
+        "We'll automatically find your LIVE stream",
+      ],
+      visual: (
+        <div className="flex items-center justify-center h-full px-6">
+          <div className="w-full max-w-[240px]">
+            <motion.div className="flex items-center gap-2 rounded-lg px-3 py-2.5"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              animate={{ borderColor: ["rgba(255,255,255,0.08)", "hsl(160 100% 50% / 0.3)", "rgba(255,255,255,0.08)"] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <span className="text-sm font-semibold" style={{ color: "hsl(0 0% 40%)" }}>@</span>
+              <motion.span className="text-sm font-medium" style={{ color: "hsl(0 0% 70%)" }}
+                animate={{ opacity: [0.4, 1, 0.4] }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                your_username
+              </motion.span>
+            </motion.div>
+            <motion.div className="mt-2 rounded-lg py-2 text-center text-xs font-bold"
+              style={{ background: "hsl(160 100% 45%)", color: "black" }}
+              animate={{ scale: [1, 1.03, 1] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: 1 }}
+            >
+              Connect
+            </motion.div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      icon: <Radio size={20} />,
+      title: "Go LIVE on TikTok",
+      subtitle: "Start your TikTok LIVE stream as usual",
+      bullets: [
+        "Open TikTok and start a LIVE",
+        "TikUp detects your stream automatically",
+        "Stats update in real-time on your dashboard",
+        "All overlays & alerts activate instantly",
+      ],
+      visual: (
+        <div className="flex items-center justify-center h-full">
+          <div className="relative">
+            <motion.div className="w-14 h-14 rounded-2xl flex items-center justify-center"
+              style={{ background: "hsl(160 100% 45% / 0.1)", border: "1px solid hsl(160 100% 45% / 0.2)" }}
+              animate={{ scale: [1, 1.08, 1], boxShadow: ["0 0 0px hsl(160 100% 50% / 0)", "0 0 30px hsl(160 100% 50% / 0.3)", "0 0 0px hsl(160 100% 50% / 0)"] }}
+              transition={{ duration: 2, repeat: Infinity }}
+            >
+              <Radio size={24} style={{ color: "hsl(160 100% 50%)" }} />
+            </motion.div>
+            <motion.div className="absolute -top-1 -right-1 w-4 h-4 rounded-full flex items-center justify-center text-[8px] font-bold"
+              style={{ background: "hsl(0 80% 50%)", color: "white" }}
+              animate={{ scale: [1, 1.3, 1] }}
+              transition={{ duration: 1, repeat: Infinity }}
+            >
+              ●
+            </motion.div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      icon: <Gift size={20} />,
+      title: "Add Stream Overlays",
+      subtitle: "Make your LIVE stand out with alerts & widgets",
+      bullets: [
+        "Gift alerts pop up when viewers send gifts",
+        "Chat overlay shows messages on screen",
+        "Like counters track engagement live",
+        "Copy the overlay URL → paste in OBS",
+      ],
+      visual: (
+        <div className="flex items-center justify-center gap-4 h-full">
+          {["🎁", "💬", "❤️"].map((emoji, i) => (
+            <motion.div key={i} className="w-12 h-12 rounded-xl flex items-center justify-center text-xl"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              animate={{ y: [0, -8, 0], scale: [0.95, 1.05, 0.95] }}
+              transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.3 }}
+            >
+              {emoji}
+            </motion.div>
+          ))}
+        </div>
+      ),
+    },
+    {
+      icon: <CheckCircle2 size={20} />,
+      title: "You're All Set! 🎉",
+      subtitle: "Your TikTok LIVE is now supercharged",
+      bullets: [
+        "Dashboard shows live viewer stats",
+        "Alerts trigger on every gift & follow",
+        "Upgrade to PRO for premium animations",
+        "💡 Tip: Check the Overlays page to customize",
+      ],
+      visual: (
+        <div className="flex items-center justify-center h-full">
+          <motion.div className="text-5xl"
+            animate={{ scale: [1, 1.2, 1], rotate: [0, 5, -5, 0] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          >
+            🚀
+          </motion.div>
+          {[...Array(6)].map((_, i) => (
+            <motion.div key={i} className="absolute w-1.5 h-1.5 rounded-full"
+              style={{ background: ["hsl(280 100% 65%)", "hsl(160 100% 50%)", "hsl(45 100% 60%)"][i % 3] }}
+              animate={{ x: [0, (Math.random() - 0.5) * 100], y: [0, (Math.random() - 0.5) * 70], opacity: [0, 1, 0], scale: [0, 1.5, 0] }}
+              transition={{ duration: 1.5 + Math.random(), repeat: Infinity, delay: i * 0.2 }}
+            />
+          ))}
+        </div>
+      ),
+    },
+  ];
+
   return (
     <AppLayout>
       {/* Ambient glow */}
@@ -235,6 +394,14 @@ const Index = () => {
             <h1 className="text-3xl font-heading font-bold text-foreground">
               Your Stream HQ
             </h1>
+            <button
+              onClick={() => setShowConnectGuide(true)}
+              className="p-2 rounded-full transition-colors hover:bg-muted/40"
+              style={{ color: "hsl(280 100% 70%)" }}
+              title="How to connect"
+            >
+              <HelpCircle size={20} />
+            </button>
             {isLive && (
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/20">
                 <div className="relative">
@@ -693,6 +860,13 @@ const Index = () => {
           </div>
         </motion.div>
       </div>
+      <FeatureGuideModal
+        open={showConnectGuide}
+        onClose={() => setShowConnectGuide(false)}
+        featureKey="connect_live"
+        title="Connect Your LIVE"
+        steps={connectGuideSteps}
+      />
     </AppLayout>
   );
 };

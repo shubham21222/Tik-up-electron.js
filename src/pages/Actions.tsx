@@ -3,19 +3,36 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useCallback } from "react";
 import {
   Gift, Search, Volume2, Play, X,
-  ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff
+  ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff,
+  Lock, Star, Crown
 } from "lucide-react";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import AnimationPreview from "@/components/actions/AnimationPreview";
 
-const animationOptions = [
-  { value: "bounce", label: "Bounce In", emoji: "🎯", premium: false },
-  { value: "slide", label: "Slide Up", emoji: "⬆️", premium: false },
-  { value: "explosion", label: "Explosion", emoji: "💥", premium: false },
-  { value: "3d_flip", label: "3D Flip", emoji: "🔄", premium: true },
-  { value: "glitch", label: "Glitch", emoji: "⚡", premium: true },
-  { value: "firework", label: "Firework", emoji: "🎆", premium: true },
+interface AnimationOption {
+  value: string;
+  label: string;
+  description: string;
+  emoji: string;
+  premium: boolean;
+  category: "free" | "effects" | "motion" | "scifi";
+}
+
+const animationOptions: AnimationOption[] = [
+  { value: "tikup_signature", label: "TikUp Signature", description: "Animated brand pop + glow", emoji: "✨", premium: false, category: "free" },
+  { value: "bounce", label: "Bounce In", description: "Classic bounce entrance", emoji: "🎯", premium: false, category: "free" },
+  { value: "slide", label: "Slide Up", description: "Smooth slide from below", emoji: "⬆️", premium: false, category: "free" },
+  { value: "explosion", label: "Explosion", description: "Dramatic burst entrance", emoji: "💥", premium: false, category: "free" },
+  { value: "neon_pulse", label: "Neon Pulse", description: "Electric glowing energy waves", emoji: "⚡", premium: true, category: "effects" },
+  { value: "cosmic_burst", label: "Cosmic Burst", description: "Starburst sparkle explosion", emoji: "🌟", premium: true, category: "effects" },
+  { value: "3d_flip", label: "3D Rotator", description: "3D spin + shimmer flash", emoji: "🔄", premium: true, category: "motion" },
+  { value: "liquid_wave", label: "Liquid Wave", description: "Fluid wave background flow", emoji: "🌊", premium: true, category: "motion" },
+  { value: "firework", label: "Firework", description: "Multi-color firework burst", emoji: "🎆", premium: true, category: "effects" },
+  { value: "glitch", label: "Digital Glitch", description: "Futuristic glitch scan FX", emoji: "📡", premium: true, category: "scifi" },
+  { value: "arc_reactor", label: "Arc Reactor", description: "Radial energy build + burst", emoji: "🔵", premium: true, category: "scifi" },
 ];
+
+const premiumAnimations = new Set(animationOptions.filter(a => a.premium).map(a => a.value));
 
 const filterOptions = [
   { value: "all", label: "All" },
@@ -27,6 +44,13 @@ const filterOptions = [
   { value: "5000", label: "5,000+ 🪙" },
   { value: "10000", label: "10,000+ 🪙" },
 ];
+
+const categoryLabels: Record<string, string> = {
+  free: "🆓 Free",
+  effects: "🔥 PRO Effects",
+  motion: "💫 PRO Motion",
+  scifi: "🛸 PRO Sci-Fi",
+};
 
 const Actions = () => {
   const { gifts, loading: giftsLoading } = useGiftCatalog();
@@ -76,7 +100,17 @@ const Actions = () => {
     return items;
   }, [filtered, currentIndex]);
 
-  const currentAnimStyle = currentTrigger?.animation_effect || "bounce";
+  const currentAnimStyle = currentTrigger?.animation_effect || "tikup_signature";
+
+  // Group animations by category
+  const groupedAnimations = useMemo(() => {
+    const groups: Record<string, AnimationOption[]> = {};
+    for (const opt of animationOptions) {
+      if (!groups[opt.category]) groups[opt.category] = [];
+      groups[opt.category].push(opt);
+    }
+    return groups;
+  }, []);
 
   return (
     <AppLayout>
@@ -102,7 +136,6 @@ const Actions = () => {
               className="w-full bg-muted/30 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
           </div>
-          {/* Scrollable filter box */}
           <div className="rounded-xl bg-muted/30 border border-border/30 p-1.5 overflow-x-auto scrollbar-none">
             <div className="flex items-center gap-1 min-w-max">
               {filterOptions.map(f => (
@@ -233,7 +266,7 @@ const Actions = () => {
                   </div>
 
                   {/* Settings */}
-                  <div className="px-5 py-4 space-y-4">
+                  <div className="px-5 py-4 space-y-5">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">When this gift is sent…</p>
 
                     {/* Animation Preview */}
@@ -242,39 +275,86 @@ const Actions = () => {
                       emoji="🌹"
                       giftName={currentGift.name}
                       giftImage={getImageUrl(currentGift.image_url)}
-                      isPremium={["3d_flip", "glitch", "firework"].includes(currentAnimStyle)}
+                      isPremium={premiumAnimations.has(currentAnimStyle)}
                     />
 
-                    {/* Animation Style */}
-                    <div>
-                      <label className="text-xs font-medium text-foreground mb-2 block">Animation Style</label>
-                      <div className="grid grid-cols-3 gap-2">
-                        {animationOptions.map(opt => {
-                          const isActive = currentAnimStyle === opt.value;
-                          return (
-                            <button
-                              key={opt.value}
-                              onClick={() => updateTrigger(currentGift.gift_id, { animation_effect: opt.value })}
-                              className={`relative px-2.5 py-2.5 rounded-xl text-[11px] font-medium transition-all ${
-                                isActive ? "bg-primary/10 text-primary border border-primary/20 shadow-[0_0_12px_hsl(160,100%,45%,0.15)]" : "bg-muted/30 text-muted-foreground border border-transparent hover:border-border/50"
-                              }`}
-                            >
-                              <span className="mr-1">{opt.emoji}</span> {opt.label}
-                              {opt.premium && (
-                                <span className="absolute -top-1 -right-1 text-[7px] px-1 py-px rounded-full font-bold"
-                                  style={{ background: "linear-gradient(135deg, hsl(45 100% 50%), hsl(280 100% 60%))", color: "hsl(0 0% 0%)" }}>
-                                  PRO
-                                </span>
-                              )}
-                            </button>
-                          );
-                        })}
-                      </div>
+                    {/* Animation Style Picker - Card Grid */}
+                    <div className="space-y-4">
+                      <label className="text-xs font-bold text-foreground block">Animation Styles</label>
+                      
+                      {Object.entries(groupedAnimations).map(([category, options]) => (
+                        <div key={category}>
+                          <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{
+                            color: category === "free" ? "hsl(160 100% 50%)" : "hsl(280 100% 70%)",
+                          }}>
+                            {categoryLabels[category]}
+                          </p>
+                          <div className="grid grid-cols-2 gap-2">
+                            {options.map(opt => {
+                              const isActive = currentAnimStyle === opt.value;
+                              return (
+                                <button
+                                  key={opt.value}
+                                  onClick={() => updateTrigger(currentGift.gift_id, { animation_effect: opt.value })}
+                                  className={`relative rounded-xl p-3 text-left transition-all group ${
+                                    isActive
+                                      ? "ring-2 shadow-lg"
+                                      : "hover:border-border/60"
+                                  }`}
+                                  style={{
+                                    background: isActive
+                                      ? opt.premium
+                                        ? "linear-gradient(135deg, hsl(280 100% 65% / 0.12), hsl(280 100% 55% / 0.06))"
+                                        : "hsl(160 100% 45% / 0.08)"
+                                      : "rgba(255,255,255,0.02)",
+                                    border: `1px solid ${
+                                      isActive
+                                        ? opt.premium ? "hsl(280 100% 65% / 0.3)" : "hsl(160 100% 45% / 0.2)"
+                                        : "rgba(255,255,255,0.06)"
+                                    }`,
+                                    ...(isActive && {
+                                      ringColor: opt.premium ? "hsl(280 100% 65% / 0.3)" : "hsl(160 100% 45% / 0.3)",
+                                      boxShadow: opt.premium
+                                        ? "0 0 20px hsl(280 100% 65% / 0.15)"
+                                        : "0 0 20px hsl(160 100% 45% / 0.15)",
+                                    }),
+                                  }}
+                                >
+                                  <div className="flex items-start gap-2">
+                                    <span className="text-lg leading-none mt-0.5">{opt.emoji}</span>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-[12px] font-bold text-foreground truncate">{opt.label}</p>
+                                      <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{opt.description}</p>
+                                    </div>
+                                  </div>
+                                  {opt.premium && (
+                                    <div className="absolute top-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[7px] font-extrabold"
+                                      style={{
+                                        background: "linear-gradient(135deg, hsl(280 100% 65% / 0.2), hsl(45 100% 50% / 0.15))",
+                                        color: "hsl(280 100% 75%)",
+                                        border: "1px solid hsl(280 100% 65% / 0.2)",
+                                      }}>
+                                      <Lock size={7} /> PRO
+                                    </div>
+                                  )}
+                                  {isActive && (
+                                    <motion.div
+                                      layoutId="activeIndicator"
+                                      className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full"
+                                      style={{ background: opt.premium ? "hsl(280 100% 65%)" : "hsl(160 100% 50%)" }}
+                                    />
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
                     </div>
 
                     {/* Sound */}
                     <div>
-                      <label className="text-xs font-medium text-foreground mb-2 block">Alert Sound</label>
+                      <label className="text-xs font-bold text-foreground mb-2 block">Alert Sound</label>
                       <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 border border-border/30 text-left hover:border-border/60 transition-colors">
                         <Volume2 size={14} className="text-muted-foreground" />
                         <span className="text-xs text-muted-foreground flex-1">
@@ -287,9 +367,14 @@ const Actions = () => {
                     {/* Preview Button */}
                     <button
                       onClick={() => setFullPreview(true)}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 text-sm font-semibold hover:bg-secondary/15 transition-colors hover:-translate-y-0.5"
+                      className="w-full flex items-center justify-center gap-2 px-4 py-4 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5"
+                      style={{
+                        background: "linear-gradient(135deg, hsl(280 100% 60% / 0.15), hsl(160 100% 50% / 0.1))",
+                        border: "1px solid hsl(280 100% 65% / 0.2)",
+                        color: "hsl(280 100% 80%)",
+                      }}
                     >
-                      <Play size={14} /> Preview This Alert
+                      <Play size={16} /> Preview This Alert
                     </button>
                   </div>
                 </div>
@@ -309,10 +394,8 @@ const Actions = () => {
             exit={{ opacity: 0 }}
             onClick={() => setFullPreview(false)}
           >
-            {/* Backdrop */}
             <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
 
-            {/* Close button */}
             <button
               onClick={() => setFullPreview(false)}
               className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all z-10"
@@ -320,24 +403,21 @@ const Actions = () => {
               <X size={18} />
             </button>
 
-            {/* Label */}
             <div className="absolute top-6 left-6 z-10">
               <p className="text-white/40 text-xs font-medium">STREAM PREVIEW</p>
               <p className="text-white/70 text-sm mt-0.5">This is how viewers will see the alert</p>
             </div>
 
-            {/* Large animation */}
             <div className="relative w-full max-w-lg aspect-video">
               <AnimationPreview
                 style={currentAnimStyle}
                 emoji="🌹"
                 giftName={currentGift.name}
                 giftImage={getImageUrl(currentGift.image_url)}
-                isPremium={["3d_flip", "glitch", "firework"].includes(currentAnimStyle)}
+                isPremium={premiumAnimations.has(currentAnimStyle)}
               />
             </div>
 
-            {/* Info bar */}
             <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-2.5 rounded-full z-10"
               style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
               <img

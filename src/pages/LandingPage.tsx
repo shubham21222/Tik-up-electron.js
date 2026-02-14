@@ -254,24 +254,9 @@ const LandingPage = () => {
           borderBottom: scrolled ? "1px solid hsl(0 0% 10% / 0.6)" : "1px solid transparent",
         }}
       >
-        <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="w-24" /> {/* spacer */}
-          <Link to="/" className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center">
-            <motion.img
-              src={tikupLogo}
-              alt="TikUp"
-              className="w-16 h-16 object-contain"
-              animate={{
-                filter: [
-                  "drop-shadow(0 0 8px hsl(160 100% 50% / 0.3))",
-                  "drop-shadow(0 0 20px hsl(160 100% 50% / 0.5))",
-                  "drop-shadow(0 0 8px hsl(160 100% 50% / 0.3))",
-                ],
-              }}
-              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
-              whileHover={{ scale: 1.1 }}
-            />
-          </Link>
+          <div /> {/* center spacer - logo removed */}
           <div className="flex items-center gap-3">
             <Link to="/auth" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Login
@@ -287,7 +272,7 @@ const LandingPage = () => {
       </motion.nav>
 
       {/* ── Hero Section ── */}
-      <section className="relative pt-36 pb-20 px-6 overflow-hidden min-h-[85vh] flex items-center">
+      <section className="relative pt-24 pb-16 px-6 overflow-hidden min-h-[85vh] flex items-center">
         <GridPattern />
         <FloatingParticles />
 
@@ -309,7 +294,7 @@ const LandingPage = () => {
             initial={{ opacity: 0, scale: 0.7 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-            className="relative inline-block mb-8"
+            className="relative inline-block mb-4"
           >
             {/* Radial glow behind logo */}
             <motion.div
@@ -418,7 +403,7 @@ const LandingPage = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.3 }}
-            className="mb-5"
+            className="mb-3"
           >
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-widest text-primary"
               style={{ background: "hsl(160 100% 45% / 0.06)", border: "1px solid hsl(160 100% 45% / 0.12)" }}>

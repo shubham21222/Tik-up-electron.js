@@ -811,6 +811,60 @@ export type Database = {
         }
         Relationships: []
       }
+      viewer_points: {
+        Row: {
+          created_at: string
+          creator_id: string
+          first_activity: string
+          id: string
+          last_activity: string
+          level: number
+          points_toward_level: number
+          total_coins_sent: number
+          total_gifts_sent: number
+          total_likes: number
+          total_messages: number
+          total_points: number
+          updated_at: string
+          viewer_avatar_url: string | null
+          viewer_username: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          first_activity?: string
+          id?: string
+          last_activity?: string
+          level?: number
+          points_toward_level?: number
+          total_coins_sent?: number
+          total_gifts_sent?: number
+          total_likes?: number
+          total_messages?: number
+          total_points?: number
+          updated_at?: string
+          viewer_avatar_url?: string | null
+          viewer_username: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          first_activity?: string
+          id?: string
+          last_activity?: string
+          level?: number
+          points_toward_level?: number
+          total_coins_sent?: number
+          total_gifts_sent?: number
+          total_likes?: number
+          total_messages?: number
+          total_points?: number
+          updated_at?: string
+          viewer_avatar_url?: string | null
+          viewer_username?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

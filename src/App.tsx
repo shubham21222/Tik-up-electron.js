@@ -70,6 +70,7 @@ import GiftFireworkRenderer from "./pages/renderers/GiftFireworkRenderer";
 import PromoOverlayRenderer from "./pages/renderers/PromoOverlayRenderer";
 import StreamBorderRenderer from "./pages/renderers/StreamBorderRenderer";
 import WebcamFrameRenderer from "./pages/renderers/WebcamFrameRenderer";
+import EventFeedRenderer from "./pages/renderers/EventFeedRenderer";
 import GiftBrowser from "./pages/GiftBrowser";
 import StreamPresets from "./pages/StreamPresets";
 import KeystrokeTriggers from "./pages/KeystrokeTriggers";
@@ -111,6 +112,7 @@ const App = () => (
           <Route path="/overlay/promo/:publicToken" element={<PromoOverlayRenderer />} />
           <Route path="/overlay/stream-border/:publicToken" element={<StreamBorderRenderer />} />
           <Route path="/overlay/webcam-frame/:publicToken" element={<WebcamFrameRenderer />} />
+          <Route path="/overlay/event-feed/:publicToken" element={<EventFeedRenderer />} />
 
           {/* All other routes wrapped in AuthProvider */}
           <Route path="/*" element={

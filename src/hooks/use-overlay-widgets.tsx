@@ -26,6 +26,7 @@ export {
   defaultPromoOverlaySettings,
   defaultStreamBorderSettings,
   defaultWebcamFrameSettings,
+  defaultEventFeedSettings,
 } from "@/hooks/overlay-defaults";
 
 export interface OverlayWidget {

@@ -1,6 +1,8 @@
 import AppLayout from "@/components/AppLayout";
 import TabNav from "@/components/TabNav";
 import { Info, Eye, Maximize2, X, Target, Copy, ExternalLink, Settings, Crown, Sparkles, Lock } from "lucide-react";
+import { toast } from "sonner";
+import { getOverlayBaseUrl } from "@/lib/overlay-url";
 import { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
@@ -247,7 +249,7 @@ const Overlays = () => {
                 >
                   <div className="rounded-2xl overflow-hidden transition-shadow duration-300 group-hover:shadow-[0_0_40px_hsl(160_100%_45%/0.08)]" style={glassInnerStyle}>
                     {/* Preview viewport */}
-                    <div className="relative h-[220px] overflow-hidden">
+                    <div className="relative h-[280px] overflow-hidden">
                       <div className="absolute inset-0 opacity-[0.03]"
                         style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
                       <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Loading...</div>}>
@@ -282,7 +284,26 @@ const Overlays = () => {
                           <Link to={overlay.route} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
                             <Settings size={11} /> Configure
                           </Link>
-                          <button className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5">
+                          <button
+                            onClick={() => {
+                              const url = `${getOverlayBaseUrl()}/overlay/${overlay.route?.replace("/", "")}`;
+                              navigator.clipboard.writeText(url).then(() => {
+                                toast.success("Overlay URL copied!");
+                              }).catch(() => {
+                                // Fallback for iframe
+                                const ta = document.createElement("textarea");
+                                ta.value = url;
+                                ta.style.position = "fixed";
+                                ta.style.opacity = "0";
+                                document.body.appendChild(ta);
+                                ta.select();
+                                document.execCommand("copy");
+                                document.body.removeChild(ta);
+                                toast.success("Overlay URL copied!");
+                              });
+                            }}
+                            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
+                          >
                             <Copy size={11} /> Copy URL
                           </button>
                         </div>

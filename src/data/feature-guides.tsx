@@ -434,4 +434,34 @@ export const featureGuides: Record<string, FeatureGuide> = {
       },
     ],
   },
+
+  "stream-features": {
+    title: "Stream Features Control",
+    steps: [
+      {
+        icon: <Layers size={20} />, title: "What is this?",
+        subtitle: "Your quick toggle panel for all overlays",
+        bullets: ["Enable or disable any overlay with one click", "See which features are currently live", "Quickly jump to settings for each overlay"],
+        visual: <IconGlowVisual icon={Layers} color="#00E68A" />,
+      },
+      {
+        icon: <Sparkles size={20} />, title: "Set Up First",
+        subtitle: "Features must be configured before toggling",
+        bullets: ["Go to the Overlays page to create each overlay", "Configure settings, colors, and animations", "Once set up, it appears here ready to toggle"],
+        visual: <EmojiVisual emoji="⚙️" />,
+      },
+      {
+        icon: <Eye size={20} />, title: "Toggle On & Off",
+        subtitle: "Click any card to instantly enable or disable",
+        bullets: ["Green glow = feature is live on your stream", "Greyed out = not yet configured", "Changes apply immediately to your OBS overlays"],
+        visual: <EmojiVisual emoji="🔛" />,
+      },
+      {
+        icon: <Rocket size={20} />, title: "Pro Tip",
+        subtitle: "Use the settings icon to fine-tune each feature",
+        bullets: ["Hover over any card to reveal the settings button", "Customize alerts, timers, and counters per overlay", "All changes sync in real-time to your stream"],
+        visual: <EmojiVisual emoji="💡" />,
+      },
+    ],
+  },
 };

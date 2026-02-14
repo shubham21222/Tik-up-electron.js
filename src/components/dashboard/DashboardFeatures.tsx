@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import PageHelpButton from "@/components/PageHelpButton";
 
 interface FeatureState {
   [key: string]: boolean;
@@ -109,9 +110,12 @@ const DashboardFeatures = () => {
             </p>
           </div>
         </div>
-        <Link to="/overlays" className="flex items-center gap-1 text-[11px] text-primary/80 hover:text-primary font-medium transition-colors">
-          Manage <ChevronRight size={12} />
-        </Link>
+        <div className="flex items-center gap-2">
+          <PageHelpButton featureKey="stream-features" title="Stream Features" />
+          <Link to="/overlays" className="flex items-center gap-1 text-[11px] text-primary/80 hover:text-primary font-medium transition-colors">
+            Manage <ChevronRight size={12} />
+          </Link>
+        </div>
       </div>
 
       {/* Landscape Grid */}

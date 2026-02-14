@@ -1,6 +1,7 @@
 import AppLayout from "@/components/AppLayout";
 import { motion } from "framer-motion";
 import { Zap, Gamepad2, Camera, MessageCircle, Check, Sparkles, Copy } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useState, Suspense } from "react";
 import { toast } from "sonner";
 import StreamBorderPreview from "@/components/overlays/previews/StreamBorderPreview";
@@ -99,6 +100,7 @@ const gamingBorders = [
 ];
 
 const StreamPresets = () => {
+  const navigate = useNavigate();
   const [activePreset, setActivePreset] = useState<string | null>(null);
   const [applying, setApplying] = useState(false);
 
@@ -149,7 +151,7 @@ const StreamPresets = () => {
                     ? `linear-gradient(135deg, hsl(${preset.color} / 0.3), hsl(${preset.color} / 0.05))`
                     : "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))",
                 }}
-                onClick={() => handleApply(preset)}
+                onClick={() => navigate(`/presets/${preset.id}`)}
               >
                 <div
                   className="rounded-2xl p-6 h-full relative overflow-hidden transition-shadow duration-300"

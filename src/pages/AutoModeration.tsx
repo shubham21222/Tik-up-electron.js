@@ -5,10 +5,13 @@ import {
   Shield, Type, AlertTriangle, Link2, Clock,
   MessageSquareX, Ban, Eye, Upload, Download,
   X, Filter, Zap, Volume2, VolumeX, Search,
-  ChevronDown, Trash2, UserX, History
+  ChevronDown, Trash2, UserX, History,
+  Sparkles, MonitorPlay
 } from "lucide-react";
 import { useModeration, WORD_CATEGORIES, SEVERITY_OPTIONS, type BannedWord } from "@/hooks/use-moderation";
 import { toast } from "sonner";
+import AlertStylesTab from "@/components/moderation/AlertStylesTab";
+import OverlayUrlsTab from "@/components/moderation/OverlayUrlsTab";
 
 const glassCard = "rounded-2xl p-[1px]";
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -36,6 +39,8 @@ const tabs = [
   { key: "rules", label: "Rules", icon: Shield },
   { key: "words", label: "Word Filters", icon: Filter },
   { key: "users", label: "Banned Users", icon: Ban },
+  { key: "styles", label: "Alert Styles", icon: Sparkles },
+  { key: "overlays", label: "Overlay URLs", icon: MonitorPlay },
   { key: "log", label: "Mod Log", icon: History },
 ];
 
@@ -79,7 +84,6 @@ const AutoModeration = () => {
 
   const handleAddWord = () => {
     if (!wordInput.trim()) return;
-    // Support comma-separated input
     const words = wordInput.split(",").map(w => w.trim()).filter(Boolean);
     if (words.length > 1) {
       addBannedWords(words, selectedCategory, selectedSeverity);
@@ -146,16 +150,23 @@ const AutoModeration = () => {
 
   return (
     <AppLayout>
+      {/* Ambient glow */}
       <div className="fixed top-20 left-1/2 -translate-x-1/4 w-[500px] h-[300px] rounded-full pointer-events-none z-0"
-        style={{ background: "radial-gradient(ellipse, hsl(45 100% 55% / 0.03), transparent 70%)" }} />
+        style={{ background: "radial-gradient(ellipse, hsl(280 100% 65% / 0.04), transparent 70%)" }} />
+      <div className="fixed top-40 right-1/4 w-[400px] h-[250px] rounded-full pointer-events-none z-0"
+        style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.03), transparent 70%)" }} />
 
       <div className="max-w-6xl mx-auto relative z-10 pb-12">
-        {/* Header */}
+        {/* ═══ HEADER ═══ */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Auto Moderation</h1>
-              <p className="text-muted-foreground text-sm">Protect chat and TTS from unsafe or offensive language</p>
+              <h1 className="text-3xl font-heading font-bold text-foreground mb-1">
+                Auto Moderation & Alert Preview
+              </h1>
+              <p className="text-sm text-muted-foreground max-w-xl">
+                Manage what's allowed in chat, preview how alerts will appear on stream, and grab ready-to-use overlay URLs.
+              </p>
             </div>
             <div className="flex items-center gap-3">
               {/* Safe Mode Toggle */}
@@ -171,11 +182,13 @@ const AutoModeration = () => {
           </div>
         </motion.div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1 mb-6 p-1 rounded-xl bg-muted/30 w-fit">
+        {/* ═══ TABS ═══ */}
+        <div className="flex items-center gap-1 mb-6 p-1 rounded-xl bg-muted/30 w-fit overflow-x-auto">
           {tabs.map(tab => (
             <button key={tab.key} onClick={() => setActiveTab(tab.key)}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 ${activeTab === tab.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-medium transition-all duration-200 whitespace-nowrap ${
+                activeTab === tab.key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"
+              }`}
             >
               <tab.icon size={13} />
               {tab.label}
@@ -189,8 +202,9 @@ const AutoModeration = () => {
           ))}
         </div>
 
-        {/* ═══ RULES TAB ═══ */}
+        {/* ═══ TAB CONTENT ═══ */}
         <AnimatePresence mode="wait">
+          {/* RULES TAB */}
           {activeTab === "rules" && (
             <motion.div key="rules" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className={`${glassCard} mb-6`} style={glassGradient}>
@@ -246,7 +260,7 @@ const AutoModeration = () => {
             </motion.div>
           )}
 
-          {/* ═══ WORD FILTERS TAB ═══ */}
+          {/* WORD FILTERS TAB */}
           {activeTab === "words" && (
             <motion.div key="words" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
               {/* Category summary */}
@@ -264,7 +278,7 @@ const AutoModeration = () => {
                 ))}
               </div>
 
-              <div className={`${glassCard}`} style={glassGradient}>
+              <div className={glassCard} style={glassGradient}>
                 <div className="rounded-2xl p-6" style={glassInnerStyle}>
                   <div className="flex items-center justify-between mb-2">
                     <h2 className="text-sm font-heading font-bold text-foreground flex items-center gap-2">
@@ -358,7 +372,7 @@ const AutoModeration = () => {
             </motion.div>
           )}
 
-          {/* ═══ BANNED USERS TAB ═══ */}
+          {/* BANNED USERS TAB */}
           {activeTab === "users" && (
             <motion.div key="users" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className={glassCard} style={glassGradient}>
@@ -416,7 +430,13 @@ const AutoModeration = () => {
             </motion.div>
           )}
 
-          {/* ═══ MOD LOG TAB ═══ */}
+          {/* ALERT STYLES TAB */}
+          {activeTab === "styles" && <AlertStylesTab />}
+
+          {/* OVERLAY URLS TAB */}
+          {activeTab === "overlays" && <OverlayUrlsTab />}
+
+          {/* MOD LOG TAB */}
           {activeTab === "log" && (
             <motion.div key="log" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
               className={glassCard} style={glassGradient}>

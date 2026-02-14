@@ -233,7 +233,7 @@ const Index = () => {
         >
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-heading font-bold text-foreground">
-              Creator Control Center
+              Your Stream HQ
             </h1>
             {isLive && (
               <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/20">
@@ -246,7 +246,7 @@ const Index = () => {
             )}
           </div>
           <p className="text-muted-foreground text-sm">
-            Welcome back! Your stream tools are ready. Monitor your performance in real-time.
+            Everything you need for your next LIVE — all in one place.
           </p>
         </motion.div>
 
@@ -280,11 +280,11 @@ const Index = () => {
                     {connectionStatus === "connected" ? <Wifi size={24} className="text-primary" /> : <WifiOff size={24} className="text-muted-foreground" />}
                   </div>
                   <div>
-                    <h2 className="text-xl font-heading font-bold text-foreground">TikTok Connection</h2>
+                    <h2 className="text-xl font-heading font-bold text-foreground">Your TikTok Account</h2>
                     <p className="text-xs text-muted-foreground mt-0.5">
                       {connectionStatus === "connected"
                         ? <>Streaming as <span className="text-primary font-semibold">@{tiktokUsername}</span></>
-                        : "Connect your TikTok username to start receiving live events"}
+                        : "Enter your TikTok username so we can power your stream effects"}
                     </p>
                   </div>
                 </div>
@@ -346,7 +346,7 @@ const Index = () => {
                 <div className="mt-5 flex items-center gap-6">
                   <Link to="/setup" className="flex items-center gap-2 text-xs text-muted-foreground hover:text-primary transition-colors font-medium">
                     <Settings size={14} />
-                    Full Setup & Points Config
+                    Connection Settings
                     <ArrowRight size={12} />
                   </Link>
                 </div>
@@ -358,11 +358,11 @@ const Index = () => {
         {/* Live Stats Grid */}
         {(() => {
           const liveStatsCards = [
-            { label: "Current Viewers", value: liveStats?.viewer_count ?? 0, icon: Eye, color: "160 100% 45%" },
-            { label: "Total Likes", value: liveStats?.like_count ?? 0, icon: Heart, color: "350 90% 55%" },
-            { label: "Total Shares", value: liveStats?.share_count ?? 0, icon: Share2, color: "200 100% 55%" },
-            { label: "Followers", value: liveStats?.follower_count ?? 0, icon: UserPlus, color: "160 100% 45%" },
-            { label: "Diamonds", value: liveStats?.diamond_count ?? 0, icon: Gem, color: "45 100% 55%" },
+            { label: "Watching Now", value: liveStats?.viewer_count ?? 0, icon: Eye, color: "160 100% 45%" },
+            { label: "Hearts", value: liveStats?.like_count ?? 0, icon: Heart, color: "350 90% 55%" },
+            { label: "Shares", value: liveStats?.share_count ?? 0, icon: Share2, color: "200 100% 55%" },
+            { label: "New Followers", value: liveStats?.follower_count ?? 0, icon: UserPlus, color: "160 100% 45%" },
+            { label: "Diamonds Earned", value: liveStats?.diamond_count ?? 0, icon: Gem, color: "45 100% 55%" },
           ];
 
           return (

@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import AppSidebar from "./AppSidebar";
 import StatusBar from "./StatusBar";
+import QuickControls from "./QuickControls";
 import { Search, Bell, HelpCircle, User, LogOut } from "lucide-react";
 import { SidebarStateProvider, useSidebarState } from "@/hooks/use-sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
@@ -74,6 +75,7 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
       </div>
 
       <StatusBar />
+      <QuickControls />
     </div>
   );
 };

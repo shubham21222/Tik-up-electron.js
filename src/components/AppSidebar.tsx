@@ -4,7 +4,7 @@ import {
   Heart, UserPlus, Share2, Users, Timer, Activity, Trophy,
   Volume2, Terminal, Shield, Mic, PartyPopper, BarChart,
   Puzzle, Link2, Palette, CreditCard, ChevronLeft,
-  ChevronRight, Layers, Type, Settings, ShieldCheck
+  ChevronRight, Layers, Type, Settings, ShieldCheck, Sparkles
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -17,43 +17,44 @@ interface SidebarSection {
 
 const sections: SidebarSection[] = [
   {
-    label: "Overview",
+    label: "My Stream",
     items: [
       { id: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { id: "/goal-overlays", label: "Goal Overlays", icon: Target },
-      { id: "/overlays", label: "Overlays", icon: Layers },
+      { id: "/presets", label: "Pick Your Vibe", icon: Sparkles },
+      { id: "/goal-overlays", label: "Stream Goals", icon: Target },
+      { id: "/overlays", label: "Effects & Overlays", icon: Layers },
       { id: "/like-counter", label: "Like Counter", icon: BarChart3, pro: true },
     ],
   },
   {
-    label: "Alerts",
+    label: "When Viewers…",
     items: [
-      { id: "/actions", label: "Event Alerts", icon: Zap },
-      { id: "/chat-overlay", label: "Chat Box Overlay", icon: MessageCircle, pro: true },
-      { id: "/gift-alerts", label: "Gift Alerts", icon: Gift, pro: true },
-      { id: "/like-alerts", label: "Like Alerts", icon: Heart, pro: true },
-      { id: "/follow-alerts", label: "Follow Alerts", icon: UserPlus, pro: true },
-      { id: "/share-alerts", label: "Share Alerts", icon: Share2, pro: true },
-      { id: "/gift-browser", label: "Gift Browser", icon: Gift },
+      { id: "/actions", label: "Send Gifts → This Happens", icon: Zap },
+      { id: "/chat-overlay", label: "Chat on Screen", icon: MessageCircle, pro: true },
+      { id: "/gift-alerts", label: "Gift Reactions", icon: Gift, pro: true },
+      { id: "/like-alerts", label: "Like Reactions", icon: Heart, pro: true },
+      { id: "/follow-alerts", label: "Follow Reactions", icon: UserPlus, pro: true },
+      { id: "/share-alerts", label: "Share Reactions", icon: Share2, pro: true },
+      { id: "/gift-browser", label: "All Gift Effects", icon: Gift },
     ],
   },
   {
-    label: "Stream",
+    label: "On Screen",
     items: [
-      { id: "/viewer-count", label: "Viewer Count", icon: Users, pro: true },
+      { id: "/viewer-count", label: "Viewer Counter", icon: Users, pro: true },
       { id: "/follower-goal", label: "Follower Goal", icon: Target, pro: true },
       { id: "/stream-timer", label: "Stream Timer", icon: Timer, pro: true },
-      { id: "/leaderboard", label: "Leaderboard", icon: Trophy, pro: true },
+      { id: "/leaderboard", label: "Top Gifters Board", icon: Trophy, pro: true },
       { id: "/custom-text", label: "Custom Text", icon: Type, pro: true },
-      { id: "/recent-activity", label: "Recent Activity", icon: Activity },
+      { id: "/recent-activity", label: "Live Feed", icon: Activity },
     ],
   },
   {
-    label: "Tools",
+    label: "Creator Tools",
     items: [
-      { id: "/sounds", label: "Soundboard", icon: Volume2 },
+      { id: "/sounds", label: "Sound Effects", icon: Volume2 },
       { id: "/chat-commands", label: "Chat Commands", icon: Terminal },
-      { id: "/auto-moderation", label: "Auto Moderation", icon: Shield },
+      { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/tts", label: "Text-to-Speech", icon: Mic },
       { id: "/giveaways", label: "Giveaways", icon: PartyPopper, pro: true },
       { id: "/polls", label: "Polls", icon: BarChart, pro: true },
@@ -62,11 +63,11 @@ const sections: SidebarSection[] = [
   {
     label: "Settings",
     items: [
-      { id: "/setup", label: "Setup / Connect", icon: Settings },
+      { id: "/setup", label: "Connect TikTok", icon: Settings },
       { id: "/widgets", label: "Custom Widgets", icon: Puzzle, pro: true },
       { id: "/integrations", label: "Integrations", icon: Link2 },
-      { id: "/brand-settings", label: "Brand Settings", icon: Palette },
-      { id: "/pro", label: "Subscription", icon: CreditCard },
+      { id: "/brand-settings", label: "Brand & Style", icon: Palette },
+      { id: "/pro", label: "Go Pro", icon: CreditCard },
       { id: "/admin", label: "Admin Panel", icon: ShieldCheck },
     ],
   },

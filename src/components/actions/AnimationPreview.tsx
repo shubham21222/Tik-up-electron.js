@@ -33,14 +33,13 @@ const getAnimation = (style: string) => {
     // ─── PRO ANIMATIONS ───
     case "3d_flip":
       return {
-        initial: { rotateY: 270, rotateX: 30, opacity: 0, scale: 0.2 },
+        initial: { rotateY: 0, opacity: 1, scale: 1 },
         animate: {
-          rotateY: [270, -20, 10, -5, 0],
-          rotateX: [30, -10, 5, 0],
-          opacity: [0, 0.6, 1, 1, 1],
-          scale: [0.2, 1.2, 0.9, 1.05, 1],
+          rotateY: [0, 180, 360],
+          scale: [1, 0.85, 1],
+          opacity: 1,
         },
-        transition: { duration: 1.1, ease: "easeOut" },
+        transition: { duration: 1.0, ease: "easeInOut" },
       };
     case "glitch":
       return {

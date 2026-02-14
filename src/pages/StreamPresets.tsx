@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { Zap, Gamepad2, Camera, MessageCircle, Check, Sparkles, Copy } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -128,6 +129,7 @@ const StreamPresets = () => {
           <div className="flex items-center gap-2 mb-2">
             <Sparkles size={18} className="text-primary" />
             <h1 className="text-3xl font-heading font-bold text-foreground">Pick Your Vibe</h1>
+            <PageHelpButton featureKey="stream_presets" />
           </div>
           <p className="text-muted-foreground text-sm">
             One click. All your overlays, alerts, and sounds configured automatically. No setup required.

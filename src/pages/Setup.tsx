@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import FormSection from "@/components/FormSection";
 import FormField from "@/components/FormField";
 import TabNav from "@/components/TabNav";
@@ -166,6 +167,7 @@ const Setup = () => {
           <div className="flex items-center gap-3 mb-2">
             <Settings size={28} className="text-primary" />
             <h1 className="text-3xl font-heading font-bold text-foreground">Setup</h1>
+            <PageHelpButton featureKey="setup" />
           </div>
           <p className="text-muted-foreground text-sm">Configure your TikTok LIVE connection and settings.</p>
         </div>

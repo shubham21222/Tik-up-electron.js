@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
@@ -348,10 +349,7 @@ const KeystrokeTriggers = () => {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
           <div className="flex items-center justify-center gap-3">
             <h1 className="text-3xl font-heading font-bold text-foreground mb-1">Keystroke Triggers</h1>
-            <button onClick={() => setShowGuide(true)} className="p-2 rounded-full transition-colors hover:bg-muted/40"
-              style={{ color: "hsl(280 100% 70%)" }} title="How to use">
-              <HelpCircle size={20} />
-            </button>
+            <PageHelpButton featureKey="keystroke_triggers" />
           </div>
           <p className="text-muted-foreground text-sm">
             Link gifts to keystrokes — set up different profiles for each game

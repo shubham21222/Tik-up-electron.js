@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
 import {
@@ -91,7 +92,7 @@ const Points = () => {
       <div className="max-w-7xl mx-auto relative z-10 pb-12">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-1">User & Points</h1>
+          <div className="flex items-center gap-3"><h1 className="text-3xl font-heading font-bold text-foreground mb-1">User & Points</h1><PageHelpButton featureKey="points" /></div>
           <p className="text-muted-foreground text-sm">
             Here you can see a list of users including points, levels and other info. You have <span className="text-foreground font-semibold">{filtered.length}</span> of max 2,500 users in your database.
             {" "}Visit the <Link to="/setup" className="text-primary hover:underline">Points System Settings</Link> to define rewards.

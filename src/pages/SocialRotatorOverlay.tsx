@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Share2, Plus, Pencil, EyeOff, Trash2, Copy } from "lucide-react";
@@ -45,7 +46,7 @@ const SocialRotatorOverlay = () => {
       <div className="max-w-5xl mx-auto relative z-10 pb-12">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-heading font-bold text-foreground mb-1">Social Media Rotator</h1>
+            <div className="flex items-center gap-3"><h1 className="text-2xl font-heading font-bold text-foreground mb-1">Social Media Rotator</h1><PageHelpButton featureKey="social_rotator" /></div>
             <p className="text-muted-foreground text-sm">Manage your social media profiles for the overlay rotator</p>
           </div>
           <button onClick={handleCreate} className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.25)]">

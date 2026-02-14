@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { Puzzle, Plus, Crown, Code2, Eye, Settings, Trash2 } from "lucide-react";
 
@@ -22,7 +23,7 @@ const Widgets = () => (
     <div className="max-w-6xl mx-auto relative z-10 pb-12">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Custom Widgets</h1>
+          <div className="flex items-center gap-3"><h1 className="text-3xl font-heading font-bold text-foreground mb-2">Custom Widgets</h1><PageHelpButton featureKey="widgets" /></div>
           <p className="text-muted-foreground text-sm">Build and manage custom HTML/CSS/JS widgets for your stream overlay.</p>
         </div>
         <div className="flex items-center gap-2">

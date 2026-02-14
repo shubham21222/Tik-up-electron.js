@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import {
@@ -68,7 +69,7 @@ const Sounds = () => {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-heading font-bold text-foreground">Spotify Integration</h1>
-                <ProBadge />
+                <PageHelpButton featureKey="sounds" />
               </div>
               <p className="text-sm text-muted-foreground">Connect Spotify to unlock live music triggers on stream</p>
             </div>

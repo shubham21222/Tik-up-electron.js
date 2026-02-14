@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { useTTSSettings, TTS_VOICES, TTS_LANGUAGES } from "@/hooks/use-tts-settings";
 import type { AllowedUsers, SpecialUser } from "@/hooks/use-tts-settings";
 import { useState, useEffect, useCallback } from "react";

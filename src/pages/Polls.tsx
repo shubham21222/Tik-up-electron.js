@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { BarChart, Plus, Crown, RotateCcw } from "lucide-react";
@@ -34,7 +35,7 @@ const Polls = () => (
     <div className="max-w-6xl mx-auto relative z-10 pb-12">
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="flex items-center justify-between mb-8">
         <div>
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Polls</h1>
+          <div className="flex items-center gap-3"><h1 className="text-3xl font-heading font-bold text-foreground mb-2">Polls</h1><PageHelpButton featureKey="polls" /></div>
           <p className="text-muted-foreground text-sm">Create live polls to engage your audience and make decisions together.</p>
         </div>
         <div className="flex items-center gap-2">

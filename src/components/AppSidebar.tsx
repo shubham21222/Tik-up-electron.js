@@ -43,7 +43,7 @@ const sections: SidebarSection[] = [
     items: [
       { id: "/sounds", label: "Spotify Connect", icon: Volume2, pro: true },
       { id: "/overlays", label: "Effects Browser", icon: Layers },
-      { id: "/recent-activity", label: "Live Feed", icon: Activity },
+      { id: "/recent-activity", label: "Event Feed", icon: Activity },
     ],
   },
   {

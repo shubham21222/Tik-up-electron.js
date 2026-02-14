@@ -469,6 +469,35 @@ export const defaultWebcamFrameSettings = {
   custom_css: "",
 };
 
+// Video Cam Frame
+export const defaultVideoCamFrameSettings = {
+  frame_color: "160 100% 45%",
+  opacity: 100,
+  scale: 100,
+  playback_speed: 1,
+  glow_intensity: 40,
+  position: "top-left" as "top-left" | "top-right" | "bottom-left" | "bottom-right" | "center",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
+// Video Label Bar
+export const defaultVideoLabelBarSettings = {
+  label_color: "280 100% 65%",
+  label_text: "LIVE",
+  opacity: 100,
+  scale: 100,
+  playback_speed: 1,
+  glow_intensity: 40,
+  position: "bottom" as "top" | "bottom" | "center",
+  transparent_bg: true,
+  dark_bg: false,
+  fps_limit: 60,
+  custom_css: "",
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -492,4 +521,6 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   promo_overlay: defaultPromoOverlaySettings,
   stream_border: defaultStreamBorderSettings,
   webcam_frame: defaultWebcamFrameSettings,
+  video_cam_frame: defaultVideoCamFrameSettings,
+  video_label_bar: defaultVideoLabelBarSettings,
 };

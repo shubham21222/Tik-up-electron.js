@@ -639,7 +639,10 @@ const Index = () => {
           </GlassCard>
         </motion.div>
 
-        {/* ─── RECENT ACTIVITY FEED (reference style) ─── */}
+        {/* ─── STREAM FEATURES ─── */}
+        <DashboardFeatures />
+
+        {/* ─── RECENT ACTIVITY FEED ─── */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
@@ -681,8 +684,7 @@ const Index = () => {
           </GlassCard>
         </motion.div>
 
-        {/* ─── STREAM FEATURES + MODERATION ─── */}
-        <DashboardFeatures />
+        {/* ─── MODERATION ─── */}
         <DashboardModeration />
 
         {/* ─── RANKINGS ─── */}

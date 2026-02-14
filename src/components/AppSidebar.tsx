@@ -1,9 +1,10 @@
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
 import {
   LayoutDashboard, Gift, MessageCircle, Users, BarChart3, Timer,
-  Sparkles, Volume2, Zap, Activity, Target, Trophy, Terminal,
+  Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, PartyPopper, BarChart, Link2, Palette, Settings,
-  CreditCard, ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
+  ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
   Star
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
@@ -88,12 +89,23 @@ const AppSidebar = () => {
       )}
     >
       {/* Logo */}
-      <div className={cn("flex items-center h-14 border-b border-sidebar-border px-3 flex-shrink-0", collapsed ? "justify-center" : "gap-3")}>
-        <Link to="/" className="flex items-center gap-2.5 flex-shrink-0">
-          <img src={tikupLogo} alt="TikUp" className={cn(collapsed ? "w-10 h-10" : "w-12 h-12")} style={{ objectFit: "contain" }} />
-          {!collapsed && (
-            <span className="text-base font-heading font-bold text-foreground tracking-tight">TikUp</span>
-          )}
+      <div className="flex items-center justify-center border-b border-sidebar-border flex-shrink-0 py-3">
+        <Link to="/" className="flex items-center justify-center flex-shrink-0">
+          <motion.img
+            src={tikupLogo}
+            alt="TikUp"
+            className={cn(collapsed ? "w-10 h-10" : "w-16 h-16")}
+            style={{ objectFit: "contain" }}
+            animate={{
+              filter: [
+                "drop-shadow(0 0 8px hsl(160 100% 50% / 0.3))",
+                "drop-shadow(0 0 16px hsl(160 100% 50% / 0.5))",
+                "drop-shadow(0 0 8px hsl(160 100% 50% / 0.3))",
+              ],
+            }}
+            transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+            whileHover={{ scale: 1.1 }}
+          />
         </Link>
       </div>
 

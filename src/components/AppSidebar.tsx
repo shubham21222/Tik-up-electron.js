@@ -5,7 +5,7 @@ import {
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, BarChart, Link2, Palette, Settings,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
-  Star, Keyboard
+  Star, Keyboard, Coins
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -52,6 +52,7 @@ const sections: SidebarSection[] = [
     items: [
       { id: "/goal-overlays", label: "Stream Goals", icon: Target },
       { id: "/leaderboard", label: "Top Supporters", icon: Trophy, pro: true },
+      { id: "/points", label: "User & Points", icon: Coins },
     ],
   },
   {

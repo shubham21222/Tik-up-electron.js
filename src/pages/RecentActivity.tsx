@@ -200,6 +200,10 @@ const RecentActivity = () => {
 
   const currentAnim = animVariants[activePreset.animationStyle] || animVariants.slide_in;
 
+  // Derive theme colors for preview
+  const activeTheme = THEMES.find(t => t.id === activePreset.theme) || THEMES[0];
+  const themeColor = activeTheme.color;
+
   return (
     <AppLayout>
       <div className="max-w-7xl mx-auto relative z-10 pb-12">
@@ -301,11 +305,11 @@ const RecentActivity = () => {
           {/* ─── MIDDLE: Live Preview ─── */}
           <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             className="lg:col-span-5">
-            <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(15,15,23,0.8)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="rounded-2xl overflow-hidden" style={{ background: "rgba(15,15,23,0.8)", border: `1px solid hsl(${themeColor} / 0.12)` }}>
               {/* Preview Header */}
               <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
                 <div className="flex items-center gap-2">
-                  <Eye size={14} className="text-primary" />
+                  <Eye size={14} style={{ color: `hsl(${themeColor})` }} />
                   <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Live Feed Preview</span>
                 </div>
                 <button onClick={startPlayback} disabled={isPlaying}
@@ -348,13 +352,13 @@ const RecentActivity = () => {
                   {(isPlaying ? playbackEvents : filteredSampleEvents).map((event, i) => {
                     const config = eventTypeMap[event.type];
                     return (
-                      <motion.div key={`${event.user}-${event.type}-${i}-${isPlaying}`}
+                      <motion.div key={`${event.user}-${event.type}-${i}-${isPlaying}-${activePreset.animationStyle}-${activePreset.theme}`}
                         {...currentAnim}
                         transition={{ duration: activePreset.animationDuration / activePreset.animationSpeed, delay: isPlaying ? 0 : i * 0.04 }}
                         className="flex items-center gap-3 px-4 py-3 rounded-xl transition-colors"
                         style={{
-                          background: `linear-gradient(135deg, hsl(${config?.color || "0 0% 50%"} / 0.06), rgba(255,255,255,0.02))`,
-                          border: "1px solid rgba(255,255,255,0.04)",
+                          background: `linear-gradient(135deg, hsl(${themeColor} / 0.06), hsl(${config?.color || "0 0% 50%"} / 0.04))`,
+                          border: `1px solid hsl(${themeColor} / 0.08)`,
                         }}>
                         <div className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 text-[10px] font-bold text-white"
                           style={{ background: getAvatarColor(event.user) }}>

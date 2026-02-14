@@ -2,7 +2,7 @@ import AppLayout from "@/components/AppLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useMemo, useCallback } from "react";
 import {
-  Gift, Search, Volume2, Play,
+  Gift, Search, Volume2, Play, X,
   ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff
 } from "lucide-react";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
@@ -17,12 +17,24 @@ const animationOptions = [
   { value: "firework", label: "Firework", emoji: "🎆", premium: true },
 ];
 
+const filterOptions = [
+  { value: "all", label: "All" },
+  { value: "enabled", label: "Active" },
+  { value: "1", label: "1-5 🪙" },
+  { value: "10", label: "10-50 🪙" },
+  { value: "100", label: "100-999 🪙" },
+  { value: "1000", label: "1,000+ 🪙" },
+  { value: "5000", label: "5,000+ 🪙" },
+  { value: "10000", label: "10,000+ 🪙" },
+];
+
 const Actions = () => {
   const { gifts, loading: giftsLoading } = useGiftCatalog();
   const { triggers, toggleTrigger, updateTrigger } = useUserGiftTriggers();
   const [search, setSearch] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterValue, setFilterValue] = useState<string>("all");
+  const [fullPreview, setFullPreview] = useState(false);
 
   const filtered = useMemo(() => {
     let result = gifts;
@@ -30,7 +42,10 @@ const Actions = () => {
     if (filterValue === "enabled") result = result.filter(g => triggers.find(t => t.gift_id === g.gift_id)?.is_enabled);
     if (filterValue === "1") result = result.filter(g => g.coin_value <= 5);
     if (filterValue === "10") result = result.filter(g => g.coin_value >= 10 && g.coin_value <= 50);
-    if (filterValue === "100") result = result.filter(g => g.coin_value >= 100);
+    if (filterValue === "100") result = result.filter(g => g.coin_value >= 100 && g.coin_value < 1000);
+    if (filterValue === "1000") result = result.filter(g => g.coin_value >= 1000);
+    if (filterValue === "5000") result = result.filter(g => g.coin_value >= 5000);
+    if (filterValue === "10000") result = result.filter(g => g.coin_value >= 10000);
     return result;
   }, [gifts, search, filterValue, triggers]);
 
@@ -50,7 +65,6 @@ const Actions = () => {
     return url;
   };
 
-  // Show 5 thumbnails around current index
   const thumbRange = 2;
   const thumbs = useMemo(() => {
     if (filtered.length === 0) return [];
@@ -61,6 +75,8 @@ const Actions = () => {
     }
     return items;
   }, [filtered, currentIndex]);
+
+  const currentAnimStyle = currentTrigger?.animation_effect || "bounce";
 
   return (
     <AppLayout>
@@ -75,8 +91,8 @@ const Actions = () => {
 
         {/* Search & Filter */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="flex flex-col sm:flex-row items-center gap-3 mb-8">
-          <div className="flex-1 relative w-full">
+          className="flex flex-col gap-3 mb-8">
+          <div className="relative w-full">
             <Search size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
@@ -86,19 +102,16 @@ const Actions = () => {
               className="w-full bg-muted/30 border border-border/50 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary/50 transition-all"
             />
           </div>
-          <div className="flex items-center gap-1 p-1 rounded-xl bg-muted/30">
-            {[
-              { value: "all", label: "All" },
-              { value: "enabled", label: "Active" },
-              { value: "1", label: "1-5 🪙" },
-              { value: "10", label: "10-50 🪙" },
-              { value: "100", label: "100+ 🪙" },
-            ].map(f => (
-              <button key={f.value} onClick={() => { setFilterValue(f.value); setCurrentIndex(0); }}
-                className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all ${filterValue === f.value ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
-                {f.label}
-              </button>
-            ))}
+          {/* Scrollable filter box */}
+          <div className="rounded-xl bg-muted/30 border border-border/30 p-1.5 overflow-x-auto scrollbar-none">
+            <div className="flex items-center gap-1 min-w-max">
+              {filterOptions.map(f => (
+                <button key={f.value} onClick={() => { setFilterValue(f.value); setCurrentIndex(0); }}
+                  className={`px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all whitespace-nowrap ${filterValue === f.value ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                  {f.label}
+                </button>
+              ))}
+            </div>
           </div>
         </motion.div>
 
@@ -184,7 +197,7 @@ const Actions = () => {
               </span>
             </div>
 
-            {/* Config panel below */}
+            {/* Config panel */}
             {currentGift && (
               <motion.div
                 key={currentGift.gift_id + "-config"}
@@ -205,19 +218,11 @@ const Actions = () => {
                       }}
                     >
                       <div className="flex items-center gap-3">
-                        {currentTrigger?.is_enabled ? (
-                          <Eye size={16} className="text-primary" />
-                        ) : (
-                          <EyeOff size={16} className="text-muted-foreground" />
-                        )}
+                        {currentTrigger?.is_enabled ? <Eye size={16} className="text-primary" /> : <EyeOff size={16} className="text-muted-foreground" />}
                         <div className="text-left">
-                          <p className="text-sm font-medium text-foreground">
-                            {currentTrigger?.is_enabled ? "Alert is ON" : "Alert is OFF"}
-                          </p>
+                          <p className="text-sm font-medium text-foreground">{currentTrigger?.is_enabled ? "Alert is ON" : "Alert is OFF"}</p>
                           <p className="text-[11px] text-muted-foreground">
-                            {currentTrigger?.is_enabled
-                              ? "Viewers will see an effect when this gift is sent"
-                              : "Tap to enable — viewers will see effects for this gift"}
+                            {currentTrigger?.is_enabled ? "Viewers will see an effect when this gift is sent" : "Tap to enable — viewers will see effects for this gift"}
                           </p>
                         </div>
                       </div>
@@ -229,17 +234,15 @@ const Actions = () => {
 
                   {/* Settings */}
                   <div className="px-5 py-4 space-y-4">
-                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">
-                      When this gift is sent…
-                    </p>
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-semibold">When this gift is sent…</p>
 
                     {/* Animation Preview */}
                     <AnimationPreview
-                      style={currentTrigger?.animation_effect || "bounce"}
+                      style={currentAnimStyle}
                       emoji="🌹"
                       giftName={currentGift.name}
                       giftImage={getImageUrl(currentGift.image_url)}
-                      isPremium={["3d_flip", "glitch", "firework"].includes(currentTrigger?.animation_effect || "bounce")}
+                      isPremium={["3d_flip", "glitch", "firework"].includes(currentAnimStyle)}
                     />
 
                     {/* Animation Style */}
@@ -247,7 +250,7 @@ const Actions = () => {
                       <label className="text-xs font-medium text-foreground mb-2 block">Animation Style</label>
                       <div className="grid grid-cols-3 gap-2">
                         {animationOptions.map(opt => {
-                          const isActive = (currentTrigger?.animation_effect || "bounce") === opt.value;
+                          const isActive = currentAnimStyle === opt.value;
                           return (
                             <button
                               key={opt.value}
@@ -281,8 +284,11 @@ const Actions = () => {
                       </button>
                     </div>
 
-                    {/* Preview */}
-                    <button className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 text-sm font-semibold hover:bg-secondary/15 transition-colors hover:-translate-y-0.5">
+                    {/* Preview Button */}
+                    <button
+                      onClick={() => setFullPreview(true)}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 text-sm font-semibold hover:bg-secondary/15 transition-colors hover:-translate-y-0.5"
+                    >
                       <Play size={14} /> Preview This Alert
                     </button>
                   </div>
@@ -292,6 +298,63 @@ const Actions = () => {
           </>
         )}
       </div>
+
+      {/* Full-screen preview overlay */}
+      <AnimatePresence>
+        {fullPreview && currentGift && (
+          <motion.div
+            className="fixed inset-0 z-[100] flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setFullPreview(false)}
+          >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-sm" />
+
+            {/* Close button */}
+            <button
+              onClick={() => setFullPreview(false)}
+              className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center text-white/60 hover:text-white hover:bg-white/20 transition-all z-10"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Label */}
+            <div className="absolute top-6 left-6 z-10">
+              <p className="text-white/40 text-xs font-medium">STREAM PREVIEW</p>
+              <p className="text-white/70 text-sm mt-0.5">This is how viewers will see the alert</p>
+            </div>
+
+            {/* Large animation */}
+            <div className="relative w-full max-w-lg aspect-video">
+              <AnimationPreview
+                style={currentAnimStyle}
+                emoji="🌹"
+                giftName={currentGift.name}
+                giftImage={getImageUrl(currentGift.image_url)}
+                isPremium={["3d_flip", "glitch", "firework"].includes(currentAnimStyle)}
+              />
+            </div>
+
+            {/* Info bar */}
+            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex items-center gap-3 px-5 py-2.5 rounded-full z-10"
+              style={{ background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(12px)" }}>
+              <img
+                src={getImageUrl(currentGift.image_url)}
+                alt={currentGift.name}
+                className="w-6 h-6 object-contain"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }}
+              />
+              <span className="text-white/80 text-xs font-medium">{currentGift.name}</span>
+              <span className="text-white/30 text-[10px]">•</span>
+              <span className="text-white/50 text-[10px]">{animationOptions.find(a => a.value === currentAnimStyle)?.label}</span>
+              <span className="text-white/30 text-[10px]">•</span>
+              <span className="text-white/40 text-[10px]">Tap anywhere to close</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </AppLayout>
   );
 };

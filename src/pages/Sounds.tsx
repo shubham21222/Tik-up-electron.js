@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { copyToClipboard } from "@/lib/clipboard";
 import ProBadge from "@/components/overlays/ProBadge";
 
 const glassCard = "rounded-2xl p-[1px]";
@@ -42,9 +43,8 @@ const Sounds = () => {
 
   const copyUrl = (path: string) => {
     const url = `${getOverlayBaseUrl()}/overlay/${path}`;
-    navigator.clipboard.writeText(url);
+    copyToClipboard(url, "URL copied!");
     setCopiedUrl(path);
-    toast.success("URL copied!");
     setTimeout(() => setCopiedUrl(null), 2000);
   };
 

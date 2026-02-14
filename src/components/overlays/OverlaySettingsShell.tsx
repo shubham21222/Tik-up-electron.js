@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import ProBadge from "./ProBadge";
 import type { OverlayWidget } from "@/hooks/use-overlay-widgets";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface OverlaySettingsShellProps {
   widget: OverlayWidget;
@@ -29,8 +30,7 @@ const OverlaySettingsShell = ({
   const overlayUrl = `${getOverlayBaseUrl()}/overlay/${widget.widget_type.replace("_", "-")}/${widget.public_token}`;
 
   const copyUrl = () => {
-    navigator.clipboard.writeText(overlayUrl);
-    toast.success("Overlay URL copied!");
+    copyToClipboard(overlayUrl, "Overlay URL copied!");
   };
 
   return (

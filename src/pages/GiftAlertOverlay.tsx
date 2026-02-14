@@ -67,6 +67,49 @@ const GiftAlertOverlay = () => {
           </button>
         </motion.div>
 
+        {/* How it works guide */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="mb-8 rounded-2xl border border-white/[0.08] overflow-hidden"
+          style={{ background: "linear-gradient(135deg, hsl(280 40% 8% / 0.6), hsl(280 20% 6% / 0.4))" }}
+        >
+          <div className="flex flex-col md:flex-row items-center gap-6 p-6">
+            {/* Visual gift illustration */}
+            <div className="relative flex-shrink-0">
+              <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)", border: "1px solid hsl(280 100% 65% / 0.2)" }}>
+                <span className="text-5xl">🌹</span>
+              </div>
+              <motion.div
+                className="absolute inset-0 rounded-full"
+                style={{ border: "1px solid hsl(280 100% 65% / 0.15)" }}
+                animate={{ scale: [1, 1.6, 1.6], opacity: [0.6, 0, 0] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+            </div>
+
+            {/* Steps */}
+            <div className="flex-1 space-y-3">
+              <h3 className="text-sm font-heading font-bold text-foreground">How Gift Alerts Work</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="flex items-start gap-2.5">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.15)", color: "hsl(280 100% 75%)" }}>1</span>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Create</span> a Gift Alert overlay above</p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.15)", color: "hsl(280 100% 75%)" }}>2</span>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Copy the URL</span> and add it as a Browser Source in OBS</p>
+                </div>
+                <div className="flex items-start gap-2.5">
+                  <span className="flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.15)", color: "hsl(280 100% 75%)" }}>3</span>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Go live</span> — gifts trigger animated alerts automatically</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
         {loading ? (
           <div className="space-y-6">
             {[...Array(2)].map((_, i) => <div key={i} className="rounded-2xl h-64 bg-muted/20 animate-pulse" />)}

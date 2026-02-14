@@ -15,7 +15,7 @@ interface ModerationResult {
   blocked: boolean;
   reason?: string;
   triggeredWord?: string;
-  action?: string; // "blocked" | "replaced" | "warned"
+  action?: string;
   filteredMessage?: string;
 }
 
@@ -40,31 +40,22 @@ function moderateMessage(
   modConfig: any,
   context: "chat" | "tts"
 ): ModerationResult {
-  // 1. Check banned users
   const bannedUser = bannedUsers.find(
     (u: any) => u.username.toLowerCase() === username.toLowerCase()
   );
   if (bannedUser) {
-    if (context === "chat" && bannedUser.block_chat) {
-      return { blocked: true, reason: "banned_user", action: "blocked" };
-    }
-    if (context === "tts" && bannedUser.block_tts) {
-      return { blocked: true, reason: "banned_user", action: "blocked" };
-    }
+    if (context === "chat" && bannedUser.block_chat) return { blocked: true, reason: "banned_user", action: "blocked" };
+    if (context === "tts" && bannedUser.block_tts) return { blocked: true, reason: "banned_user", action: "blocked" };
   }
 
   if (!modConfig) return { blocked: false };
 
-  // 2. Block links
   if (modConfig.block_links && /https?:\/\/|www\./i.test(message)) {
-    if (modConfig.allow_subscriber_links) {
-      // Can't verify subscriber status here, so allow through
-    } else {
+    if (!modConfig.allow_subscriber_links) {
       return { blocked: true, reason: "link", action: "blocked" };
     }
   }
 
-  // 3. Caps filter (>80% uppercase, min 5 chars)
   if (modConfig.caps_filter && message.length >= 5) {
     const upperCount = (message.match(/[A-Z]/g) || []).length;
     const letterCount = (message.match(/[a-zA-Z]/g) || []).length;
@@ -73,7 +64,6 @@ function moderateMessage(
     }
   }
 
-  // 4. Emoji-only filter
   if (modConfig.emoji_only_filter) {
     const withoutEmoji = message.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu, "").trim();
     if (withoutEmoji.length === 0 && message.length > 0) {
@@ -81,20 +71,17 @@ function moderateMessage(
     }
   }
 
-  // 5. Banned words check
   if (modConfig.block_banned_words && bannedWords.length > 0) {
     const normalized = normalizeText(message);
     const words = message.toLowerCase();
 
     for (const bw of bannedWords) {
-      // Skip if word doesn't apply to this context
       if (context === "chat" && !bw.apply_to_chat) continue;
       if (context === "tts" && !bw.apply_to_tts) continue;
 
       const term = bw.word.toLowerCase();
       const normalizedTerm = normalizeText(bw.word);
 
-      // Check both raw and normalized versions (word boundary aware)
       const rawMatch = new RegExp(`\\b${escapeRegex(term)}\\b`, "i").test(words);
       const normalizedMatch = new RegExp(`\\b${escapeRegex(normalizedTerm)}\\b`, "i").test(normalized);
 
@@ -106,7 +93,6 @@ function moderateMessage(
         if (bw.severity === "warn") {
           return { blocked: false, reason: "word_warned", triggeredWord: bw.word, action: "warned" };
         }
-        // Default: block
         return { blocked: true, reason: "banned_word", triggeredWord: bw.word, action: "blocked" };
       }
     }
@@ -119,7 +105,6 @@ function escapeRegex(str: string): string {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** Check if a user is banned from alerts */
 function isUserBannedFromAlerts(username: string, bannedUsers: any[]): boolean {
   const banned = bannedUsers.find(
     (u: any) => u.username.toLowerCase() === username.toLowerCase()
@@ -145,6 +130,123 @@ async function broadcast(channel: string, event: string, payload: Record<string,
   const resText = await res.text();
   if (!res.ok) {
     console.error(`Broadcast failed for ${channel}: ${resText}`);
+  }
+}
+
+/** Calculate level from total points using base + multiplier */
+function calculateLevel(totalPoints: number, basePoints: number, multiplier: number): { level: number; pointsTowardLevel: number } {
+  let level = 1;
+  let pointsNeeded = basePoints;
+  let remaining = totalPoints;
+
+  while (remaining >= pointsNeeded) {
+    remaining -= pointsNeeded;
+    level++;
+    pointsNeeded = Math.floor(basePoints * Math.pow(multiplier, level - 1));
+  }
+
+  return { level, pointsTowardLevel: remaining };
+}
+
+/** Upsert viewer points for a given event */
+async function upsertViewerPoints(
+  supabase: any,
+  userId: string,
+  username: string,
+  eventType: string,
+  eventData: Record<string, unknown>,
+  pointsConfig: any
+) {
+  if (!username || username === "unknown") return;
+
+  // Calculate points earned from this event
+  let pointsEarned = 0;
+  let giftsInc = 0;
+  let coinsInc = 0;
+  let likesInc = 0;
+  let messagesInc = 0;
+  const avatarUrl = (eventData.profilePictureUrl as string) || (eventData.avatar_url as string) || null;
+
+  switch (eventType) {
+    case "gift": {
+      const coinValue = Number(eventData.diamondCount || eventData.coinValue || eventData.coin_value || 1);
+      coinsInc = coinValue;
+      giftsInc = 1;
+      if (pointsConfig?.points_per_coin_enabled) {
+        pointsEarned = coinValue * Number(pointsConfig.points_per_coin || 1);
+      }
+      break;
+    }
+    case "like": {
+      const likeCount = Number(eventData.likeCount || eventData.count || 1);
+      likesInc = likeCount;
+      // Likes don't have a dedicated points rule in points_config, give 0.1 per like
+      pointsEarned = likeCount * 0.1;
+      break;
+    }
+    case "share": {
+      if (pointsConfig?.points_per_share_enabled) {
+        pointsEarned = Number(pointsConfig.points_per_share || 3);
+      }
+      break;
+    }
+    case "chat": {
+      messagesInc = 1;
+      if (pointsConfig?.points_per_chat_minute_enabled) {
+        pointsEarned = Number(pointsConfig.points_per_chat_minute || 0.5);
+      }
+      break;
+    }
+    case "follow": {
+      // Follow gives a flat bonus
+      pointsEarned = 5;
+      break;
+    }
+    default:
+      return; // Don't track viewer_count or subscribe for points
+  }
+
+  const basePoints = pointsConfig?.level_base_points || 100;
+  const multiplier = pointsConfig?.level_multiplier || 1.5;
+
+  // Try to get existing record
+  const { data: existing } = await supabase
+    .from("viewer_points")
+    .select("id, total_points, total_gifts_sent, total_coins_sent, total_likes, total_messages")
+    .eq("creator_id", userId)
+    .eq("viewer_username", username)
+    .maybeSingle();
+
+  if (existing) {
+    const newTotalPoints = Number(existing.total_points) + pointsEarned;
+    const { level, pointsTowardLevel } = calculateLevel(newTotalPoints, basePoints, multiplier);
+
+    await supabase.from("viewer_points").update({
+      total_points: newTotalPoints,
+      level,
+      points_toward_level: pointsTowardLevel,
+      total_gifts_sent: existing.total_gifts_sent + giftsInc,
+      total_coins_sent: Number(existing.total_coins_sent) + coinsInc,
+      total_likes: existing.total_likes + likesInc,
+      total_messages: existing.total_messages + messagesInc,
+      last_activity: new Date().toISOString(),
+      ...(avatarUrl ? { viewer_avatar_url: avatarUrl } : {}),
+    }).eq("id", existing.id);
+  } else {
+    const { level, pointsTowardLevel } = calculateLevel(pointsEarned, basePoints, multiplier);
+
+    await supabase.from("viewer_points").insert({
+      creator_id: userId,
+      viewer_username: username,
+      viewer_avatar_url: avatarUrl,
+      total_points: pointsEarned,
+      level,
+      points_toward_level: pointsTowardLevel,
+      total_gifts_sent: giftsInc,
+      total_coins_sent: coinsInc,
+      total_likes: likesInc,
+      total_messages: messagesInc,
+    });
   }
 }
 
@@ -197,6 +299,7 @@ Deno.serve(async (req) => {
       { data: modConfig },
       { data: bannedWords },
       { data: bannedUsers },
+      { data: pointsConfig },
     ] = await Promise.all([
       supabase.from("overlay_widgets").select("public_token, widget_type").eq("user_id", userId).eq("is_active", true),
       supabase.from("user_gift_triggers").select("*").eq("user_id", userId).eq("is_enabled", true),
@@ -205,10 +308,12 @@ Deno.serve(async (req) => {
       supabase.from("moderation_config").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("banned_words").select("*").eq("user_id", userId),
       supabase.from("banned_users").select("*").eq("user_id", userId),
+      supabase.from("points_config").select("*").eq("user_id", userId).maybeSingle(),
     ]);
 
     let ttsTriggered = 0;
     let modBlocked = 0;
+    let pointsUpdated = 0;
 
     for (const event of events) {
       const matchingAuto = automations?.find(a => a.trigger_type === event.type);
@@ -216,7 +321,6 @@ Deno.serve(async (req) => {
       // ── MODERATION: Check banned users for alert-type events ──
       if (["gift", "like", "follow", "share"].includes(event.type)) {
         if (isUserBannedFromAlerts(event.username, bannedUsers || [])) {
-          // Log the moderation hit
           await supabase.from("moderation_log").insert({
             user_id: userId,
             username: event.username,
@@ -225,7 +329,7 @@ Deno.serve(async (req) => {
             action_taken: "blocked",
           });
           modBlocked++;
-          continue; // Skip this event entirely
+          continue;
         }
       }
 
@@ -240,7 +344,6 @@ Deno.serve(async (req) => {
         );
 
         if (chatModResult.blocked) {
-          // Log moderation hit
           await supabase.from("moderation_log").insert({
             user_id: userId,
             username: event.username,
@@ -250,10 +353,9 @@ Deno.serve(async (req) => {
             triggered_word: chatModResult.triggeredWord || null,
           });
           modBlocked++;
-          continue; // Don't process this chat event at all
+          continue;
         }
 
-        // If message was replaced, update event data for downstream
         if (chatModResult.filteredMessage) {
           event.data.message = chatModResult.filteredMessage;
           event.data.original_message = message;
@@ -268,7 +370,6 @@ Deno.serve(async (req) => {
           });
         }
 
-        // If warned, log but still allow through
         if (chatModResult.action === "warned") {
           await supabase.from("moderation_log").insert({
             user_id: userId,
@@ -279,6 +380,14 @@ Deno.serve(async (req) => {
             triggered_word: chatModResult.triggeredWord || null,
           });
         }
+      }
+
+      // ── VIEWER POINTS: Upsert points for this event ──
+      try {
+        await upsertViewerPoints(supabase, userId, event.username, event.type, event.data, pointsConfig);
+        pointsUpdated++;
+      } catch (e) {
+        console.error("Failed to upsert viewer points:", e);
       }
 
       // Log the event
@@ -344,7 +453,6 @@ Deno.serve(async (req) => {
         const maxLength = ttsSettings.max_length || 200;
 
         if (message.length >= minChars) {
-          // Run TTS-specific moderation (checks apply_to_tts flag)
           const ttsModResult = moderateMessage(
             message, event.username,
             bannedWords || [], bannedUsers || [],
@@ -379,7 +487,6 @@ Deno.serve(async (req) => {
               ttsTriggered++;
             }
           } else {
-            // Log TTS-specific block if not already logged by chat filter
             if (!chatModResult.blocked && ttsModResult.reason !== chatModResult.reason) {
               await supabase.from("moderation_log").insert({
                 user_id: userId,
@@ -400,6 +507,7 @@ Deno.serve(async (req) => {
       processed: events.length,
       tts_triggered: ttsTriggered,
       moderation_blocked: modBlocked,
+      points_updated: pointsUpdated,
     }), {
       status: 200,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

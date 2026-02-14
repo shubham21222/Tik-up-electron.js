@@ -94,7 +94,7 @@ const Points = () => {
           <h1 className="text-3xl font-heading font-bold text-foreground mb-1">User & Points</h1>
           <p className="text-muted-foreground text-sm">
             Here you can see a list of users including points, levels and other info. You have <span className="text-foreground font-semibold">{filtered.length}</span> of max 2,500 users in your database.
-            {" "}Visit the <Link to="/points-settings" className="text-primary hover:underline">Points System Settings</Link> to define rewards.
+            {" "}Visit the <Link to="/setup" className="text-primary hover:underline">Points System Settings</Link> to define rewards.
           </p>
         </motion.div>
 

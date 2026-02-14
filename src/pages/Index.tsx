@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 import FeatureGuideModal, { type GuideStep } from "@/components/FeatureGuideModal";
 import tikupLogo from "@/assets/tikup_logo.png";
 import DashboardModeration from "@/components/dashboard/DashboardModeration";
+import DashboardFeatures from "@/components/dashboard/DashboardFeatures";
 
 interface LiveStats {
   is_live: boolean;
@@ -654,6 +655,9 @@ const Index = () => {
             </button>
           </motion.div>
         )}
+
+        {/* Stream Features Quick Controls */}
+        <DashboardFeatures />
 
         {/* Auto Moderation Quick Controls */}
         <DashboardModeration />

@@ -6,12 +6,9 @@ import {
   MessageSquareX, Ban, Eye, Upload, Download,
   X, Filter, Zap, Volume2, VolumeX, Search,
   ChevronDown, Trash2, UserX, History,
-  Sparkles, MonitorPlay
 } from "lucide-react";
 import { useModeration, WORD_CATEGORIES, SEVERITY_OPTIONS, type BannedWord } from "@/hooks/use-moderation";
 import { toast } from "sonner";
-import AlertStylesTab from "@/components/moderation/AlertStylesTab";
-import OverlayUrlsTab from "@/components/moderation/OverlayUrlsTab";
 
 const glassCard = "rounded-2xl p-[1px]";
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -39,8 +36,6 @@ const tabs = [
   { key: "rules", label: "Rules", icon: Shield },
   { key: "words", label: "Word Filters", icon: Filter },
   { key: "users", label: "Banned Users", icon: Ban },
-  { key: "styles", label: "Alert Styles", icon: Sparkles },
-  { key: "overlays", label: "Overlay URLs", icon: MonitorPlay },
   { key: "log", label: "Mod Log", icon: History },
 ];
 
@@ -162,10 +157,10 @@ const AutoModeration = () => {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-heading font-bold text-foreground mb-1">
-                Auto Moderation & Alert Preview
+                Auto Moderation
               </h1>
               <p className="text-sm text-muted-foreground max-w-xl">
-                Manage what's allowed in chat, preview how alerts will appear on stream, and grab ready-to-use overlay URLs.
+                Protect chat and TTS from unsafe or offensive language. Manage banned words, users, and moderation rules.
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -429,12 +424,6 @@ const AutoModeration = () => {
               </div>
             </motion.div>
           )}
-
-          {/* ALERT STYLES TAB */}
-          {activeTab === "styles" && <AlertStylesTab />}
-
-          {/* OVERLAY URLS TAB */}
-          {activeTab === "overlays" && <OverlayUrlsTab />}
 
           {/* MOD LOG TAB */}
           {activeTab === "log" && (

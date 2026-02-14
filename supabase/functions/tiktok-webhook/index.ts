@@ -132,6 +132,17 @@ Deno.serve(async (req) => {
               priority: matchedTrigger.priority,
               combo_threshold: matchedTrigger.combo_threshold,
             };
+
+            // Broadcast to keystroke agent channel if keystroke config exists
+            const cc = matchedTrigger.custom_config as any;
+            if (cc?.keystrokes || cc?.keystroke) {
+              await broadcast(`keystroke_agent_${userId}`, "fire_keystroke", {
+                gift_id: giftId,
+                gift_name: event.data.giftName,
+                username: event.username,
+                ...event.data,
+              });
+            }
           }
         }
 

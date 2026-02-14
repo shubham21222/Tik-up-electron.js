@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -76,7 +77,7 @@ const RecentActivity = () => {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
           className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Event Feeds</h1>
+            <div className="flex items-center gap-3"><h1 className="text-3xl font-heading font-bold text-foreground mb-2">Event Feeds</h1><PageHelpButton featureKey="recent_activity" /></div>
             <p className="text-muted-foreground text-sm">Create customizable event feeds for your stream overlays</p>
           </div>
           <button className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.25)]">

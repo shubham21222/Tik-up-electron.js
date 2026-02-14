@@ -10,6 +10,7 @@ import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
 import AnimationPreview from "@/components/actions/AnimationPreview";
 import FeatureGuideModal, { defaultAlertSteps } from "@/components/FeatureGuideModal";
+import PageHelpButton from "@/components/PageHelpButton";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
 import { toast } from "sonner";
 
@@ -134,14 +135,7 @@ const Actions = () => {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
           <div className="flex items-center justify-center gap-3">
             <h1 className="text-3xl font-heading font-bold text-foreground mb-1">Gift Alerts</h1>
-            <button
-              onClick={() => setShowGuide(true)}
-              className="p-2 rounded-full transition-colors hover:bg-muted/40"
-              style={{ color: "hsl(280 100% 70%)" }}
-              title="How to use"
-            >
-              <HelpCircle size={20} />
-            </button>
+            <PageHelpButton featureKey="gift_alerts" />
           </div>
           <p className="text-muted-foreground text-sm">
             Pick a gift → choose what happens on your stream

@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -157,7 +158,7 @@ const GoalOverlays = () => {
           className="mb-10">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Your Individual Goal Overlays</h1>
+              <div className="flex items-center gap-3"><h1 className="text-3xl font-heading font-bold text-foreground mb-2">Your Individual Goal Overlays</h1><PageHelpButton featureKey="goal_overlays" /></div>
               <p className="text-muted-foreground text-sm">Manage and configure your stream goals</p>
             </div>
             <button onClick={() => setShowCreate(true)}

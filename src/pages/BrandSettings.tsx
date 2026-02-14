@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Palette, Upload, Type, Sparkles } from "lucide-react";
@@ -26,7 +27,7 @@ const BrandSettings = () => {
 
       <div className="max-w-4xl mx-auto relative z-10 pb-12">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-8">
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-2">Brand Settings</h1>
+          <div className="flex items-center gap-3"><h1 className="text-3xl font-heading font-bold text-foreground mb-2">Brand Settings</h1><PageHelpButton featureKey="brand_settings" /></div>
           <p className="text-muted-foreground text-sm">Customize colors, fonts, and branding across all your overlays and alerts.</p>
         </motion.div>
 

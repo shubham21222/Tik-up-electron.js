@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useRef } from "react";
 import {
@@ -155,9 +156,12 @@ const AutoModeration = () => {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-heading font-bold text-foreground mb-1">
-                Auto Moderation
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-heading font-bold text-foreground mb-1">
+                  Auto Moderation
+                </h1>
+                <PageHelpButton featureKey="auto_moderation" />
+              </div>
               <p className="text-sm text-muted-foreground max-w-xl">
                 Protect chat and TTS from unsafe or offensive language. Manage banned words, users, and moderation rules.
               </p>

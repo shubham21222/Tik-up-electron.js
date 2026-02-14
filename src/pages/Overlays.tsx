@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import TabNav from "@/components/TabNav";
 import { Info, Eye, Maximize2, X, Target, Copy, ExternalLink, Settings, Crown, Sparkles, Lock } from "lucide-react";
 import { toast } from "sonner";
@@ -180,6 +181,7 @@ const Overlays = () => {
           <div className="flex items-center gap-2 mb-2">
             <Sparkles size={18} className="text-primary" />
             <h1 className="text-3xl font-heading font-bold text-foreground">Effects & Overlays</h1>
+            <PageHelpButton featureKey="overlays" />
           </div>
           <p className="text-muted-foreground text-sm">Choose what happens when viewers interact with your stream. Each effect gets a link you paste into OBS.</p>
         </motion.div>

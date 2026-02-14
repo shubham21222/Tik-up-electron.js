@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import PageHelpButton from "@/components/PageHelpButton";
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, SlidersHorizontal, Gift, ChevronDown, Check, Volume2, Sparkles, Play, Coins } from "lucide-react";
@@ -81,6 +82,7 @@ const GiftBrowser = () => {
           <div className="flex items-center gap-2 mb-2">
             <Gift size={18} className="text-primary" />
             <h1 className="text-3xl font-heading font-bold text-foreground">Gift Browser</h1>
+            <PageHelpButton featureKey="gift_browser" />
           </div>
           <p className="text-muted-foreground text-sm">
             Browse TikTok gifts, select which ones trigger alerts, and assign custom sounds & animations.

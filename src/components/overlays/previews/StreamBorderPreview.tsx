@@ -187,6 +187,152 @@ const StreamBorderPreview = ({ settings = {} }: StreamBorderPreviewProps) => {
     );
   }
 
+  /* ── COD Tactical ── */
+  if (style === "cod_tactical") {
+    return (
+      <div className="relative w-full h-full">
+        <div className="absolute inset-2 rounded-sm" style={{ border: `${thickness}px solid hsl(120 60% 30%/0.5)` }} />
+        {/* Scan line */}
+        <motion.div className="absolute left-2 right-2 h-[1px]"
+          style={{ background: "linear-gradient(90deg,transparent,hsl(120 100% 60%/0.5),transparent)" }}
+          animate={{ top: ["8px", "calc(100% - 8px)"] }}
+          transition={{ duration: dur*2, repeat: Infinity, ease: "linear" }} />
+        {/* Grid flicker */}
+        {[0,1,2].map(i => (
+          <motion.div key={i} className="absolute"
+            style={{ left: 8, height: 1, width: `${30+i*15}%`, top: `${20+i*25}%`, background: "hsl(120 80% 45%/0.3)" }}
+            animate={{ opacity: [0,0.8,0], scaleX: [0.95,1.02,0.95] }}
+            transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 2+i*0.7 }} />
+        ))}
+        {/* Corner brackets */}
+        {[{t:6,l:6},{t:6,r:6},{b:6,l:6},{b:6,r:6}].map((pos,i) => (
+          <motion.div key={i} className="absolute" style={{ ...pos as any, width: 12, height: 12,
+            borderTop: pos.t!==undefined ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+            borderBottom: pos.b!==undefined ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+            borderLeft: pos.l!==undefined ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+            borderRight: pos.r!==undefined ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+          }} animate={{ opacity: [0.4,1,0.4] }} transition={{ duration: 1.5, repeat: Infinity, delay: i*0.3 }} />
+        ))}
+      </div>
+    );
+  }
+
+  /* ── Fortnite Victory ── */
+  if (style === "fortnite_victory") {
+    return (
+      <div className="relative w-full h-full">
+        <motion.div className="absolute inset-2 rounded-xl"
+          style={{ border: `${thickness}px solid hsl(260 100% 65%/0.5)` }}
+          animate={{
+            boxShadow: [
+              `0 0 ${10*intensity}px hsl(190 100% 60%/0.2), inset 0 0 ${8*intensity}px hsl(260 100% 65%/0.1)`,
+              `0 0 ${25*intensity}px hsl(190 100% 60%/0.4), inset 0 0 ${20*intensity}px hsl(260 100% 65%/0.2)`,
+              `0 0 ${10*intensity}px hsl(190 100% 60%/0.2), inset 0 0 ${8*intensity}px hsl(260 100% 65%/0.1)`,
+            ],
+            borderColor: ["hsl(260 100% 65%/0.5)", "hsl(190 100% 60%/0.7)", "hsl(50 100% 55%/0.6)", "hsl(260 100% 65%/0.5)"],
+          }}
+          transition={{ duration: dur*1.5, repeat: Infinity, ease: "easeInOut" }} />
+        {/* Shield bubble */}
+        <motion.div className="absolute inset-4 rounded-full"
+          style={{ border: "1px solid hsl(190 100% 70%/0.15)" }}
+          animate={{ scale: [1,1.02,1], opacity: [0.3,0.6,0.3] }}
+          transition={{ duration: dur, repeat: Infinity }} />
+        {/* Bounce sparks */}
+        {[0,1,2,3].map(i => (
+          <motion.div key={i} className="absolute w-1.5 h-1.5 rounded-full"
+            style={{ background: "hsl(50 100% 60%)", boxShadow: "0 0 6px hsl(50 100% 55%)",
+              ...(i===0?{top:6,left:"30%"}:i===1?{top:6,right:"30%"}:i===2?{bottom:6,left:"40%"}:{bottom:6,right:"40%"}) }}
+            animate={{ y: i<2?[0,4,0]:[0,-4,0], opacity: [0.3,1,0.3] }}
+            transition={{ duration: 0.8, repeat: Infinity, delay: i*0.2 }} />
+        ))}
+      </div>
+    );
+  }
+
+  /* ── Arch Raider ── */
+  if (style === "arch_raider") {
+    return (
+      <div className="relative w-full h-full">
+        <div className="absolute inset-2 rounded-lg" style={{ border: `${thickness}px solid hsl(145 60% 35%/0.4)` }} />
+        {/* Rune glow corners */}
+        {[{t:4,l:4},{t:4,r:4},{b:4,l:4},{b:4,r:4}].map((pos,i) => (
+          <motion.div key={i} className="absolute w-4 h-4 rounded-sm"
+            style={{ ...pos as any, background: `radial-gradient(circle, hsl(35 90% 55%/0.6), transparent)` }}
+            animate={{ opacity: [0.3,1,0.3], scale: [0.8,1.2,0.8] }}
+            transition={{ duration: 2, repeat: Infinity, delay: i*0.5 }} />
+        ))}
+        {/* Arrow sweep */}
+        <motion.div className="absolute top-2 h-[2px]"
+          style={{ background: "linear-gradient(90deg,transparent,hsl(35 90% 55%/0.7),hsl(170 80% 45%/0.5),transparent)", width: "30%" }}
+          animate={{ left: ["-10%", "110%"] }}
+          transition={{ duration: dur*2, repeat: Infinity, ease: "easeInOut" }} />
+        <motion.div className="absolute bottom-2 h-[2px]"
+          style={{ background: "linear-gradient(90deg,transparent,hsl(170 80% 45%/0.5),hsl(35 90% 55%/0.7),transparent)", width: "30%" }}
+          animate={{ right: ["-10%", "110%"] }}
+          transition={{ duration: dur*2.5, repeat: Infinity, ease: "easeInOut", delay: 0.8 }} />
+      </div>
+    );
+  }
+
+  /* ── Battle Royale Pro ── */
+  if (style === "battle_royale_pro") {
+    return (
+      <div className="relative w-full h-full">
+        <motion.div className="absolute inset-2 rounded-lg"
+          style={{ border: `${thickness}px solid hsl(0 80% 50%/0.4)` }}
+          animate={{
+            borderColor: ["hsl(0 80% 50%/0.4)", "hsl(210 100% 55%/0.6)", "hsl(0 80% 50%/0.4)"],
+            boxShadow: [
+              `0 0 ${8*intensity}px hsl(0 80% 50%/0.1)`,
+              `0 0 ${20*intensity}px hsl(210 100% 55%/0.3)`,
+              `0 0 ${8*intensity}px hsl(0 80% 50%/0.1)`,
+            ],
+          }}
+          transition={{ duration: dur, repeat: Infinity }} />
+        {/* Adaptive pulse edges */}
+        <motion.div className="absolute top-2 left-2 right-2 h-[2px]"
+          style={{ background: "linear-gradient(90deg,hsl(0 80% 55%/0.6),hsl(210 100% 55%/0.4),hsl(0 80% 55%/0.6))" }}
+          animate={{ opacity: [0.3,0.9,0.3] }}
+          transition={{ duration: dur*0.7, repeat: Infinity }} />
+        <motion.div className="absolute bottom-2 left-2 right-2 h-[2px]"
+          style={{ background: "linear-gradient(90deg,hsl(210 100% 55%/0.4),hsl(0 80% 55%/0.6),hsl(210 100% 55%/0.4))" }}
+          animate={{ opacity: [0.3,0.9,0.3] }}
+          transition={{ duration: dur*0.7, repeat: Infinity, delay: 0.3 }} />
+        {/* Clutch flash */}
+        <motion.div className="absolute inset-2 rounded-lg"
+          animate={{ opacity: [0,0.15,0] }}
+          style={{ background: "hsl(0 80% 55%)" }}
+          transition={{ duration: 0.2, repeat: Infinity, repeatDelay: 4 }} />
+      </div>
+    );
+  }
+
+  /* ── Space Fighter ── */
+  if (style === "space_fighter") {
+    return (
+      <div className="relative w-full h-full">
+        <div className="absolute inset-2 rounded-xl" style={{ border: `${thickness}px solid hsl(220 80% 40%/0.3)` }} />
+        {/* Scanning grid */}
+        <motion.div className="absolute left-2 right-2 h-[1px]"
+          style={{ background: "linear-gradient(90deg,transparent,hsl(200 100% 70%/0.5),transparent)" }}
+          animate={{ top: ["8px", "calc(100% - 8px)"] }}
+          transition={{ duration: dur*3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }} />
+        {/* Starfield sparkles */}
+        {[0,1,2,3,4,5].map(i => (
+          <motion.div key={i} className="absolute w-1 h-1 rounded-full"
+            style={{ background: "white", left: `${12+i*14}%`, top: `${10+(i*17)%75}%`,
+              boxShadow: "0 0 4px white" }}
+            animate={{ opacity: [0,1,0], scale: [0.5,1.5,0.5] }}
+            transition={{ duration: 1.5, repeat: Infinity, delay: i*0.4 }} />
+        ))}
+        {/* Alert blast ring */}
+        <motion.div className="absolute inset-6 rounded-full border border-red-500/20"
+          animate={{ scale: [0.95,1.05,0.95], opacity: [0.1,0.3,0.1] }}
+          transition={{ duration: dur*2, repeat: Infinity }} />
+      </div>
+    );
+  }
+
   // Pulse Circuit (default)
   return (
     <div className="relative w-full h-full">

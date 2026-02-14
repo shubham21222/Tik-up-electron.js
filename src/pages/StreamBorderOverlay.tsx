@@ -89,7 +89,12 @@ const StreamBorderOverlay = () => {
                             { value: "particles_glow", label: "Particles Glow" },
                             { value: "retro_wave", label: "Retro Wave" },
                             { value: "firefly_trail", label: "Firefly Trail" },
-                            { value: "pulse_circuit", label: "Pulse Circuit" },
+                             { value: "pulse_circuit", label: "Pulse Circuit" },
+                            { value: "cod_tactical", label: "🎮 COD Tactical" },
+                            { value: "fortnite_victory", label: "🟠 Fortnite Victory" },
+                            { value: "arch_raider", label: "🏹 Arch Raider" },
+                            { value: "battle_royale_pro", label: "🔥 Battle Royale Pro" },
+                            { value: "space_fighter", label: "🚀 Space Fighter" },
                           ]} />
                         </SettingRow>
                         <SettingRow label="Border Thickness"><SettingSlider value={s.border_thickness} onChange={v => set("border_thickness", v)} min={1} max={8} suffix="px" /></SettingRow>

@@ -95,7 +95,7 @@ const AppSidebar = () => {
           <motion.img
             src={tikupLogo}
             alt="TikUp"
-            className={cn(collapsed ? "w-10 h-10" : "w-16 h-16")}
+            className={cn(collapsed ? "w-12 h-12" : "w-28 h-28")}
             style={{ objectFit: "contain" }}
             animate={{
               filter: [

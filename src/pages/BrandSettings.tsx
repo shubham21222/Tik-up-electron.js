@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import ProGate from "@/components/ProGate";
 import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -22,6 +23,7 @@ const BrandSettings = () => {
 
   return (
     <AppLayout>
+      <ProGate feature="Brand & Style">
       <div className="fixed top-20 left-1/2 -translate-x-1/4 w-[500px] h-[300px] rounded-full pointer-events-none z-0"
         style={{ background: "radial-gradient(ellipse, hsl(280 100% 65% / 0.03), transparent 70%)" }} />
 
@@ -116,6 +118,7 @@ const BrandSettings = () => {
           </motion.div>
         </div>
       </div>
+      </ProGate>
     </AppLayout>
   );
 };

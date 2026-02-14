@@ -74,7 +74,7 @@ const sections: SidebarSection[] = [
     emoji: "⚙",
     items: [
       { id: "/setup", label: "Connect TikTok", icon: Link2 },
-      { id: "/brand-settings", label: "Brand & Style", icon: Palette },
+      { id: "/brand-settings", label: "Brand & Style", icon: Palette, pro: true },
       { id: "/integrations", label: "Integrations", icon: Settings },
       { id: "/admin", label: "Admin Panel", icon: ShieldCheck, adminOnly: true },
     ],

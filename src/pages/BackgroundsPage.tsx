@@ -5,6 +5,7 @@ import {
   Palette, Lock, Star, Copy, Play, Check,
   Sparkles, Monitor, Type, Sliders, Zap, ChevronRight, ExternalLink
 } from "lucide-react";
+import ProGate from "@/components/ProGate";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
 import { toast } from "sonner";
@@ -383,6 +384,7 @@ const BackgroundsPage = () => {
 
   return (
     <AppLayout>
+      <ProGate feature="Backgrounds">
       {/* Ambient */}
       <div
         className="fixed top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full pointer-events-none z-0"
@@ -845,6 +847,7 @@ const BackgroundsPage = () => {
           </p>
         </motion.div>
       </div>
+      </ProGate>
     </AppLayout>
   );
 };

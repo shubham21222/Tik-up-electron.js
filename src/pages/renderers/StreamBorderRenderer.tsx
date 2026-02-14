@@ -215,6 +215,112 @@ const StreamBorderRenderer = () => {
     );
   }
 
+  /* ── COD Tactical ── */
+  if (s.border_style === "cod_tactical") return (
+    <div className={wrap}>
+      <div className="absolute inset-0" style={{ border: `${t}px solid hsl(120 60% 30%/0.5)`, borderRadius: r }} />
+      <motion.div className="absolute left-0 right-0 h-[2px]"
+        style={{ background: "linear-gradient(90deg,transparent,hsl(120 100% 60%/0.5),transparent)" }}
+        animate={{ top: ["0px", "100%"] }}
+        transition={{ duration: dur*2, repeat: Infinity, ease: "linear" }} />
+      {[0,1,2].map(i => (
+        <motion.div key={i} className="absolute"
+          style={{ left: 0, height: 2, width: `${30+i*15}%`, top: `${20+i*25}%`, background: "hsl(120 80% 45%/0.3)" }}
+          animate={{ opacity: [0,0.8,0], scaleX: [0.95,1.02,0.95] }}
+          transition={{ duration: 0.15, repeat: Infinity, repeatDelay: 2+i*0.7 }} />
+      ))}
+      {[{top:0,left:0},{top:0,right:0},{bottom:0,left:0},{bottom:0,right:0}].map((pos,i) => (
+        <motion.div key={i} className="absolute" style={{ ...pos, width: 16, height: 16,
+          borderTop: pos.top!==undefined&&pos.top===0 ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+          borderBottom: pos.bottom!==undefined ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+          borderLeft: pos.left!==undefined&&pos.left===0 ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+          borderRight: pos.right!==undefined ? "2px solid hsl(120 80% 45%/0.6)" : "none",
+        }} animate={{ opacity: [0.4,1,0.4] }} transition={{ duration: 1.5, repeat: Infinity, delay: i*0.3 }} />
+      ))}
+      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+    </div>
+  );
+
+  /* ── Fortnite Victory ── */
+  if (s.border_style === "fortnite_victory") return (
+    <div className={wrap}>
+      <motion.div className="absolute inset-0"
+        style={{ border: `${t}px solid hsl(260 100% 65%/0.5)`, borderRadius: r }}
+        animate={{
+          boxShadow: [`0 0 ${15*g}px hsl(190 100% 60%/0.2)`, `0 0 ${35*g}px hsl(190 100% 60%/0.4)`, `0 0 ${15*g}px hsl(190 100% 60%/0.2)`],
+          borderColor: ["hsl(260 100% 65%/0.5)", "hsl(190 100% 60%/0.7)", "hsl(50 100% 55%/0.6)", "hsl(260 100% 65%/0.5)"],
+        }}
+        transition={{ duration: dur*1.5, repeat: Infinity, ease: "easeInOut" }} />
+      <motion.div className="absolute inset-[5%] rounded-full"
+        style={{ border: "1px solid hsl(190 100% 70%/0.15)" }}
+        animate={{ scale: [1,1.02,1], opacity: [0.3,0.6,0.3] }}
+        transition={{ duration: dur, repeat: Infinity }} />
+      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+    </div>
+  );
+
+  /* ── Arch Raider ── */
+  if (s.border_style === "arch_raider") return (
+    <div className={wrap}>
+      <div className="absolute inset-0" style={{ border: `${t}px solid hsl(145 60% 35%/0.4)`, borderRadius: r }} />
+      {[{top:0,left:0},{top:0,right:0},{bottom:0,left:0},{bottom:0,right:0}].map((pos,i) => (
+        <motion.div key={i} className="absolute w-5 h-5"
+          style={{ ...pos, background: `radial-gradient(circle, hsl(35 90% 55%/0.6), transparent)` }}
+          animate={{ opacity: [0.3,1,0.3], scale: [0.8,1.2,0.8] }}
+          transition={{ duration: 2, repeat: Infinity, delay: i*0.5 }} />
+      ))}
+      <motion.div className="absolute top-0 h-[3px]"
+        style={{ background: "linear-gradient(90deg,transparent,hsl(35 90% 55%/0.7),hsl(170 80% 45%/0.5),transparent)", width: "30%", borderRadius: r }}
+        animate={{ left: ["-10%", "110%"] }}
+        transition={{ duration: dur*2, repeat: Infinity, ease: "easeInOut" }} />
+      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+    </div>
+  );
+
+  /* ── Battle Royale Pro ── */
+  if (s.border_style === "battle_royale_pro") return (
+    <div className={wrap}>
+      <motion.div className="absolute inset-0"
+        style={{ border: `${t}px solid hsl(0 80% 50%/0.4)`, borderRadius: r }}
+        animate={{
+          borderColor: ["hsl(0 80% 50%/0.4)", "hsl(210 100% 55%/0.6)", "hsl(0 80% 50%/0.4)"],
+          boxShadow: [`0 0 ${10*g}px hsl(0 80% 50%/0.1)`, `0 0 ${25*g}px hsl(210 100% 55%/0.3)`, `0 0 ${10*g}px hsl(0 80% 50%/0.1)`],
+        }}
+        transition={{ duration: dur, repeat: Infinity }} />
+      <motion.div className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: "linear-gradient(90deg,hsl(0 80% 55%/0.6),hsl(210 100% 55%/0.4),hsl(0 80% 55%/0.6))", borderRadius: `${r}px ${r}px 0 0` }}
+        animate={{ opacity: [0.3,0.9,0.3] }}
+        transition={{ duration: dur*0.7, repeat: Infinity }} />
+      <motion.div className="absolute inset-0" style={{ borderRadius: r }}
+        animate={{ opacity: [0,0.12,0] }}
+        transition={{ duration: 0.2, repeat: Infinity, repeatDelay: 4 }}>
+        <div className="w-full h-full" style={{ background: "hsl(0 80% 55%)", borderRadius: r }} />
+      </motion.div>
+      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+    </div>
+  );
+
+  /* ── Space Fighter ── */
+  if (s.border_style === "space_fighter") return (
+    <div className={wrap}>
+      <div className="absolute inset-0" style={{ border: `${t}px solid hsl(220 80% 40%/0.3)`, borderRadius: r }} />
+      <motion.div className="absolute left-0 right-0 h-[2px]"
+        style={{ background: "linear-gradient(90deg,transparent,hsl(200 100% 70%/0.5),transparent)" }}
+        animate={{ top: ["0px", "100%"] }}
+        transition={{ duration: dur*3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }} />
+      {[0,1,2,3,4,5,6,7].map(i => (
+        <motion.div key={i} className="absolute w-1.5 h-1.5 rounded-full"
+          style={{ background: "white", left: `${8+i*12}%`, top: `${5+(i*19)%85}%`, boxShadow: "0 0 6px white" }}
+          animate={{ opacity: [0,1,0], scale: [0.5,1.5,0.5] }}
+          transition={{ duration: 1.5, repeat: Infinity, delay: i*0.35 }} />
+      ))}
+      <motion.div className="absolute inset-[10%] rounded-full border border-red-500/20"
+        animate={{ scale: [0.95,1.05,0.95], opacity: [0.1,0.3,0.1] }}
+        transition={{ duration: dur*2, repeat: Infinity }} />
+      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+    </div>
+  );
+
   /* ── Pulse Circuit (default) ── */
   return (
     <div className={wrap}>

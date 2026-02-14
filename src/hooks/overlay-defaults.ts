@@ -440,7 +440,7 @@ export const defaultPromoOverlaySettings = {
 
 // Stream Border
 export const defaultStreamBorderSettings = {
-  border_style: "neon_pulse" as "neon_pulse" | "gold_metallic" | "glitch_digital" | "electric_spark" | "liquid_flow" | "holographic_grid" | "particles_glow" | "retro_wave" | "firefly_trail" | "pulse_circuit",
+  border_style: "neon_pulse" as "neon_pulse" | "gold_metallic" | "glitch_digital" | "electric_spark" | "liquid_flow" | "holographic_grid" | "particles_glow" | "retro_wave" | "firefly_trail" | "pulse_circuit" | "cod_tactical" | "fortnite_victory" | "arch_raider" | "battle_royale_pro" | "space_fighter",
   border_thickness: 4,
   animation_speed: 1,
   glow_intensity: 60,

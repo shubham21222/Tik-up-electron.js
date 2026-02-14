@@ -1,12 +1,14 @@
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import AppSidebar from "./AppSidebar";
 import StatusBar from "./StatusBar";
 import QuickControls from "./QuickControls";
-import { Search, Bell, HelpCircle, User, LogOut } from "lucide-react";
+import { Search, Bell, HelpCircle, User, LogOut, Menu, X } from "lucide-react";
 import { SidebarStateProvider, useSidebarState } from "@/hooks/use-sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { Link, useNavigate } from "react-router-dom";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -16,40 +18,67 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
   const { collapsed } = useSidebarState();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
     <div className="flex min-h-screen bg-background">
-      <AppSidebar />
+      {/* Desktop sidebar */}
+      {!isMobile && <AppSidebar />}
+
+      {/* Mobile sidebar sheet */}
+      {isMobile && (
+        <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+          <SheetContent side="left" className="p-0 w-[280px] bg-sidebar border-sidebar-border">
+            <AppSidebar onNavigate={() => setMobileMenuOpen(false)} />
+          </SheetContent>
+        </Sheet>
+      )}
 
       <div
         className={cn(
           "flex-1 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-          collapsed ? "ml-[60px]" : "ml-[220px]"
+          isMobile ? "ml-0" : collapsed ? "ml-[60px]" : "ml-[220px]"
         )}
       >
-        <header className="h-14 border-b border-border flex items-center justify-between px-6 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
+        <header className="h-14 border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5 w-64">
+            {isMobile && (
+              <button
+                onClick={() => setMobileMenuOpen(true)}
+                className="p-2 -ml-1 rounded-lg hover:bg-muted transition-colors text-foreground"
+              >
+                <Menu size={22} />
+              </button>
+            )}
+            <div className={cn(
+              "flex items-center gap-2 bg-muted rounded-lg px-3 py-1.5",
+              isMobile ? "w-full" : "w-64"
+            )}>
               <Search size={14} className="text-muted-foreground" />
               <input
                 type="text"
                 placeholder="Search..."
                 className="bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none w-full font-body"
               />
-              <kbd className="text-[10px] text-muted-foreground bg-background px-1.5 py-0.5 rounded">⌘K</kbd>
+              {!isMobile && <kbd className="text-[10px] text-muted-foreground bg-background px-1.5 py-0.5 rounded">⌘K</kbd>}
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
               <Bell size={18} />
             </button>
-            <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-              <HelpCircle size={18} />
-            </button>
+            {!isMobile && (
+              <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
+                <HelpCircle size={18} />
+              </button>
+            )}
             {user ? (
               <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground truncate max-w-[120px]">{user.email}</span>
+                {!isMobile && (
+                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">{user.email}</span>
+                )}
                 <button
                   onClick={async () => {
                     await signOut();
@@ -67,18 +96,18 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
                 className="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
               >
                 <User size={18} />
-                <span className="text-sm font-medium">Login</span>
+                {!isMobile && <span className="text-sm font-medium">Login</span>}
               </Link>
             )}
           </div>
         </header>
 
-        <main className="p-6 pb-16">
+        <main className={cn("pb-16", isMobile ? "p-4" : "p-6")}>
           {children}
         </main>
       </div>
 
-      <StatusBar />
+      {!isMobile && <StatusBar />}
       <QuickControls />
     </div>
   );

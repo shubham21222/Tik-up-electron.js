@@ -89,8 +89,8 @@ const OverlaySettingsShell = ({
         </div>
 
         {/* URL Bar */}
-        <div className="flex items-center gap-2 px-5 py-3 border-b border-white/[0.04] bg-white/[0.01]">
-          <div className="flex-1 text-[11px] text-muted-foreground font-mono truncate">{overlayUrl}</div>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 px-4 md:px-5 py-3 border-b border-white/[0.04] bg-white/[0.01]">
+          <div className="flex-1 text-[11px] text-muted-foreground font-mono truncate min-w-0">{overlayUrl}</div>
           <button onClick={copyUrl} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
             style={{ background: "hsl(280 100% 65% / 0.1)", color: "hsl(280 100% 70%)" }}>
             <Copy size={11} /> Copy URL

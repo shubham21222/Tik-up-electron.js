@@ -36,6 +36,7 @@ import GiftComboRenderer from "./pages/renderers/GiftComboRenderer";
 import TickerRenderer from "./pages/renderers/TickerRenderer";
 import AnimatedBgRenderer from "./pages/renderers/AnimatedBgRenderer";
 import SoundReactiveRenderer from "./pages/renderers/SoundReactiveRenderer";
+import BackgroundRenderer from "./pages/renderers/BackgroundRenderer";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
 import Chat from "./pages/Chat";
@@ -114,6 +115,7 @@ const App = () => (
           <Route path="/overlay/stream-border/:publicToken" element={<StreamBorderRenderer />} />
           <Route path="/overlay/webcam-frame/:publicToken" element={<WebcamFrameRenderer />} />
           <Route path="/overlay/event-feed/:publicToken" element={<EventFeedRenderer />} />
+          <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
 
           {/* All other routes wrapped in AuthProvider */}
           <Route path="/*" element={

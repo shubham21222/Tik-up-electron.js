@@ -352,7 +352,7 @@ const KeystrokeTriggers = () => {
             <PageHelpButton featureKey="keystroke_triggers" />
           </div>
           <p className="text-muted-foreground text-sm">
-            Link gifts to keystrokes — set up different profiles for each game
+            Link gifts to keystrokes. Set up different profiles for each game
           </p>
         </motion.div>
 

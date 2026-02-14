@@ -154,7 +154,7 @@ const TTSOverlayPage = () => {
             <div className={rowClass}>
               <span className={labelClass}>Voice</span>
               <select className={selectClass} value={local.voice_id} onChange={(e) => update({ voice_id: e.target.value })}>
-                {TTS_VOICES.map(v => <option key={v.id} value={v.id} className="bg-[#0a0a0f]">{v.name} — {v.tag}</option>)}
+                {TTS_VOICES.map(v => <option key={v.id} value={v.id} className="bg-[#0a0a0f]">{v.name} · {v.tag}</option>)}
               </select>
             </div>
             <div className={rowClass}>

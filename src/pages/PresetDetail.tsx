@@ -45,7 +45,7 @@ const presetConfigs: Record<string, PresetConfig> = {
   gaming: {
     id: "gaming",
     name: "Gaming Mode",
-    tagline: "Clean & minimal — no distractions",
+    tagline: "Clean & minimal, no distractions",
     description: "Subtle alerts tucked into corners. Viewer count, timer, and chat overlay that stays out of the way while you play.",
     icon: Gamepad2,
     color: "160 100% 45%",
@@ -62,7 +62,7 @@ const presetConfigs: Record<string, PresetConfig> = {
     id: "irl",
     name: "IRL Mode",
     tagline: "Lightweight for outdoor & mobile streams",
-    description: "Only the essentials. Chat, timer, and follow goal — nothing heavy that kills mobile battery or clutters your view.",
+    description: "Only the essentials. Chat, timer, and follow goal. Nothing heavy that kills mobile battery or clutters your view.",
     icon: Camera,
     color: "45 100% 55%",
     features: [
@@ -287,7 +287,7 @@ const PresetDetail = () => {
               boxShadow: `0 8px 32px hsl(${preset.color} / 0.25)`,
             }}
           >
-            {activating ? "Activating..." : `Activate ${preset.name} — ${enabledCount} Features`}
+            {activating ? "Activating..." : `Activate ${preset.name} · ${enabledCount} Features`}
           </button>
         </motion.div>
       </div>

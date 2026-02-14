@@ -284,7 +284,7 @@ const Actions = () => {
                         <div className="text-left">
                           <p className="text-sm font-medium text-foreground">{currentTrigger?.is_enabled ? "Alert is ON" : "Alert is OFF"}</p>
                           <p className="text-[11px] text-muted-foreground">
-                            {currentTrigger?.is_enabled ? "Viewers will see an effect when this gift is sent" : "Tap to enable — viewers will see effects for this gift"}
+                            {currentTrigger?.is_enabled ? "Viewers will see an effect when this gift is sent" : "Tap to enable, viewers will see effects for this gift"}
                           </p>
                         </div>
                       </div>

@@ -10,12 +10,12 @@ import tikupLogo from "@/assets/tikup_logo.png";
 
 /* ─── Data ─── */
 const features = [
-  { icon: Target, title: "Stream Goals", desc: "Set a follower, like, or gift goal — your viewers see it update in real-time on screen." },
+  { icon: Target, title: "Stream Goals", desc: "Set a follower, like, or gift goal and your viewers see it update in real-time on screen." },
   { icon: Zap, title: "Instant Reactions", desc: "When someone sends a gift or follows, your stream reacts instantly with animations and sounds." },
   { icon: Volume2, title: "Sound Effects", desc: "Viewers trigger sound effects with gifts and chat commands. You pick the sounds." },
-  { icon: BarChart3, title: "See Who's Watching", desc: "Track viewers, likes, shares, and diamonds as they happen — all on one screen." },
+  { icon: BarChart3, title: "See Who's Watching", desc: "Track viewers, likes, shares, and diamonds as they happen. All on one screen." },
   { icon: Shield, title: "Chat Protection", desc: "Auto-block spam, caps, and toxic messages so you can focus on creating." },
-  { icon: Sparkles, title: "Ready-Made Effects", desc: "Leaderboards, polls, giveaways — all plug-and-play, no setup required." },
+  { icon: Sparkles, title: "Ready-Made Effects", desc: "Leaderboards, polls, giveaways, all plug-and-play. No setup required." },
 ];
 
 const liveEvents = [
@@ -445,7 +445,7 @@ const LandingPage = () => {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Set up your live effects in under 60 seconds. No downloads, no wiring, no tech skills needed — just pick a vibe and go live.
+            Set up your live effects in under 60 seconds. No downloads, no wiring, no tech skills needed. Just pick a vibe and go live.
           </motion.p>
 
           {/* CTAs */}
@@ -539,7 +539,7 @@ const LandingPage = () => {
           >
             <span className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 block">What You Get</span>
             <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">Choose What Viewers Make Happen</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">When someone sends a gift, follows, or likes — you decide what happens on your stream.</p>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">When someone sends a gift, follows, or likes, you decide what happens on your stream.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">

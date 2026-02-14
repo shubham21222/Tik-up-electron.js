@@ -20,8 +20,8 @@ const SPOTIFY_GREEN = "hsl(141 73% 42%)";
 const mockTriggers = [
   { id: "1", event: "Gift Rose", eventIcon: "🎁", action: "Play Track", track: "Blinding Lights", artist: "The Weeknd", volume: 80 },
   { id: "2", event: "Gift Diamond", eventIcon: "💎", action: "Play Playlist", track: "Stream Hits Playlist", artist: "Various", volume: 70 },
-  { id: "3", event: "100 Hearts", eventIcon: "❤️", action: "Volume Boost", track: "—", artist: "—", volume: 100 },
-  { id: "4", event: "Gift Basketball", eventIcon: "🏀", action: "Skip Track", track: "—", artist: "—", volume: 80 },
+  { id: "3", event: "100 Hearts", eventIcon: "❤️", action: "Volume Boost", track: "-", artist: "-", volume: 100 },
+  { id: "4", event: "Gift Basketball", eventIcon: "🏀", action: "Skip Track", track: "-", artist: "-", volume: 80 },
   { id: "5", event: "Milestone", eventIcon: "🏆", action: "Fade In Music", track: "Victory Anthem", artist: "Epic Score", volume: 90 },
 ];
 

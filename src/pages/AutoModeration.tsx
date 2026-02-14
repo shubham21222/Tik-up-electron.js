@@ -27,10 +27,8 @@ const modRules: ModRule[] = [
   { key: "caps_filter", icon: Type, label: "Caps lock filter", desc: "Block all-caps messages (>80% uppercase)" },
   { key: "spam_detection", icon: AlertTriangle, label: "Spam detection", desc: "Block repeated messages within 5 seconds" },
   { key: "block_banned_words", icon: Shield, label: "Block banned words", desc: "Block banned words from chat & TTS" },
-  { key: "allow_subscriber_links", icon: Link2, label: "Allow subscriber links", desc: "Subscribers can post links in chat" },
   { key: "slow_mode", icon: Clock, label: "Slow mode", desc: "Users can only send one message every 5 seconds" },
   { key: "emoji_only_filter", icon: MessageSquareX, label: "Emoji-only filter", desc: "Block messages that are only emojis (3+ emojis, no text)" },
-  { key: "first_message_review", icon: Eye, label: "First-message review", desc: "Hold first-time chatter messages for manual approval" },
 ];
 
 const tabs = [

@@ -3,8 +3,9 @@ import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin, useAdminUsers, useAdminAnalytics, useAdminLogs } from "@/hooks/use-admin";
 import { motion } from "framer-motion";
 import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: number | string; icon: any; color: string }) => (
   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -23,24 +24,17 @@ const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: n
 const Admin = () => {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useIsAdmin();
+  const navigate = useNavigate();
   const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses">("analytics");
 
-  if (!user || roleLoading) {
-    return <AppLayout><div className="flex items-center justify-center h-[60vh]"><div className="animate-pulse text-muted-foreground">Loading...</div></div></AppLayout>;
-  }
+  useEffect(() => {
+    if (!roleLoading && !isAdmin) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [roleLoading, isAdmin, navigate]);
 
-  if (!isAdmin) {
-    return (
-      <AppLayout>
-        <div className="flex items-center justify-center h-[60vh]">
-          <div className="text-center">
-            <Shield size={48} className="text-muted-foreground/20 mx-auto mb-4" />
-            <h2 className="text-lg font-heading font-bold text-foreground mb-2">Access Denied</h2>
-            <p className="text-sm text-muted-foreground">You don't have admin privileges.</p>
-          </div>
-        </div>
-      </AppLayout>
-    );
+  if (!user || roleLoading || !isAdmin) {
+    return <AppLayout><div className="flex items-center justify-center h-[60vh]"><div className="animate-pulse text-muted-foreground">Loading...</div></div></AppLayout>;
   }
 
   const tabs = [

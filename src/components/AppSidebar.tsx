@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
+import { useIsAdmin } from "@/hooks/use-admin";
 import tikupLogo from "@/assets/tikup_logo.png";
 
 interface NavItem {
@@ -16,6 +17,7 @@ interface NavItem {
   label: string;
   icon: typeof LayoutDashboard;
   pro?: boolean;
+  adminOnly?: boolean;
 }
 
 interface SidebarSection {
@@ -74,7 +76,7 @@ const sections: SidebarSection[] = [
       { id: "/setup", label: "Connect TikTok", icon: Link2 },
       { id: "/brand-settings", label: "Brand & Style", icon: Palette },
       { id: "/integrations", label: "Integrations", icon: Settings },
-      { id: "/admin", label: "Admin Panel", icon: ShieldCheck },
+      { id: "/admin", label: "Admin Panel", icon: ShieldCheck, adminOnly: true },
     ],
   },
 ];
@@ -82,6 +84,7 @@ const sections: SidebarSection[] = [
 const AppSidebar = () => {
   const location = useLocation();
   const { collapsed, toggle } = useSidebarState();
+  const { isAdmin } = useIsAdmin();
 
   return (
     <aside
@@ -156,7 +159,7 @@ const AppSidebar = () => {
               </p>
             </div>
             <div className="space-y-0.5">
-              {section.items.map((item) => {
+              {section.items.filter(item => !item.adminOnly || isAdmin).map((item) => {
                 const isActive = location.pathname === item.id;
                 return (
                   <Link

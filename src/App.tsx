@@ -78,6 +78,7 @@ import PresetDetail from "./pages/PresetDetail";
 import VideoCamFrameOverlay from "./pages/VideoCamFrameOverlay";
 import VideoLabelBarOverlay from "./pages/VideoLabelBarOverlay";
 import NotFound from "./pages/NotFound";
+import BackgroundsPage from "./pages/BackgroundsPage";
 
 const queryClient = new QueryClient();
 
@@ -167,6 +168,7 @@ const App = () => (
                 <Route path="/presets/:presetId" element={<PresetDetail />} />
                 <Route path="/video-cam-frame" element={<VideoCamFrameOverlay />} />
                 <Route path="/video-label-bar" element={<VideoLabelBarOverlay />} />
+                <Route path="/backgrounds" element={<BackgroundsPage />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

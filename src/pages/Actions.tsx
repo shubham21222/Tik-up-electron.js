@@ -1,13 +1,14 @@
 import AppLayout from "@/components/AppLayout";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Gift, Search, Volume2, Play, X,
+  Gift, Search, Volume2, Play, X, HelpCircle,
   ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff,
   Lock, Star, Crown
 } from "lucide-react";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import AnimationPreview from "@/components/actions/AnimationPreview";
+import FeatureGuideModal, { defaultAlertSteps } from "@/components/FeatureGuideModal";
 
 interface AnimationOption {
   value: string;
@@ -59,6 +60,13 @@ const Actions = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterValue, setFilterValue] = useState<string>("all");
   const [fullPreview, setFullPreview] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
+
+  // Auto-show guide on first visit
+  useEffect(() => {
+    const seen = localStorage.getItem("tikup_guide_seen_alert_styles");
+    if (!seen) setShowGuide(true);
+  }, []);
 
   const filtered = useMemo(() => {
     let result = gifts;
@@ -117,7 +125,17 @@ const Actions = () => {
       <div className="max-w-2xl mx-auto relative z-10 pb-12">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
-          <h1 className="text-3xl font-heading font-bold text-foreground mb-1">Gift Alerts</h1>
+          <div className="flex items-center justify-center gap-3">
+            <h1 className="text-3xl font-heading font-bold text-foreground mb-1">Gift Alerts</h1>
+            <button
+              onClick={() => setShowGuide(true)}
+              className="p-2 rounded-full transition-colors hover:bg-muted/40"
+              style={{ color: "hsl(280 100% 70%)" }}
+              title="How to use"
+            >
+              <HelpCircle size={20} />
+            </button>
+          </div>
           <p className="text-muted-foreground text-sm">
             Pick a gift → choose what happens on your stream
           </p>
@@ -435,6 +453,13 @@ const Actions = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <FeatureGuideModal
+        open={showGuide}
+        onClose={() => setShowGuide(false)}
+        featureKey="alert_styles"
+        title="Alert Styles"
+        steps={defaultAlertSteps}
+      />
     </AppLayout>
   );
 };

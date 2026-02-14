@@ -2,12 +2,18 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
-export interface Subscription {
-  id: string;
-  user_id: string;
-  plan: "free" | "pro" | "enterprise";
-  status: string;
-  current_period_end: string | null;
+const ADMIN_EMAIL = "support@tikup.xyz";
+
+export const TIKUP_PRO = {
+  price_id: "price_1T0elJFDweiUKVfYEBKZna3E",
+  product_id: "prod_TybzkOW2XCM3TF",
+};
+
+export interface SubscriptionState {
+  subscribed: boolean;
+  plan: "free" | "pro";
+  is_admin?: boolean;
+  subscription_end: string | null;
 }
 
 const FREE_LIMITS = {
@@ -32,42 +38,58 @@ const PRO_LIMITS = {
 
 export function useSubscription() {
   const { user } = useAuth();
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [subState, setSubState] = useState<SubscriptionState | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchSubscription = useCallback(async () => {
-    if (!user) { setLoading(false); return; }
-    const { data } = await supabase
-      .from("subscriptions" as any)
-      .select("*")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (data) setSubscription(data as unknown as Subscription);
+  const checkSubscription = useCallback(async () => {
+    if (!user) {
+      setSubState(null);
+      setLoading(false);
+      return;
+    }
+
+    // Quick admin check on client side for instant UI
+    if (user.email === ADMIN_EMAIL) {
+      setSubState({ subscribed: true, plan: "pro", is_admin: true, subscription_end: null });
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.functions.invoke("check-subscription");
+      if (error) throw error;
+      setSubState(data as SubscriptionState);
+    } catch (e) {
+      console.error("Failed to check subscription:", e);
+      setSubState({ subscribed: false, plan: "free", subscription_end: null });
+    }
     setLoading(false);
   }, [user]);
 
-  useEffect(() => { fetchSubscription(); }, [fetchSubscription]);
+  useEffect(() => {
+    checkSubscription();
+    // Refresh every 60s
+    const interval = setInterval(checkSubscription, 60000);
+    return () => clearInterval(interval);
+  }, [checkSubscription]);
 
-  const plan = subscription?.plan || "free";
-  const isPro = plan === "pro" || plan === "enterprise";
+  const plan = subState?.plan || "free";
+  const isPro = plan === "pro";
+  const isAdmin = subState?.is_admin || false;
   const limits = isPro ? PRO_LIMITS : FREE_LIMITS;
 
-  const canUseFeature = (feature: keyof typeof FREE_LIMITS) => {
-    return limits[feature];
-  };
-
-  const canCreateOverlay = (currentCount: number) => {
-    return currentCount < limits.max_overlays;
-  };
+  const canUseFeature = (feature: keyof typeof FREE_LIMITS) => limits[feature];
+  const canCreateOverlay = (currentCount: number) => currentCount < limits.max_overlays;
 
   return {
-    subscription,
+    subscription: subState,
     loading,
     plan,
     isPro,
+    isAdmin,
     limits,
     canUseFeature,
     canCreateOverlay,
-    refetch: fetchSubscription,
+    refetch: checkSubscription,
   };
 }

@@ -20,7 +20,7 @@ interface AnimationOption {
   description: string;
   emoji: string;
   premium: boolean;
-  category: "free" | "effects" | "motion" | "scifi";
+  category: "free" | "effects" | "motion" | "scifi" | "seasonal" | "impact";
 }
 
 const animationOptions: AnimationOption[] = [
@@ -30,11 +30,17 @@ const animationOptions: AnimationOption[] = [
   { value: "explosion", label: "Explosion", description: "Dramatic burst entrance", emoji: "💥", premium: false, category: "free" },
   { value: "neon_pulse", label: "Neon Pulse", description: "Electric glowing energy waves", emoji: "⚡", premium: true, category: "effects" },
   { value: "cosmic_burst", label: "Cosmic Burst", description: "Starburst sparkle explosion", emoji: "🌟", premium: true, category: "effects" },
+  { value: "firework", label: "Firework", description: "Multi-color firework burst", emoji: "🎆", premium: true, category: "effects" },
+  { value: "flames_rising", label: "Flames Rising", description: "Fire rising from bottom", emoji: "🔥", premium: true, category: "effects" },
   { value: "3d_flip", label: "3D Rotator", description: "3D spin + shimmer flash", emoji: "🔄", premium: true, category: "motion" },
   { value: "liquid_wave", label: "Liquid Wave", description: "Fluid wave background flow", emoji: "🌊", premium: true, category: "motion" },
-  { value: "firework", label: "Firework", description: "Multi-color firework burst", emoji: "🎆", premium: true, category: "effects" },
   { value: "glitch", label: "Digital Glitch", description: "Futuristic glitch scan FX", emoji: "📡", premium: true, category: "scifi" },
   { value: "arc_reactor", label: "Arc Reactor", description: "Radial energy build + burst", emoji: "🔵", premium: true, category: "scifi" },
+  { value: "cyber_pulse", label: "Cyber Pulse", description: "Electric lines + neon pulses", emoji: "⚡", premium: true, category: "scifi" },
+  { value: "icy_blast", label: "Icy Blast", description: "Frost shards + ice particles", emoji: "❄️", premium: true, category: "impact" },
+  { value: "explosion_burst", label: "Explosion Burst", description: "Bright burst + debris", emoji: "💥", premium: true, category: "impact" },
+  { value: "christmas_spark", label: "Christmas Spark", description: "Holiday sparkle bursts", emoji: "🎄", premium: true, category: "seasonal" },
+  { value: "snowfall", label: "Snowfall", description: "Gentle snow drifting down", emoji: "🌨️", premium: true, category: "seasonal" },
 ];
 
 const premiumAnimations = new Set(animationOptions.filter(a => a.premium).map(a => a.value));
@@ -55,6 +61,8 @@ const categoryLabels: Record<string, string> = {
   effects: "🔥 PRO Effects",
   motion: "💫 PRO Motion",
   scifi: "🛸 PRO Sci-Fi",
+  impact: "💥 PRO Impact",
+  seasonal: "🎄 PRO Seasonal",
 };
 
 const Actions = () => {

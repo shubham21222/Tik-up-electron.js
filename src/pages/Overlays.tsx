@@ -150,7 +150,7 @@ const overlayData: Record<string, OverlayItem[]> = {
 };
 
 const tabs = Object.keys(overlayData);
-const lockedTabs = new Set(["Widgets", "Interactive", "Quick Setup", "Browser Sources"]);
+const lockedTabs = new Set(["Alert Overlays", "Widgets", "Interactive", "Quick Setup", "Browser Sources"]);
 
 const Overlays = () => {
   const [activeTab, setActiveTab] = useState(tabs[0]);

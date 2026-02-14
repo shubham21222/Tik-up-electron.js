@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import ProGate from "@/components/ProGate";
 import PageHelpButton from "@/components/PageHelpButton";
 import { useTTSSettings, TTS_VOICES, TTS_LANGUAGES } from "@/hooks/use-tts-settings";
 import type { AllowedUsers, SpecialUser } from "@/hooks/use-tts-settings";
@@ -121,6 +122,7 @@ const TTSOverlayPage = () => {
 
   return (
     <AppLayout>
+      <ProGate feature="Text-to-Speech">
       <div className="max-w-6xl mx-auto pb-12">
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
@@ -422,6 +424,7 @@ const TTSOverlayPage = () => {
           </div>
         </div>
       </div>
+      </ProGate>
     </AppLayout>
   );
 };

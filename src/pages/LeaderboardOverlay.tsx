@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import ProGate from "@/components/ProGate";
 import { useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Trophy, Plus } from "lucide-react";
@@ -23,6 +24,7 @@ const LeaderboardOverlay = () => {
 
   return (
     <AppLayout>
+      <ProGate feature="Leaderboard">
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full pointer-events-none z-0" style={{ background: "radial-gradient(ellipse, hsl(45 100% 55% / 0.04), transparent 70%)" }} />
       <div className="max-w-5xl mx-auto relative z-10 pb-12">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
@@ -65,6 +67,7 @@ const LeaderboardOverlay = () => {
           })}</AnimatePresence></div>
         )}
       </div>
+      </ProGate>
     </AppLayout>
   );
 };

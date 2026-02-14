@@ -1,4 +1,5 @@
 import AppLayout from "@/components/AppLayout";
+import ProGate from "@/components/ProGate";
 import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { useState } from "react";
@@ -28,7 +29,8 @@ const polls = [
 ];
 
 const Polls = () => (
-  <AppLayout>
+   <AppLayout>
+    <ProGate feature="Polls">
     <div className="fixed top-20 left-1/2 -translate-x-1/4 w-[500px] h-[300px] rounded-full pointer-events-none z-0"
       style={{ background: "radial-gradient(ellipse, hsl(200 100% 55% / 0.03), transparent 70%)" }} />
 
@@ -107,6 +109,7 @@ const Polls = () => (
         ))}
       </div>
     </div>
+    </ProGate>
   </AppLayout>
 );
 

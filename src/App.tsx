@@ -74,6 +74,8 @@ import GiftBrowser from "./pages/GiftBrowser";
 import StreamPresets from "./pages/StreamPresets";
 import KeystrokeTriggers from "./pages/KeystrokeTriggers";
 import PresetDetail from "./pages/PresetDetail";
+import VideoCamFrameOverlay from "./pages/VideoCamFrameOverlay";
+import VideoLabelBarOverlay from "./pages/VideoLabelBarOverlay";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -161,6 +163,8 @@ const App = () => (
                 <Route path="/keystroke-triggers" element={<KeystrokeTriggers />} />
                 <Route path="/presets" element={<StreamPresets />} />
                 <Route path="/presets/:presetId" element={<PresetDetail />} />
+                <Route path="/video-cam-frame" element={<VideoCamFrameOverlay />} />
+                <Route path="/video-label-bar" element={<VideoLabelBarOverlay />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

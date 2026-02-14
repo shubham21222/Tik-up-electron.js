@@ -66,11 +66,11 @@ const AppSidebar = () => {
         {sections.map((section) => (
           <div key={section.label}>
             {!collapsed && (
-              <p className="text-[10px] uppercase tracking-[0.1em] text-muted-foreground/50 font-semibold px-2 mb-1.5">
+              <p className="text-[11px] uppercase tracking-[0.12em] text-muted-foreground/60 font-bold px-2 mb-2 mt-1">
                 {section.label}
               </p>
             )}
-            <div className="space-y-0.5">
+            <div className="space-y-1">
               {section.items.map((item) => {
                 const isActive = location.pathname === item.id;
                 return (
@@ -79,7 +79,7 @@ const AppSidebar = () => {
                     to={item.id}
                     className={cn(
                       "flex items-center gap-2.5 rounded-lg transition-all duration-200 group relative",
-                      collapsed ? "justify-center p-2.5" : "px-2.5 py-[7px]",
+                      collapsed ? "justify-center p-3" : "px-3 py-2.5",
                       isActive
                         ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
@@ -88,10 +88,10 @@ const AppSidebar = () => {
                     {isActive && (
                       <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r-full bg-primary" />
                     )}
-                    <item.icon size={16} className={cn("flex-shrink-0", isActive && "drop-shadow-[0_0_6px_hsl(160,100%,50%)]")} />
+                    <item.icon size={20} className={cn("flex-shrink-0", isActive && "drop-shadow-[0_0_6px_hsl(160,100%,50%)]")} />
                     {!collapsed && (
                       <>
-                        <span className="text-[13px] font-medium truncate">{item.label}</span>
+                        <span className="text-sm font-bold truncate">{item.label}</span>
                         {item.pro && (
                           <span className="ml-auto text-[9px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-md flex-shrink-0">
                             PRO

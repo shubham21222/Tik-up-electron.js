@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useModeration, WORD_CATEGORIES, SEVERITY_OPTIONS, type BannedWord } from "@/hooks/use-moderation";
 import { toast } from "sonner";
+import WordPacksPanel from "@/components/moderation/WordPacksPanel";
 
 const glassCard = "rounded-2xl p-[1px]";
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -272,6 +273,9 @@ const AutoModeration = () => {
                   </button>
                 ))}
               </div>
+
+              {/* Pre-built word packs */}
+              <WordPacksPanel bannedWords={bannedWords} onAddWords={addBannedWords} />
 
               <div className={glassCard} style={glassGradient}>
                 <div className="rounded-2xl p-6" style={glassInnerStyle}>

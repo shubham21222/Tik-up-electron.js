@@ -10,8 +10,8 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
 import { copyToClipboard } from "@/lib/clipboard";
-// overlay-url not needed — hardcoded to tikup.xyz
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { Link } from "react-router-dom";
 interface FeedPreset {
   id: string;
   name: string;
+  publicToken: string;
   eventTypes: string[];
   animationStyle: string;
   animationDuration: number;
@@ -191,8 +192,9 @@ const sampleEvents: MockEvent[] = [
 const getInitials = (name: string) => name.slice(0, 2).toUpperCase();
 const getAvatarColor = (name: string) => avatarColors[name.charCodeAt(0) % avatarColors.length];
 
-const defaultPreset = (): FeedPreset => ({
+const _defaultPreset = (): FeedPreset => ({
   id: crypto.randomUUID(),
+  publicToken: "",
   name: "Event Feed",
   eventTypes: ["followers", "gifts", "likes", "shares", "comments", "joins"],
   animationStyle: "slide_in",
@@ -216,8 +218,24 @@ const animVariants: Record<string, any> = {
 const RecentActivity = () => {
   useAuth();
   const { isPro } = useSubscription();
-  const [presets, setPresets] = useState<FeedPreset[]>([defaultPreset()]);
-  const [activePresetId, setActivePresetId] = useState(presets[0].id);
+  const { widgets, loading: widgetsLoading, createWidget, updateSettings, deleteWidget } = useOverlayWidgets("event_feed");
+
+  // Derive presets from widgets
+  const presets: FeedPreset[] = widgets.map(w => ({
+    id: w.id,
+    name: w.name,
+    publicToken: w.public_token,
+    eventTypes: w.settings?.eventTypes || ["followers", "gifts", "likes", "shares", "comments", "joins"],
+    animationStyle: w.settings?.animationStyle || "slide_in",
+    animationDuration: w.settings?.animationDuration || 1.5,
+    animationSpeed: w.settings?.animationSpeed || 1,
+    soundEnabled: w.settings?.soundEnabled || false,
+    soundPack: w.settings?.soundPack || "default",
+    order: w.settings?.order || "newest",
+    theme: w.settings?.theme || "default",
+  }));
+
+  const [activePresetId, setActivePresetId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [previewFilter, setPreviewFilter] = useState("all");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -226,31 +244,54 @@ const RecentActivity = () => {
   const [editNameValue, setEditNameValue] = useState("");
   const playbackRef = useRef<NodeJS.Timeout | null>(null);
 
+  // Auto-select first preset or create one
+  useEffect(() => {
+    if (widgetsLoading) return;
+    if (presets.length > 0 && !activePresetId) {
+      setActivePresetId(presets[0].id);
+    } else if (presets.length === 0 && isPro) {
+      createWidget("event_feed", "Event Feed").then(w => {
+        if (w) setActivePresetId(w.id);
+      });
+    }
+  }, [widgetsLoading, presets.length, isPro]);
+
   const activePreset = presets.find(p => p.id === activePresetId) || presets[0];
-  const activeTheme = THEMES.find(t => t.id === activePreset.theme) || THEMES[0];
+  const activeTheme = THEMES.find(t => t.id === (activePreset?.theme || "default")) || THEMES[0];
   const themeColor = activeTheme.color;
-  const currentAnim = animVariants[activePreset.animationStyle] || animVariants.slide_in;
-  const themeStyles = getThemeStyles(activePreset.theme, themeColor);
+  const currentAnim = animVariants[activePreset?.animationStyle || "slide_in"] || animVariants.slide_in;
+  const themeStyles = getThemeStyles(activePreset?.theme || "default", themeColor);
 
-  const feedUrl = `https://tikup.xyz/overlay/event-feed/${activePreset.id}`;
+  const feedUrl = activePreset?.publicToken ? `https://tikup.xyz/overlay/event-feed/${activePreset.publicToken}` : "";
 
-  const updatePreset = (updates: Partial<FeedPreset>) => {
-    setPresets(prev => prev.map(p => p.id === activePresetId ? { ...p, ...updates } : p));
+  const updatePreset = async (updates: Partial<FeedPreset>) => {
+    if (!activePreset) return;
+    const newSettings = {
+      eventTypes: updates.eventTypes ?? activePreset.eventTypes,
+      animationStyle: updates.animationStyle ?? activePreset.animationStyle,
+      animationDuration: updates.animationDuration ?? activePreset.animationDuration,
+      animationSpeed: updates.animationSpeed ?? activePreset.animationSpeed,
+      soundEnabled: updates.soundEnabled ?? activePreset.soundEnabled,
+      soundPack: updates.soundPack ?? activePreset.soundPack,
+      order: updates.order ?? activePreset.order,
+      theme: updates.theme ?? activePreset.theme,
+    };
+    await updateSettings(activePreset.id, newSettings);
   };
 
-  const addPreset = () => {
+  const addPreset = async () => {
     if (!isPro) return;
-    const np = { ...defaultPreset(), name: `Event Feed ${presets.length + 1}` };
-    setPresets(prev => [...prev, np]);
-    setActivePresetId(np.id);
-    toast.success("🎉 New feed created!");
+    const w = await createWidget("event_feed", `Event Feed ${presets.length + 1}`);
+    if (w) setActivePresetId(w.id);
   };
 
-  const deletePreset = (id: string) => {
+  const handleDeletePreset = async (id: string) => {
     if (presets.length <= 1) { toast.error("You need at least one feed"); return; }
-    setPresets(prev => prev.filter(p => p.id !== id));
-    if (activePresetId === id) setActivePresetId(presets.find(p => p.id !== id)!.id);
-    toast.success("Feed deleted");
+    await deleteWidget(id);
+    if (activePresetId === id) {
+      const remaining = presets.filter(p => p.id !== id);
+      if (remaining.length > 0) setActivePresetId(remaining[0].id);
+    }
   };
 
   const startEditName = (id: string, name: string) => {
@@ -258,12 +299,17 @@ const RecentActivity = () => {
     setEditNameValue(name);
   };
 
-  const saveEditName = () => {
-    if (editingName) {
-      setPresets(prev => prev.map(p => p.id === editingName ? { ...p, name: editNameValue } : p));
-      setEditingName(null);
-      toast.success("Feed renamed!");
-    }
+  const saveEditName = async () => {
+    if (!editingName) return;
+    const preset = presets.find(p => p.id === editingName);
+    if (!preset) return;
+    // Update name via direct supabase call since hook only updates settings
+    const { supabase } = await import("@/integrations/supabase/client");
+    await (supabase as any).from("overlay_widgets").update({ name: editNameValue }).eq("id", editingName);
+    setEditingName(null);
+    toast.success("Feed renamed!");
+    // Trigger refetch
+    window.location.reload();
   };
 
   /* Preview filtering */
@@ -446,7 +492,7 @@ const RecentActivity = () => {
                       className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors">
                       <Pencil size={11} />
                     </button>
-                    <button onClick={(e) => { e.stopPropagation(); deletePreset(preset.id); }}
+                    <button onClick={(e) => { e.stopPropagation(); handleDeletePreset(preset.id); }}
                       className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
                       <Trash2 size={11} />
                     </button>
@@ -576,33 +622,30 @@ const RecentActivity = () => {
               </div>
             </div>
 
-            {/* ─── Overlay URLs ─── */}
+            {/* ─── Overlay URL ─── */}
             <div className="mt-4 rounded-2xl p-4 relative overflow-hidden"
               style={{ background: `linear-gradient(135deg, hsl(${themeColor} / 0.03), rgba(255,255,255,0.02))`, border: `1px solid hsl(${themeColor} / 0.1)` }}>
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={12} style={{ color: `hsl(${themeColor})` }} />
-                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Your Animated Event Feed URLs</h4>
+                <h4 className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">Your Event Feed Overlay URL</h4>
               </div>
-              <p className="text-[10px] text-muted-foreground/40 mb-3">For TikTok LIVE Studio or OBS</p>
-              <div className="space-y-2">
-                {[
-                  { label: "🎯 Primary", url: `${feedUrl}?mode=primary` },
-                  { label: "🔥 Animated", url: `${feedUrl}?mode=animated` },
-                  { label: "👁 Preview", url: `${feedUrl}?mode=preview` },
-                ].map(link => (
-                  <div key={link.label} className="flex items-center gap-2 px-3 py-2.5 rounded-lg transition-all duration-200 hover:bg-white/[0.02]"
-                    style={{ background: "rgba(0,0,0,0.3)", border: `1px solid hsl(${themeColor} / 0.1)` }}>
-                    <span className="text-[10px] font-bold w-20 flex-shrink-0" style={{ color: `hsl(${themeColor} / 0.7)` }}>{link.label}</span>
-                    <span className="flex-1 text-[10px] font-mono text-muted-foreground/50 truncate">{link.url}</span>
-                    <button onClick={() => handleCopy(link.url)}
-                      className="p-1.5 rounded-md transition-colors flex-shrink-0 hover:bg-white/5"
-                      style={{ color: `hsl(${themeColor})` }}>
-                      <Copy size={12} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <p className="text-[10px] text-muted-foreground/30 mt-2.5">Recommended: Width 1920px · Height 1080px · 30fps</p>
+              <p className="text-[10px] text-muted-foreground/40 mb-3">Paste this single URL into TikTok LIVE Studio or OBS as a Browser Source</p>
+              
+              {feedUrl ? (
+                <div className="flex items-center gap-2 px-3 py-3 rounded-xl transition-all duration-200"
+                  style={{ background: "rgba(0,0,0,0.4)", border: `1px solid hsl(${themeColor} / 0.15)` }}>
+                  <span className="flex-1 text-[11px] font-mono text-foreground/70 truncate select-all">{feedUrl}</span>
+                  <button onClick={() => handleCopy(feedUrl)}
+                    className="px-3 py-1.5 rounded-lg text-[10px] font-bold transition-all flex items-center gap-1.5 flex-shrink-0"
+                    style={{ background: `hsl(${themeColor} / 0.12)`, color: `hsl(${themeColor})`, border: `1px solid hsl(${themeColor} / 0.2)` }}>
+                    <Copy size={11} /> Copy URL
+                  </button>
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground/40">Save your feed to generate an overlay URL</p>
+              )}
+
+              <p className="text-[10px] text-muted-foreground/30 mt-2.5">Recommended: Width 1920px · Height 1080px · 30fps · Connected to your TikTok LIVE events in real-time</p>
             </div>
           </motion.div>
 

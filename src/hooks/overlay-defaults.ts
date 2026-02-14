@@ -498,6 +498,19 @@ export const defaultVideoLabelBarSettings = {
   custom_css: "",
 };
 
+// Event Feed
+export const defaultEventFeedSettings = {
+  eventTypes: ["followers", "gifts", "likes", "shares", "comments", "joins"] as string[],
+  animationStyle: "slide_in" as "slide_in" | "fade_in" | "pop_up" | "zoom" | "bounce",
+  animationDuration: 1.5,
+  animationSpeed: 1,
+  soundEnabled: false,
+  soundPack: "default",
+  order: "newest" as "newest" | "oldest",
+  theme: "default",
+  maxEvents: 10,
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -523,4 +536,5 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   webcam_frame: defaultWebcamFrameSettings,
   video_cam_frame: defaultVideoCamFrameSettings,
   video_label_bar: defaultVideoLabelBarSettings,
+  event_feed: defaultEventFeedSettings,
 };

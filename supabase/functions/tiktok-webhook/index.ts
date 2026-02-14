@@ -548,6 +548,10 @@ function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
       if (widgetType === "viewer_count") return { event: "viewer_update", payload: payloadWithUser };
       break;
   }
+  // Event Feed gets ALL event types
+  if (widgetType === "event_feed") {
+    return { event: "feed_event", payload: { ...payloadWithUser, event_type: event.type } };
+  }
   if (widgetType === "ticker") return { event: "ticker_event", payload: { ...payloadWithUser, event_type: event.type } };
   return null;
 }

@@ -323,7 +323,7 @@ const Actions = () => {
                                 <button
                                   key={opt.value}
                                   onClick={() => updateTrigger(currentGift.gift_id, { animation_effect: opt.value })}
-                                  className={`relative rounded-xl p-3 text-left transition-all group ${
+                                  className={`relative rounded-xl p-3 text-left transition-all group overflow-hidden ${
                                     isActive
                                       ? "ring-2 shadow-lg"
                                       : "hover:border-border/60"
@@ -347,6 +347,142 @@ const Actions = () => {
                                     }),
                                   }}
                                 >
+                                  {/* Flames Rising — animated fire particles */}
+                                  {opt.value === "flames_rising" && (
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                                      {[...Array(10)].map((_, fi) => (
+                                        <motion.div
+                                          key={fi}
+                                          className="absolute bottom-0 rounded-full"
+                                          style={{
+                                            left: `${8 + fi * 9}%`,
+                                            width: 4 + (fi % 3) * 2,
+                                            height: 10 + (fi % 4) * 6,
+                                            background: `linear-gradient(180deg, ${
+                                              fi % 3 === 0 ? "hsl(35 100% 55%)" : fi % 3 === 1 ? "hsl(15 100% 50%)" : "hsl(50 100% 60%)"
+                                            }, transparent)`,
+                                            borderRadius: "50% 50% 20% 20%",
+                                            filter: "blur(1px)",
+                                          }}
+                                          animate={{
+                                            y: [0, -20 - (fi % 4) * 10, -35 - (fi % 3) * 8],
+                                            opacity: [0, 0.7, 0],
+                                            scale: [0.5, 1, 0.3],
+                                          }}
+                                          transition={{
+                                            duration: 1.0 + (fi % 3) * 0.3,
+                                            delay: fi * 0.12,
+                                            repeat: Infinity,
+                                            ease: "easeOut",
+                                          }}
+                                        />
+                                      ))}
+                                      {/* Bottom glow */}
+                                      <div className="absolute bottom-0 left-0 right-0 h-3" style={{
+                                        background: "linear-gradient(180deg, transparent, hsl(25 100% 50% / 0.15))",
+                                      }} />
+                                    </div>
+                                  )}
+
+                                  {/* Icy Blast — frost shimmer */}
+                                  {opt.value === "icy_blast" && (
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                                      {[...Array(6)].map((_, fi) => (
+                                        <motion.div
+                                          key={fi}
+                                          className="absolute rounded-full"
+                                          style={{
+                                            width: 3 + (fi % 3),
+                                            height: 3 + (fi % 3),
+                                            background: fi % 2 === 0 ? "hsl(200 100% 80%)" : "hsl(190 100% 85%)",
+                                            top: `${20 + fi * 12}%`,
+                                            left: `${10 + fi * 15}%`,
+                                            filter: "blur(0.5px)",
+                                          }}
+                                          animate={{ opacity: [0, 0.8, 0], scale: [0.5, 1.2, 0.5] }}
+                                          transition={{ duration: 1.5, delay: fi * 0.2, repeat: Infinity }}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Snowfall — drifting particles */}
+                                  {opt.value === "snowfall" && (
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                                      {[...Array(8)].map((_, fi) => (
+                                        <motion.div
+                                          key={fi}
+                                          className="absolute rounded-full"
+                                          style={{
+                                            width: 2 + (fi % 2),
+                                            height: 2 + (fi % 2),
+                                            background: "hsl(210 30% 92%)",
+                                            left: `${5 + fi * 12}%`,
+                                            top: -4,
+                                          }}
+                                          animate={{ y: [0, 50], x: [(fi % 2 === 0 ? -5 : 5), 0], opacity: [0, 0.6, 0] }}
+                                          transition={{ duration: 2 + fi * 0.2, delay: fi * 0.25, repeat: Infinity, ease: "linear" }}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Christmas Spark — sparkle twinkles */}
+                                  {opt.value === "christmas_spark" && (
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                                      {[...Array(5)].map((_, fi) => (
+                                        <motion.div
+                                          key={fi}
+                                          className="absolute rounded-full"
+                                          style={{
+                                            width: 3,
+                                            height: 3,
+                                            background: fi % 3 === 0 ? "hsl(0 100% 55%)" : fi % 3 === 1 ? "hsl(120 100% 45%)" : "hsl(45 100% 55%)",
+                                            boxShadow: `0 0 4px ${fi % 3 === 0 ? "hsl(0 100% 55%)" : fi % 3 === 1 ? "hsl(120 100% 45%)" : "hsl(45 100% 55%)"}`,
+                                            top: `${15 + fi * 16}%`,
+                                            left: `${15 + fi * 17}%`,
+                                          }}
+                                          animate={{ opacity: [0, 1, 0], scale: [0.3, 1.2, 0.3] }}
+                                          transition={{ duration: 1.2, delay: fi * 0.25, repeat: Infinity }}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Cyber Pulse — scan lines */}
+                                  {opt.value === "cyber_pulse" && (
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl">
+                                      {[0, 1].map(fi => (
+                                        <motion.div
+                                          key={fi}
+                                          className="absolute left-0 right-0"
+                                          style={{
+                                            height: 1,
+                                            top: `${35 + fi * 30}%`,
+                                            background: `linear-gradient(90deg, transparent, ${fi === 0 ? "hsl(180 100% 55% / 0.5)" : "hsl(300 100% 60% / 0.5)"}, transparent)`,
+                                          }}
+                                          animate={{ scaleX: [0, 1.2, 0], opacity: [0, 0.8, 0] }}
+                                          transition={{ duration: 1.5, delay: fi * 0.4, repeat: Infinity }}
+                                        />
+                                      ))}
+                                    </div>
+                                  )}
+
+                                  {/* Explosion Burst — flash ring */}
+                                  {opt.value === "explosion_burst" && (
+                                    <div className="absolute inset-0 pointer-events-none overflow-hidden rounded-xl flex items-center justify-center">
+                                      <motion.div
+                                        className="rounded-full"
+                                        style={{
+                                          width: 16,
+                                          height: 16,
+                                          border: "1.5px solid hsl(40 100% 55% / 0.4)",
+                                        }}
+                                        animate={{ scale: [0.5, 2.5], opacity: [0.7, 0] }}
+                                        transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 0.5 }}
+                                      />
+                                    </div>
+                                  )}
                                   <div className="flex items-start gap-2">
                                     <span className="text-lg leading-none mt-0.5">{opt.emoji}</span>
                                     <div className="flex-1 min-w-0">

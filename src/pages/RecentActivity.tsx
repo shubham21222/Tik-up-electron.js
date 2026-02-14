@@ -314,14 +314,15 @@ const RecentActivity = () => {
 
   /* Preview filtering */
   const filteredSampleEvents = sampleEvents.filter(e => {
+    if (!activePreset) return true;
     const fk = eventTypeMap[e.type]?.filterKey;
-    if (!activePreset.eventTypes.includes(fk || "")) return false;
+    if (!activePreset.eventTypes?.includes(fk || "")) return false;
     if (previewFilter !== "all" && fk !== previewFilter) return false;
     if (searchQuery && !e.user.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
 
-  const displayEvents = activePreset.order === "oldest" ? [...filteredSampleEvents].reverse() : filteredSampleEvents;
+  const displayEvents = activePreset?.order === "oldest" ? [...filteredSampleEvents].reverse() : filteredSampleEvents;
 
   /* Playback */
   const startPlayback = useCallback(() => {
@@ -337,8 +338,8 @@ const RecentActivity = () => {
       }
       setPlaybackEvents(prev => [events[idx], ...prev].slice(0, 8));
       idx++;
-    }, (activePreset.animationDuration * 1000) / activePreset.animationSpeed);
-  }, [filteredSampleEvents, activePreset.animationDuration, activePreset.animationSpeed]);
+    }, ((activePreset?.animationDuration ?? 1) * 1000) / (activePreset?.animationSpeed ?? 1));
+  }, [filteredSampleEvents, activePreset?.animationDuration, activePreset?.animationSpeed]);
 
   const runTestEvents = useCallback(() => {
     const testSequence: MockEvent[] = [
@@ -377,6 +378,26 @@ const RecentActivity = () => {
     followers: sampleEvents.filter(e => e.type === "follow").length,
     total: sampleEvents.length,
   };
+
+  if (!activePreset && !widgetsLoading) {
+    return (
+      <AppLayout>
+        <div className="max-w-7xl mx-auto flex items-center justify-center min-h-[60vh]">
+          <p className="text-muted-foreground text-sm">Loading event feeds…</p>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!activePreset) {
+    return (
+      <AppLayout>
+        <div className="max-w-7xl mx-auto flex items-center justify-center min-h-[60vh]">
+          <p className="text-muted-foreground text-sm">Setting up your first feed…</p>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>
@@ -583,9 +604,9 @@ const RecentActivity = () => {
                   {(isPlaying ? playbackEvents : displayEvents).map((event, i) => {
                     const config = eventTypeMap[event.type];
                     return (
-                      <motion.div key={`${event.user}-${event.type}-${i}-${isPlaying}-${activePreset.animationStyle}-${activePreset.theme}`}
+                      <motion.div key={`${event.user}-${event.type}-${i}-${isPlaying}-${activePreset?.animationStyle}-${activePreset?.theme}`}
                         {...currentAnim}
-                        transition={{ duration: activePreset.animationDuration / activePreset.animationSpeed, delay: isPlaying ? 0 : i * 0.04 }}
+                        transition={{ duration: (activePreset?.animationDuration ?? 1) / (activePreset?.animationSpeed ?? 1), delay: isPlaying ? 0 : i * 0.04 }}
                         className="flex items-center gap-3 px-4 py-3 transition-all duration-300"
                         style={{
                           background: themeStyles.cardBg(config?.color || "0 0% 50%"),

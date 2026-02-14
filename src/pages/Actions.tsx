@@ -4,11 +4,14 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Gift, Search, Volume2, Play, X, HelpCircle,
   ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff,
-  Lock, Star, Crown
+  Lock, Star, Crown, Copy, ExternalLink, Monitor
 } from "lucide-react";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
+import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
 import AnimationPreview from "@/components/actions/AnimationPreview";
 import FeatureGuideModal, { defaultAlertSteps } from "@/components/FeatureGuideModal";
+import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { toast } from "sonner";
 
 interface AnimationOption {
   value: string;
@@ -56,11 +59,15 @@ const categoryLabels: Record<string, string> = {
 const Actions = () => {
   const { gifts, loading: giftsLoading } = useGiftCatalog();
   const { triggers, toggleTrigger, updateTrigger } = useUserGiftTriggers();
+  const { widgets } = useOverlayWidgets("gift_alert");
   const [search, setSearch] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
   const [filterValue, setFilterValue] = useState<string>("all");
   const [fullPreview, setFullPreview] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+
+  const giftAlertWidget = widgets[0]; // first gift_alert overlay if exists
+  const obsUrl = giftAlertWidget ? `${getOverlayBaseUrl()}/overlay/gift-alert/${giftAlertWidget.public_token}` : null;
 
   // Auto-show guide on first visit
   useEffect(() => {
@@ -392,8 +399,46 @@ const Actions = () => {
                         color: "hsl(280 100% 80%)",
                       }}
                     >
-                      <Play size={16} /> Preview This Alert
+                    <Play size={16} /> Preview This Alert
                     </button>
+
+                    {/* OBS Browser Source */}
+                    {giftAlertWidget && obsUrl && (
+                      <div className="rounded-xl p-4 space-y-3" style={{
+                        background: "rgba(255,255,255,0.02)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}>
+                        <div className="flex items-center gap-2">
+                          <Monitor size={14} className="text-primary" />
+                          <p className="text-xs font-bold text-foreground">OBS Browser Source</p>
+                          <div className="px-1.5 py-0.5 rounded-md text-[8px] font-extrabold bg-primary/10 text-primary border border-primary/20">LIVE</div>
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">
+                          Copy this URL into OBS as a Browser Source to display gift alerts on your stream.
+                        </p>
+                        <div className="flex items-center gap-2">
+                          <div className="flex-1 bg-muted/30 border border-border/30 rounded-lg px-3 py-2 text-[11px] text-muted-foreground font-mono truncate">
+                            {obsUrl}
+                          </div>
+                          <button
+                            onClick={() => { navigator.clipboard.writeText(obsUrl); toast.success("URL copied!"); }}
+                            className="flex-shrink-0 p-2 rounded-lg bg-primary/10 border border-primary/20 text-primary hover:bg-primary/20 transition-colors"
+                            title="Copy URL"
+                          >
+                            <Copy size={14} />
+                          </button>
+                          <a
+                            href={obsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex-shrink-0 p-2 rounded-lg bg-muted/30 border border-border/30 text-muted-foreground hover:text-foreground transition-colors"
+                            title="Open in new tab"
+                          >
+                            <ExternalLink size={14} />
+                          </a>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>

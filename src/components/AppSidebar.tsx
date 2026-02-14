@@ -1,40 +1,76 @@
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Target, BarChart3, Zap, MessageCircle, Gift,
-  Heart, UserPlus, Share2, Users, Timer, Activity, Trophy,
-  Volume2, Terminal, Shield, Mic, PartyPopper, BarChart,
-  Puzzle, Link2, Palette, CreditCard, ChevronLeft,
-  ChevronRight, Layers, Type, Settings, ShieldCheck, Sparkles
+  LayoutDashboard, Gift, MessageCircle, Users, BarChart3, Timer,
+  Sparkles, Volume2, Zap, Activity, Target, Trophy, Terminal,
+  Shield, PartyPopper, BarChart, Link2, Palette, Settings,
+  CreditCard, ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
+  Star
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import tikupLogo from "@/assets/tikup_logo.png";
 
+interface NavItem {
+  id: string;
+  label: string;
+  icon: typeof LayoutDashboard;
+  pro?: boolean;
+}
+
 interface SidebarSection {
   label: string;
-  items: { id: string; label: string; icon: typeof LayoutDashboard; pro?: boolean }[];
+  emoji: string;
+  items: NavItem[];
 }
 
 const sections: SidebarSection[] = [
   {
-    label: "My Stream",
+    label: "Live Controls",
+    emoji: "📡",
     items: [
-      { id: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
       { id: "/actions", label: "Gift Alerts", icon: Gift },
       { id: "/chat-overlay", label: "Chat Overlay", icon: MessageCircle },
+      { id: "/viewer-count", label: "Viewer Count", icon: Users },
       { id: "/like-counter", label: "Like / Follower Counter", icon: BarChart3 },
       { id: "/stream-timer", label: "Stream Timer", icon: Timer },
-      { id: "/viewer-count", label: "Viewer Count", icon: Users },
-      { id: "/sounds", label: "Sound Alerts", icon: Volume2 },
-      { id: "/overlays", label: "All Overlays", icon: Layers },
       { id: "/presets", label: "Stream Themes", icon: Sparkles },
-      { id: "/gift-browser", label: "Gift Browser", icon: Gift },
+    ],
+  },
+  {
+    label: "Engagement",
+    emoji: "🔥",
+    items: [
+      { id: "/sounds", label: "Sound & Reactions", icon: Volume2, pro: true },
+      { id: "/overlays", label: "Effects Browser", icon: Layers },
       { id: "/recent-activity", label: "Live Feed", icon: Activity },
+    ],
+  },
+  {
+    label: "Growth & Goals",
+    emoji: "🚀",
+    items: [
+      { id: "/goal-overlays", label: "Stream Goals", icon: Target },
+      { id: "/leaderboard", label: "Top Supporters", icon: Trophy, pro: true },
+    ],
+  },
+  {
+    label: "Creator Tools",
+    emoji: "🛠",
+    items: [
+      { id: "/chat-commands", label: "Chat Commands", icon: Terminal },
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
-      { id: "/setup", label: "Connect TikTok", icon: Settings },
-      { id: "/integrations", label: "Integrations", icon: Link2 },
+      { id: "/giveaways", label: "Giveaways", icon: PartyPopper, pro: true },
+      { id: "/polls", label: "Polls", icon: BarChart, pro: true },
+      { id: "/gift-browser", label: "Gift Browser", icon: Gift },
+    ],
+  },
+  {
+    label: "Settings",
+    emoji: "⚙",
+    items: [
+      { id: "/setup", label: "Connect TikTok", icon: Link2 },
       { id: "/brand-settings", label: "Brand & Style", icon: Palette },
-      { id: "/pro", label: "Go Pro", icon: CreditCard },
+      { id: "/integrations", label: "Integrations", icon: Settings },
       { id: "/admin", label: "Admin Panel", icon: ShieldCheck },
     ],
   },
@@ -48,7 +84,7 @@ const AppSidebar = () => {
     <aside
       className={cn(
         "h-screen bg-sidebar border-r border-sidebar-border flex flex-col fixed left-0 top-0 z-50 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)]",
-        collapsed ? "w-[60px]" : "w-[220px]"
+        collapsed ? "w-[60px]" : "w-[230px]"
       )}
     >
       {/* Logo */}
@@ -61,19 +97,51 @@ const AppSidebar = () => {
         </Link>
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-4" style={{ scrollbarWidth: "none" }}>
+      {/* Dashboard - always visible at top */}
+      <div className="px-2 pt-3 pb-1">
+        <Link
+          to="/dashboard"
+          className={cn(
+            "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
+            collapsed ? "justify-center p-3" : "px-3 py-3",
+            location.pathname === "/dashboard"
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
+          )}
+        >
+          {location.pathname === "/dashboard" && (
+            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
+          )}
+          <LayoutDashboard size={22} className={cn("flex-shrink-0", location.pathname === "/dashboard" && "drop-shadow-[0_0_6px_hsl(160,100%,50%)]")} />
+          {!collapsed && <span className="text-sm font-bold">Dashboard</span>}
+          {collapsed && (
+            <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-popover border border-border text-foreground text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[60] shadow-lg">
+              Dashboard
+            </div>
+          )}
+        </Link>
+      </div>
+
+      {/* Nav sections */}
+      <nav className="flex-1 overflow-y-auto py-1 px-2 space-y-3" style={{ scrollbarWidth: "none" }}>
         {sections.map((section) => (
           <div key={section.label}>
-            <div className={cn("mb-2 mt-1", collapsed ? "flex justify-center" : "px-2")}>
+            <div className={cn("mb-1.5 mt-1", collapsed ? "flex justify-center" : "px-2")}>
               <p className={cn(
-                "uppercase tracking-[0.12em] text-muted-foreground/60 font-bold",
-                collapsed ? "text-[8px] text-center" : "text-[11px]"
+                "uppercase tracking-[0.14em] text-muted-foreground/60 font-extrabold flex items-center gap-1.5",
+                collapsed ? "text-[8px] text-center" : "text-[10px]"
               )}>
-                {collapsed ? section.label.split(" ")[0].slice(0, 3) : section.label}
+                {collapsed ? (
+                  <span>{section.emoji}</span>
+                ) : (
+                  <>
+                    <span className="text-xs">{section.emoji}</span>
+                    {section.label}
+                  </>
+                )}
               </p>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-0.5">
               {section.items.map((item) => {
                 const isActive = location.pathname === item.id;
                 return (
@@ -81,7 +149,7 @@ const AppSidebar = () => {
                     key={item.id}
                     to={item.id}
                     className={cn(
-                      "flex items-center gap-2.5 rounded-lg transition-all duration-200 group relative",
+                      "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
                       collapsed ? "justify-center p-3" : "px-3 py-2.5",
                       isActive
                         ? "bg-primary/10 text-primary"
@@ -89,14 +157,22 @@ const AppSidebar = () => {
                     )}
                   >
                     {isActive && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[2px] h-4 rounded-r-full bg-primary" />
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
                     )}
                     <item.icon size={20} className={cn("flex-shrink-0", isActive && "drop-shadow-[0_0_6px_hsl(160,100%,50%)]")} />
                     {!collapsed && (
                       <>
-                        <span className="text-sm font-bold truncate">{item.label}</span>
+                        <span className="text-[13px] font-bold truncate">{item.label}</span>
                         {item.pro && (
-                          <span className="ml-auto text-[9px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-md flex-shrink-0">
+                          <span
+                            className="ml-auto text-[8px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 inline-flex items-center gap-0.5"
+                            style={{
+                              background: "linear-gradient(135deg, hsl(280 100% 65% / 0.15), hsl(280 100% 55% / 0.08))",
+                              color: "hsl(280 100% 70%)",
+                              border: "1px solid hsl(280 100% 65% / 0.2)",
+                            }}
+                          >
+                            <Star size={7} />
                             PRO
                           </span>
                         )}
@@ -114,6 +190,36 @@ const AppSidebar = () => {
           </div>
         ))}
       </nav>
+
+      {/* Go Pro CTA */}
+      <div className="px-2 pb-1">
+        <Link
+          to="/pro"
+          className={cn(
+            "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
+            collapsed ? "justify-center p-3" : "px-3 py-3",
+            location.pathname === "/pro"
+              ? "text-foreground"
+              : "text-muted-foreground hover:text-foreground"
+          )}
+          style={{
+            background: location.pathname === "/pro"
+              ? "linear-gradient(135deg, hsl(280 100% 65% / 0.15), hsl(280 100% 55% / 0.08))"
+              : "linear-gradient(135deg, hsl(280 100% 65% / 0.08), hsl(280 100% 55% / 0.04))",
+            border: "1px solid hsl(280 100% 65% / 0.15)",
+          }}
+        >
+          <Crown size={20} className="flex-shrink-0" style={{ color: "hsl(280 100% 70%)" }} />
+          {!collapsed && (
+            <span className="text-sm font-extrabold" style={{ color: "hsl(280 100% 70%)" }}>Go Pro</span>
+          )}
+          {collapsed && (
+            <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-popover border border-border text-foreground text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[60] shadow-lg">
+              Go Pro
+            </div>
+          )}
+        </Link>
+      </div>
 
       {/* Collapse toggle */}
       <div className="border-t border-sidebar-border p-2 flex-shrink-0">

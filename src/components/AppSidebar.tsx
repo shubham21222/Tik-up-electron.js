@@ -29,7 +29,7 @@ const sections: SidebarSection[] = [
   {
     label: "When Viewers…",
     items: [
-      { id: "/actions", label: "Send Gifts → This Happens", icon: Zap },
+      { id: "/actions", label: "Gift Alerts", icon: Gift },
       { id: "/chat-overlay", label: "Chat on Screen", icon: MessageCircle, pro: true },
       { id: "/gift-alerts", label: "Gift Reactions", icon: Gift, pro: true },
       { id: "/like-alerts", label: "Like Reactions", icon: Heart, pro: true },

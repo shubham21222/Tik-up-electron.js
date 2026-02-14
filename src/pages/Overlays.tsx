@@ -168,9 +168,9 @@ const Overlays = () => {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }} className="mb-6">
           <div className="flex items-center gap-2 mb-2">
             <Sparkles size={18} className="text-primary" />
-            <h1 className="text-3xl font-heading font-bold text-foreground">Overlays</h1>
+            <h1 className="text-3xl font-heading font-bold text-foreground">Effects & Overlays</h1>
           </div>
-          <p className="text-muted-foreground text-sm">Premium overlay widgets for your TikTok LIVE stream. Each overlay is a browser source URL for OBS.</p>
+          <p className="text-muted-foreground text-sm">Choose what happens when viewers interact with your stream. Each effect gets a link you paste into OBS.</p>
         </motion.div>
 
         {/* Goal Overlays CTA */}

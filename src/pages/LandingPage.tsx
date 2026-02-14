@@ -10,12 +10,12 @@ import tikupLogo from "@/assets/tikup_logo.png";
 
 /* ─── Data ─── */
 const features = [
-  { icon: Target, title: "Goal Overlays", desc: "Real-time animated progress bars for likes, follows, shares, and custom goals." },
-  { icon: Zap, title: "Event Alerts", desc: "Instant alerts for gifts, follows, likes, and shares with premium animations." },
-  { icon: Volume2, title: "Soundboard", desc: "Custom sound effects triggered by gifts, commands, and viewer interactions." },
-  { icon: BarChart3, title: "Live Analytics", desc: "Track viewers, engagement, and revenue in real-time on your dashboard." },
-  { icon: Shield, title: "Chat Moderation", desc: "Auto-block spam, caps, links, and custom words from your TikTok Live chat." },
-  { icon: Sparkles, title: "Custom Widgets", desc: "Leaderboards, polls, giveaways, and more — all OBS-ready." },
+  { icon: Target, title: "Stream Goals", desc: "Set a follower, like, or gift goal — your viewers see it update in real-time on screen." },
+  { icon: Zap, title: "Instant Reactions", desc: "When someone sends a gift or follows, your stream reacts instantly with animations and sounds." },
+  { icon: Volume2, title: "Sound Effects", desc: "Viewers trigger sound effects with gifts and chat commands. You pick the sounds." },
+  { icon: BarChart3, title: "See Who's Watching", desc: "Track viewers, likes, shares, and diamonds as they happen — all on one screen." },
+  { icon: Shield, title: "Chat Protection", desc: "Auto-block spam, caps, and toxic messages so you can focus on creating." },
+  { icon: Sparkles, title: "Ready-Made Effects", desc: "Leaderboards, polls, giveaways — all plug-and-play, no setup required." },
 ];
 
 const liveEvents = [
@@ -30,9 +30,9 @@ const liveEvents = [
 ];
 
 const whyChoose = [
-  { icon: Zap, title: "Instant Real-Time Alerts", desc: "Zero-delay notifications the moment a viewer interacts. Gifts, follows, likes — all instant." },
-  { icon: Brain, title: "Smart Moderation", desc: "AI-powered chat filtering blocks spam, caps, and toxic messages before they reach your screen." },
-  { icon: Rocket, title: "OBS-Ready Overlays", desc: "Copy a URL, paste into OBS or TikTok Live Studio. No plugins, no downloads, no friction." },
+  { icon: Zap, title: "60-Second Setup", desc: "Enter your TikTok username, pick a preset, and your stream effects are live. That's it." },
+  { icon: Brain, title: "No Tech Skills Needed", desc: "We don't make you build logic diagrams. Just choose what happens when viewers interact." },
+  { icon: Rocket, title: "Works Everywhere", desc: "Copy one link into OBS or TikTok Live Studio. No plugins, no downloads, no friction." },
 ];
 
 const proFeatures = [
@@ -410,7 +410,7 @@ const LandingPage = () => {
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-widest text-primary"
               style={{ background: "hsl(160 100% 45% / 0.06)", border: "1px solid hsl(160 100% 45% / 0.12)" }}>
               <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-              Built for Serious Creators
+              Built for Creators, Not Developers
             </span>
           </motion.div>
 
@@ -447,7 +447,7 @@ const LandingPage = () => {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Professional overlays, real-time engagement tools, and powerful growth features designed for serious TikTok creators.
+            Set up your live effects in under 60 seconds. No downloads, no wiring, no tech skills needed — just pick a vibe and go live.
           </motion.p>
 
           {/* CTAs */}
@@ -462,7 +462,7 @@ const LandingPage = () => {
               className="group px-9 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_40px_hsl(160_100%_45%/0.35),0_0_80px_hsl(160_100%_45%/0.1)] flex items-center gap-2.5 relative overflow-hidden"
             >
               <span className="relative z-10 flex items-center gap-2">
-                Get Started
+                See Your Stream Effects in 60 Seconds
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
               </span>
               {/* Button shimmer */}
@@ -494,7 +494,7 @@ const LandingPage = () => {
             transition={{ delay: 0.5 }}
             className="text-xs text-muted-foreground/50 font-medium"
           >
-            Trusted by <span className="text-muted-foreground">2,000+</span> LIVE creators worldwide
+            Join <span className="text-muted-foreground">2,000+</span> creators who grew their streams with TikUp
           </motion.p>
         </div>
       </section>
@@ -539,9 +539,9 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-16"
           >
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 block">Platform Features</span>
-            <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">Everything You Need to Go Live</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Premium tools built specifically for TikTok LIVE creators who want to stand out.</p>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 block">What You Get</span>
+            <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">Choose What Viewers Make Happen</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">When someone sends a gift, follows, or likes — you decide what happens on your stream.</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -594,7 +594,7 @@ const LandingPage = () => {
             className="text-center mb-16"
           >
             <span className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 block">Why TikUp</span>
-            <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">Why Creators Choose TIKUP</h2>
+            <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">Stop Wiring Tools Together. Just Use TikUp.</h2>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -636,9 +636,9 @@ const LandingPage = () => {
             viewport={{ once: true }}
             className="text-center mb-14"
           >
-            <span className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 block">Dashboard</span>
-            <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">Control Everything From One Dashboard</h2>
-            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Real-time analytics, overlay management, and stream tools — all in one place.</p>
+            <span className="text-[11px] font-bold uppercase tracking-widest text-primary mb-3 block">One Dashboard</span>
+            <h2 className="text-3xl md:text-5xl font-heading font-bold text-foreground mb-4 tracking-tight">One Account. One Dashboard. Zero Headaches.</h2>
+            <p className="text-muted-foreground text-lg max-w-xl mx-auto">Your phone is just a remote control for the same system. No separate apps to manage.</p>
           </motion.div>
 
           <DashboardMockup />

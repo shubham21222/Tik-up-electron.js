@@ -71,6 +71,7 @@ import PromoOverlayRenderer from "./pages/renderers/PromoOverlayRenderer";
 import StreamBorderRenderer from "./pages/renderers/StreamBorderRenderer";
 import WebcamFrameRenderer from "./pages/renderers/WebcamFrameRenderer";
 import GiftBrowser from "./pages/GiftBrowser";
+import StreamPresets from "./pages/StreamPresets";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -155,6 +156,7 @@ const App = () => (
                 <Route path="/stream-border" element={<StreamBorderOverlay />} />
                 <Route path="/webcam-frame" element={<WebcamFrameOverlay />} />
                 <Route path="/gift-browser" element={<GiftBrowser />} />
+                <Route path="/presets" element={<StreamPresets />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

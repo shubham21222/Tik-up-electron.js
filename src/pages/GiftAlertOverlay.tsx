@@ -171,6 +171,12 @@ const GiftAlertOverlay = () => {
                             { value: "explosion", label: "Explosion" },
                             { value: "flip_3d", label: "3D Flip" },
                             { value: "glitch", label: "Glitch Intro" },
+                            { value: "flames_rising", label: "🔥 Flames Rising" },
+                            { value: "icy_blast", label: "❄️ Icy Blast" },
+                            { value: "christmas_spark", label: "🎄 Christmas Spark" },
+                            { value: "snowfall", label: "🌨️ Snowfall" },
+                            { value: "cyber_pulse", label: "⚡ Cyber Pulse" },
+                            { value: "explosion_burst", label: "💥 Explosion Burst" },
                           ]} />
                         </SettingRow>
                         <SettingRow label="Alert Duration" description="How long alerts stay on screen">

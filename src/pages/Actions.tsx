@@ -74,6 +74,8 @@ const Actions = () => {
   const [filterValue, setFilterValue] = useState<string>("all");
   const [fullPreview, setFullPreview] = useState(false);
   const [showGuide, setShowGuide] = useState(false);
+  const [hideAlertBg, setHideAlertBg] = useState(false);
+  const [hideAlertBorder, setHideAlertBorder] = useState(false);
 
   const giftAlertWidget = widgets[0]; // first gift_alert overlay if exists
   const obsUrl = giftAlertWidget ? `${getOverlayBaseUrl()}/overlay/gift-alert/${giftAlertWidget.public_token}` : null;
@@ -303,7 +305,41 @@ const Actions = () => {
                       giftName={currentGift.name}
                       giftImage={getImageUrl(currentGift.image_url)}
                       isPremium={premiumAnimations.has(currentAnimStyle)}
+                      hideBackground={hideAlertBg}
+                      hideBorder={hideAlertBorder}
                     />
+
+                    {/* Alert Box Style Toggles */}
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => setHideAlertBg(v => !v)}
+                        className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-medium transition-all"
+                        style={{
+                          background: hideAlertBg ? "hsl(160 100% 45% / 0.08)" : "rgba(255,255,255,0.03)",
+                          border: `1px solid ${hideAlertBg ? "hsl(160 100% 45% / 0.2)" : "rgba(255,255,255,0.06)"}`,
+                          color: hideAlertBg ? "hsl(160 100% 55%)" : "hsl(var(--muted-foreground))",
+                        }}
+                      >
+                        <div className={`w-8 h-[18px] rounded-full relative transition-colors ${hideAlertBg ? "bg-primary/30" : "bg-muted/60"}`}>
+                          <div className={`w-3.5 h-3.5 rounded-full absolute top-[2px] transition-all ${hideAlertBg ? "left-[17px] bg-primary" : "left-[2px] bg-muted-foreground/60"}`} />
+                        </div>
+                        No Background
+                      </button>
+                      <button
+                        onClick={() => setHideAlertBorder(v => !v)}
+                        className="flex-1 flex items-center gap-2 px-4 py-3 rounded-xl text-xs font-medium transition-all"
+                        style={{
+                          background: hideAlertBorder ? "hsl(160 100% 45% / 0.08)" : "rgba(255,255,255,0.03)",
+                          border: `1px solid ${hideAlertBorder ? "hsl(160 100% 45% / 0.2)" : "rgba(255,255,255,0.06)"}`,
+                          color: hideAlertBorder ? "hsl(160 100% 55%)" : "hsl(var(--muted-foreground))",
+                        }}
+                      >
+                        <div className={`w-8 h-[18px] rounded-full relative transition-colors ${hideAlertBorder ? "bg-primary/30" : "bg-muted/60"}`}>
+                          <div className={`w-3.5 h-3.5 rounded-full absolute top-[2px] transition-all ${hideAlertBorder ? "left-[17px] bg-primary" : "left-[2px] bg-muted-foreground/60"}`} />
+                        </div>
+                        No Border
+                      </button>
+                    </div>
 
                     {/* Animation Style Picker - Card Grid */}
                     <div className="space-y-4">

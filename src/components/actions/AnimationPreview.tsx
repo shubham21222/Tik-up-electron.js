@@ -8,6 +8,8 @@ interface AnimationPreviewProps {
   giftName: string;
   giftImage?: string;
   isPremium?: boolean;
+  hideBackground?: boolean;
+  hideBorder?: boolean;
 }
 
 const getAnimation = (style: string) => {
@@ -149,7 +151,7 @@ const particleColors: Record<string, string[]> = {
   explosion_burst: ["hsl(40 100% 55%)", "hsl(20 100% 50%)", "hsl(0 100% 55%)", "hsl(50 100% 65%)", "hsl(30 90% 50%)"],
 };
 
-const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: AnimationPreviewProps) => {
+const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium, hideBackground, hideBorder }: AnimationPreviewProps) => {
   const [key, setKey] = useState(0);
 
   useEffect(() => { setKey(k => k + 1); }, [style]);
@@ -411,104 +413,202 @@ const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: Anim
         </>
       )}
 
-      {/* Icy Blast — frost shards */}
+      {/* Icy Blast — dramatic frost explosion */}
       {isIcyBlast && (
         <>
-          {[...Array(10)].map((_, i) => {
-            const angle = (i / 10) * 360;
+          {/* Large ice shards radiating outward */}
+          {[...Array(12)].map((_, i) => {
+            const angle = (i / 12) * 360;
             return (
               <motion.div
-                key={`ice-${key}-${i}`}
+                key={`ice-shard-${key}-${i}`}
                 className="absolute top-1/2 left-1/2 pointer-events-none"
                 style={{
-                  width: 3,
-                  height: 20 + Math.random() * 15,
-                  background: `linear-gradient(180deg, ${colors[i % colors.length]}, transparent)`,
+                  width: 3 + (i % 3) * 2,
+                  height: 25 + (i % 4) * 12,
+                  background: `linear-gradient(180deg, ${colors[i % colors.length]}, hsl(200 100% 90% / 0.3), transparent)`,
                   transformOrigin: "center bottom",
                   rotate: `${angle}deg`,
+                  filter: "blur(0.5px)",
                 }}
                 initial={{ scaleY: 0, opacity: 0 }}
-                animate={{ scaleY: [0, 1.2, 0.8], opacity: [0, 0.7, 0] }}
-                transition={{ duration: 0.8, delay: 0.1 + i * 0.05 }}
+                animate={{ scaleY: [0, 1.5, 1], opacity: [0, 0.9, 0] }}
+                transition={{ duration: 0.9, delay: 0.05 + i * 0.04, repeat: Infinity, repeatDelay: 2.5 }}
               />
             );
           })}
+          {/* Frost particles drifting */}
+          {[...Array(14)].map((_, i) => (
+            <motion.div
+              key={`frost-p-${key}-${i}`}
+              className="absolute pointer-events-none rounded-full"
+              style={{
+                width: 2 + (i % 3) * 2,
+                height: 2 + (i % 3) * 2,
+                background: colors[i % colors.length],
+                left: `${5 + i * 6.5}%`,
+                top: `${30 + (i % 5) * 10}%`,
+                boxShadow: `0 0 6px ${colors[i % colors.length]}`,
+              }}
+              animate={{
+                y: [0, -15 - (i % 4) * 10, 5],
+                x: [(i % 2 === 0 ? -1 : 1) * 8, (i % 2 === 0 ? 1 : -1) * 5],
+                opacity: [0, 0.8, 0],
+                scale: [0.3, 1.2, 0.3],
+              }}
+              transition={{ duration: 1.5 + (i % 3) * 0.4, delay: i * 0.08, repeat: Infinity }}
+            />
+          ))}
+          {/* Frost flash */}
           <motion.div
-            key={`frost-${key}`}
+            key={`frost-flash-${key}`}
             className="absolute inset-0 pointer-events-none"
-            style={{ background: "radial-gradient(circle, hsl(200 100% 80% / 0.08), transparent)" }}
-            initial={{ scale: 0.5, opacity: 0 }}
-            animate={{ scale: [0.5, 1.5], opacity: [0.4, 0] }}
-            transition={{ duration: 1.0 }}
+            style={{ background: "radial-gradient(circle, hsl(200 100% 85% / 0.15), transparent)" }}
+            initial={{ scale: 0.3, opacity: 0 }}
+            animate={{ scale: [0.3, 1.8, 1.2], opacity: [0, 0.5, 0] }}
+            transition={{ duration: 1.2, repeat: Infinity, repeatDelay: 2 }}
+          />
+          {/* Frost rim glow */}
+          <motion.div
+            key={`frost-rim-${key}`}
+            className="absolute inset-0 pointer-events-none rounded-2xl"
+            style={{ boxShadow: "inset 0 0 30px hsl(200 100% 80% / 0.1), inset 0 0 60px hsl(190 100% 75% / 0.05)" }}
+            animate={{ opacity: [0.3, 0.7, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
           />
         </>
       )}
 
-      {/* Christmas Spark — sparkle bursts + ornament colors */}
+      {/* Christmas Spark — dramatic sparkle bursts + ornament colors */}
       {isChristmas && (
         <>
-          {[...Array(8)].map((_, i) => (
+          {/* Large twinkling stars */}
+          {[...Array(12)].map((_, i) => (
             <motion.div
               key={`xmas-star-${key}-${i}`}
               className="absolute pointer-events-none"
               style={{
-                width: 4,
-                height: 4,
+                width: 4 + (i % 3) * 2,
+                height: 4 + (i % 3) * 2,
                 borderRadius: "50%",
                 background: colors[i % colors.length],
-                top: `${20 + Math.random() * 60}%`,
-                left: `${10 + Math.random() * 80}%`,
-                boxShadow: `0 0 8px ${colors[i % colors.length]}`,
+                top: `${10 + (i * 7) % 80}%`,
+                left: `${5 + (i * 8.5) % 90}%`,
+                boxShadow: `0 0 12px ${colors[i % colors.length]}, 0 0 24px ${colors[i % colors.length].replace(")", " / 0.4)")}`,
               }}
               initial={{ scale: 0, opacity: 0 }}
-              animate={{ scale: [0, 1.5, 0], opacity: [0, 1, 0] }}
-              transition={{ duration: 1.0, delay: i * 0.12, repeat: Infinity, repeatDelay: 1.5 }}
+              animate={{ scale: [0, 1.8, 0.8, 1.5, 0], opacity: [0, 1, 0.6, 0.9, 0] }}
+              transition={{ duration: 1.5, delay: i * 0.15, repeat: Infinity, repeatDelay: 1.0 }}
             />
           ))}
+          {/* Star cross flares */}
+          {[...Array(6)].map((_, i) => (
+            <motion.div
+              key={`xmas-flare-${key}-${i}`}
+              className="absolute pointer-events-none"
+              style={{
+                width: 1,
+                height: 16 + (i % 3) * 8,
+                background: `linear-gradient(180deg, transparent, ${colors[i % colors.length]}, transparent)`,
+                top: `${15 + i * 14}%`,
+                left: `${12 + i * 16}%`,
+                rotate: `${45 + i * 30}deg`,
+                filter: "blur(1px)",
+              }}
+              animate={{ scaleY: [0, 1, 0], opacity: [0, 0.8, 0] }}
+              transition={{ duration: 1.0, delay: 0.3 + i * 0.2, repeat: Infinity, repeatDelay: 1.5 }}
+            />
+          ))}
+          {/* Warm holiday glow */}
+          <motion.div
+            key={`xmas-glow-${key}`}
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at center, hsl(0 80% 50% / 0.06), hsl(120 80% 40% / 0.04), transparent)" }}
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
         </>
       )}
 
-      {/* Snowfall — gentle particles drifting down */}
+      {/* Snowfall — heavy dramatic snowstorm */}
       {isSnowfall && (
         <>
-          {[...Array(16)].map((_, i) => (
+          {/* Large snowflakes */}
+          {[...Array(20)].map((_, i) => (
             <motion.div
-              key={`snow-${key}-${i}`}
+              key={`snow-lg-${key}-${i}`}
               className="absolute pointer-events-none rounded-full"
               style={{
-                width: 3 + Math.random() * 4,
-                height: 3 + Math.random() * 4,
+                width: 3 + (i % 4) * 2,
+                height: 3 + (i % 4) * 2,
                 background: colors[i % colors.length],
-                left: `${5 + i * 6}%`,
+                left: `${2 + i * 4.8}%`,
                 top: -10,
-                filter: "blur(0.5px)",
+                filter: `blur(${i % 3 === 0 ? 1 : 0}px)`,
+                boxShadow: `0 0 4px ${colors[i % colors.length]}`,
               }}
               initial={{ y: -10, opacity: 0 }}
-              animate={{ y: [null, 220], x: [0, (Math.random() - 0.5) * 30], opacity: [0, 0.7, 0.5, 0] }}
-              transition={{ duration: 2.5 + Math.random(), delay: i * 0.15, repeat: Infinity, ease: "linear" }}
+              animate={{
+                y: [-10, 220],
+                x: [0, (i % 2 === 0 ? 1 : -1) * (10 + (i % 5) * 5), (i % 2 === 0 ? -1 : 1) * 8],
+                opacity: [0, 0.8, 0.6, 0],
+                rotate: [0, (i % 2 === 0 ? 180 : -180)],
+              }}
+              transition={{ duration: 2.5 + (i % 4) * 0.5, delay: i * 0.12, repeat: Infinity, ease: "linear" }}
             />
           ))}
+          {/* Snow accumulation glow at bottom */}
+          <motion.div
+            key={`snow-floor-${key}`}
+            className="absolute bottom-0 left-0 right-0 pointer-events-none blur-xl"
+            style={{ height: 40, background: "linear-gradient(180deg, transparent, hsl(210 30% 90% / 0.08))" }}
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+          {/* Frost vignette */}
+          <motion.div
+            key={`snow-vignette-${key}`}
+            className="absolute inset-0 pointer-events-none rounded-2xl"
+            style={{ boxShadow: "inset 0 0 40px hsl(210 30% 90% / 0.05)" }}
+            animate={{ opacity: [0.3, 0.5, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
         </>
       )}
 
-      {/* Cyber Pulse — electric lines + scan effect */}
+      {/* Cyber Pulse — dramatic electric grid + scan effect */}
       {isCyberPulse && (
         <>
-          {[...Array(4)].map((_, i) => (
+          {/* Horizontal scan lines */}
+          {[...Array(6)].map((_, i) => (
             <motion.div
               key={`cyber-line-${key}-${i}`}
               className="absolute left-0 right-0 pointer-events-none"
               style={{
                 height: 2,
-                top: `${20 + i * 20}%`,
-                background: `linear-gradient(90deg, transparent, ${colors[i % colors.length].replace(")", " / 0.6)")}, transparent)`,
+                top: `${12 + i * 15}%`,
+                background: `linear-gradient(90deg, transparent, ${colors[i % colors.length].replace(")", " / 0.7)")}, transparent)`,
+                boxShadow: `0 0 8px ${colors[i % colors.length].replace(")", " / 0.3)")}`,
               }}
               initial={{ scaleX: 0, opacity: 0 }}
-              animate={{ scaleX: [0, 1.2, 0], opacity: [0, 0.9, 0] }}
-              transition={{ duration: 0.5, delay: 0.15 + i * 0.1, repeat: Infinity, repeatDelay: 2 }}
+              animate={{ scaleX: [0, 1.3, 0], opacity: [0, 0.9, 0] }}
+              transition={{ duration: 0.6, delay: 0.1 + i * 0.12, repeat: Infinity, repeatDelay: 1.8 }}
             />
           ))}
-          {[0, 1].map(i => (
+          {/* Vertical scan sweep */}
+          <motion.div
+            key={`cyber-sweep-${key}`}
+            className="absolute top-0 bottom-0 pointer-events-none"
+            style={{
+              width: 3,
+              background: `linear-gradient(180deg, transparent, ${colors[0].replace(")", " / 0.6)")}, transparent)`,
+              boxShadow: `0 0 15px ${colors[0].replace(")", " / 0.3)")}`,
+            }}
+            animate={{ left: ["-5%", "105%"] }}
+            transition={{ duration: 1.5, repeat: Infinity, repeatDelay: 1.5, ease: "easeInOut" }}
+          />
+          {/* Pulsing rings */}
+          {[0, 1, 2].map(i => (
             <motion.div
               key={`cyber-ring-${key}-${i}`}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
@@ -516,37 +616,93 @@ const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: Anim
                 width: 50,
                 height: 50,
                 border: `1.5px solid ${colors[i].replace(")", " / 0.5)")}`,
-                boxShadow: `0 0 12px ${colors[i].replace(")", " / 0.3)")}`,
+                boxShadow: `0 0 15px ${colors[i].replace(")", " / 0.3)")}, inset 0 0 8px ${colors[i].replace(")", " / 0.1)")}`,
               }}
               initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: [0.5, 2 + i], opacity: [0.8, 0] }}
-              transition={{ duration: 1.0, delay: 0.2 + i * 0.2, repeat: Infinity, repeatDelay: 1.5 }}
+              animate={{ scale: [0.5, 2.5 + i * 0.5], opacity: [0.8, 0] }}
+              transition={{ duration: 1.2, delay: 0.2 + i * 0.2, repeat: Infinity, repeatDelay: 1.5 }}
+            />
+          ))}
+          {/* Digital noise particles */}
+          {[...Array(10)].map((_, i) => (
+            <motion.div
+              key={`cyber-dot-${key}-${i}`}
+              className="absolute pointer-events-none"
+              style={{
+                width: 2 + (i % 3) * 3,
+                height: 1,
+                background: colors[i % colors.length],
+                top: `${10 + (i * 9) % 80}%`,
+                left: `${5 + (i * 10) % 90}%`,
+                boxShadow: `0 0 4px ${colors[i % colors.length]}`,
+              }}
+              animate={{ opacity: [0, 1, 0], scaleX: [0.5, 2, 0.5] }}
+              transition={{ duration: 0.3, delay: i * 0.15, repeat: Infinity, repeatDelay: 1.5 + (i % 3) * 0.3 }}
             />
           ))}
         </>
       )}
 
-      {/* Explosion Burst — bright burst + debris */}
+      {/* Explosion Burst — dramatic bright burst + debris + shockwave */}
       {isExplosionBurst && (
         <>
+          {/* Central flash */}
           <motion.div
             key={`burst-flash-${key}`}
             className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none blur-xl"
-            style={{ width: 120, height: 120, background: `radial-gradient(circle, ${colors[0].replace(")", " / 0.4)")}, transparent)` }}
+            style={{ width: 160, height: 160, background: `radial-gradient(circle, ${colors[0].replace(")", " / 0.5)")}, ${colors[3].replace(")", " / 0.2)")}, transparent)` }}
             initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: [0, 2, 1], opacity: [0, 0.8, 0] }}
-            transition={{ duration: 0.6 }}
+            animate={{ scale: [0, 2.5, 1.5], opacity: [0, 0.9, 0] }}
+            transition={{ duration: 0.8, repeat: Infinity, repeatDelay: 2.5 }}
           />
-          {[0, 1, 2].map(i => (
+          {/* Expanding shockwave rings */}
+          {[0, 1, 2, 3].map(i => (
             <motion.div
               key={`burst-ring-${key}-${i}`}
               className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none"
-              style={{ width: 40, height: 40, border: `2px solid ${colors[i % colors.length].replace(")", " / 0.5)")}` }}
+              style={{
+                width: 40,
+                height: 40,
+                border: `2px solid ${colors[i % colors.length].replace(")", " / 0.6)")}`,
+                boxShadow: `0 0 10px ${colors[i % colors.length].replace(")", " / 0.3)")}`,
+              }}
               initial={{ scale: 0, opacity: 1 }}
-              animate={{ scale: [0, 3 + i], opacity: [1, 0] }}
-              transition={{ duration: 0.6 + i * 0.1, delay: 0.1 + i * 0.08 }}
+              animate={{ scale: [0, 3.5 + i * 0.8], opacity: [1, 0] }}
+              transition={{ duration: 0.7 + i * 0.1, delay: 0.05 + i * 0.08, repeat: Infinity, repeatDelay: 2.5 }}
             />
           ))}
+          {/* Debris flying outward */}
+          {[...Array(14)].map((_, i) => {
+            const angle = (i / 14) * 360 + (i % 3) * 10;
+            return (
+              <motion.div
+                key={`debris-${key}-${i}`}
+                className="absolute top-1/2 left-1/2 pointer-events-none rounded-full"
+                style={{
+                  width: 3 + (i % 3),
+                  height: 3 + (i % 3),
+                  background: colors[i % colors.length],
+                  boxShadow: `0 0 6px ${colors[i % colors.length]}`,
+                }}
+                initial={{ x: 0, y: 0, opacity: 0 }}
+                animate={{
+                  x: Math.cos((angle * Math.PI) / 180) * (50 + (i % 4) * 15),
+                  y: Math.sin((angle * Math.PI) / 180) * (50 + (i % 4) * 15),
+                  opacity: [0, 1, 0],
+                  scale: [0.5, 1.5, 0],
+                }}
+                transition={{ duration: 0.8, delay: 0.1 + i * 0.03, repeat: Infinity, repeatDelay: 2.5, ease: "easeOut" }}
+              />
+            );
+          })}
+          {/* Hot core glow */}
+          <motion.div
+            key={`burst-core-${key}`}
+            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full pointer-events-none blur-lg"
+            style={{ width: 60, height: 60, background: `radial-gradient(circle, ${colors[3].replace(")", " / 0.4)")}, transparent)` }}
+            animate={{ scale: [0.8, 1.3, 0.8], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 1.5, repeat: Infinity }}
+          />
         </>
       )}
 
@@ -671,10 +827,10 @@ const AnimationPreview = ({ style, emoji, giftName, giftImage, isPremium }: Anim
           <motion.div
             className="w-16 h-16 rounded-2xl flex items-center justify-center relative"
             style={{
-              background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              backdropFilter: "blur(12px)",
-              boxShadow: `0 0 30px ${colors[0].replace(")", " / 0.25)")}`,
+              background: hideBackground ? "transparent" : "rgba(255,255,255,0.05)",
+              border: hideBorder ? "none" : "1px solid rgba(255,255,255,0.1)",
+              backdropFilter: hideBackground ? "none" : "blur(12px)",
+              boxShadow: hideBackground ? "none" : `0 0 30px ${colors[0].replace(")", " / 0.25)")}`,
             }}
             animate={
               isGlitch

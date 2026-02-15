@@ -12,6 +12,8 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
+import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { copyToClipboard } from "@/lib/clipboard";
 
 const sectionClass = "rounded-2xl border border-border bg-card p-5 space-y-4";
 const sectionTitle = "text-sm font-heading font-bold text-primary uppercase tracking-wider mb-3";
@@ -349,10 +351,9 @@ const TTSOverlayPage = () => {
                   <p className="text-[11px] text-muted-foreground">Add this URL as a Browser Source in OBS:</p>
                   <div className="flex items-center gap-2">
                     <Input className="h-7 text-[10px] bg-white/[0.03] border-white/[0.08] flex-1 font-mono" readOnly
-                      value={`https://tikup.xyz/overlay/tts/${ttsWidget.public_token}`} />
+                      value={`${getOverlayBaseUrl()}/overlay/tts/${ttsWidget.public_token}`} />
                     <button onClick={() => {
-                      navigator.clipboard.writeText(`https://tikup.xyz/overlay/tts/${ttsWidget.public_token}`);
-                      toast.success("URL copied!");
+                      copyToClipboard(`${getOverlayBaseUrl()}/overlay/tts/${ttsWidget.public_token}`, "URL copied!");
                     }} className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
                       <Copy size={12} />
                     </button>

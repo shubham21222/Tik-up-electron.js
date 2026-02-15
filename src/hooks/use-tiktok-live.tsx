@@ -163,13 +163,30 @@ export function useTikTokLive() {
                 giftCoins: prev.giftCoins + (coinValue * repeatCount),
               }));
 
-              addEvent("gift", {
+              const giftPayload = {
                 username: data.uniqueId || data.user?.uniqueId || "unknown",
                 giftName,
                 repeatCount,
                 diamondCount,
+                coinValue,
                 avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
                 giftId: data.giftId,
+                total_coins: coinValue * repeatCount,
+              };
+
+              addEvent("gift", giftPayload);
+
+              // Persist gift to events_log for reliable tracking
+              supabase.auth.getSession().then(({ data: sessionData }) => {
+                if (sessionData?.session?.user?.id) {
+                  supabase.from("events_log").insert({
+                    user_id: sessionData.session.user.id,
+                    event_type: "gift",
+                    payload: giftPayload,
+                  }).then(({ error: insertErr }) => {
+                    if (insertErr) console.error("Failed to persist gift:", insertErr);
+                  });
+                }
               });
             }
 
@@ -279,6 +296,52 @@ export function useTikTokLive() {
       setError(msg);
     }
   }, [disconnect, addEvent]);
+
+  // Load historical gift coins from events_log on mount
+  const loadHistoricalGifts = useCallback(async () => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user?.id) return;
+
+      const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+      const { data: giftEvents } = await supabase
+        .from("events_log")
+        .select("payload")
+        .eq("user_id", session.user.id)
+        .eq("event_type", "gift")
+        .gte("created_at", twelveHoursAgo);
+
+      if (!giftEvents || giftEvents.length === 0) return;
+
+      let totalCoins = 0;
+      for (const event of giftEvents) {
+        const payload = event.payload as Record<string, unknown> | null;
+        if (!payload) continue;
+        const coins = Number(payload.total_coins || payload.coinValue || payload.coin_value || 0);
+        if (coins > 0) {
+          totalCoins += coins;
+        } else {
+          const dc = Number(payload.diamond_count || payload.diamondCount || 0);
+          const rc = Number(payload.repeat_count || payload.repeatCount || 1);
+          totalCoins += dc * rc;
+        }
+      }
+
+      if (totalCoins > 0) {
+        setStats(prev => ({
+          ...prev,
+          giftCoins: Math.max(prev.giftCoins, totalCoins),
+        }));
+      }
+    } catch (e) {
+      console.error("Failed to load historical gifts:", e);
+    }
+  }, []);
+
+  // Load history on mount
+  useEffect(() => {
+    loadHistoricalGifts();
+  }, [loadHistoricalGifts]);
 
   // Cleanup on unmount
   useEffect(() => {

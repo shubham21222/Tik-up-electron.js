@@ -212,7 +212,7 @@ export function useTikTokLive() {
         console.log(`WebSocket closed: code=${event.code}`);
         wsRef.current = null;
 
-        // Handle close codes
+        // Handle close codes (EulerStream ClientCloseCode)
         switch (event.code) {
           case 4404: // NOT_LIVE
             setStatus("not_live");
@@ -220,6 +220,7 @@ export function useTikTokLive() {
             break;
           case 4401: // INVALID_AUTH
           case 4403: // NO_PERMISSION
+          case 4400: // INVALID_OPTIONS
             setStatus("error");
             setError("Authentication failed");
             break;
@@ -231,16 +232,31 @@ export function useTikTokLive() {
             setStatus("disconnected");
             setError("Stream ended");
             break;
+          case 4006: // NO_MESSAGES_TIMEOUT
+            // Dead connection, reconnect
+            reconnectTimerRef.current = setTimeout(() => connect(), 3000);
+            break;
           case 4555: // MAX_LIFETIME_EXCEEDED
             // Auto-reconnect
             reconnectTimerRef.current = setTimeout(() => connect(), 2000);
+            break;
+          case 4500: // TIKTOK_CLOSED_CONNECTION
+            reconnectTimerRef.current = setTimeout(() => connect(), 5000);
+            break;
+          case 4556: // WEBCAST_FETCH_ERROR
+          case 4557: // ROOM_INFO_FETCH_ERROR
+            setStatus("error");
+            setError("Failed to fetch stream data");
+            break;
+          case 1011: // INTERNAL_SERVER_ERROR
+            setStatus("error");
+            setError("Server error. Try again.");
             break;
           case 1000: // NORMAL
             setStatus("disconnected");
             break;
           default:
             if (status === "connected") {
-              // Unexpected disconnect, try reconnect
               reconnectTimerRef.current = setTimeout(() => connect(), 5000);
             } else {
               setStatus("error");

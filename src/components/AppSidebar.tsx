@@ -5,7 +5,7 @@ import {
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, BarChart, Link2, Palette, Settings,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
-  Star, Keyboard, Coins, Image
+  Star, Keyboard, Coins, Image, Building2
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -72,6 +72,13 @@ const sections: SidebarSection[] = [
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
       { id: "/polls", label: "Polls", icon: BarChart, pro: true },
       { id: "/gift-browser", label: "Gift Browser", icon: Gift },
+    ],
+  },
+  {
+    label: "Enterprise",
+    emoji: "🏢",
+    items: [
+      { id: "/agencies", label: "Agency Hub", icon: Building2 },
     ],
   },
   {

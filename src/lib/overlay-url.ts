@@ -5,14 +5,12 @@
  */
 export function getOverlayBaseUrl(): string {
   const origin = window.location.origin;
-  // If on the custom domain or published domain, use it
+  // Only use origin if we're on the actual custom domain (tikup.xyz)
   if (
-    !origin.includes("localhost") &&
-    !origin.includes("-preview--") &&
-    !origin.includes("127.0.0.1")
+    origin.includes("tikup.xyz")
   ) {
     return origin;
   }
-  // Fallback: prefer custom domain, but use published domain as safe default
+  // Always fall back to the production custom domain for OBS/TikTok Live Studio compatibility
   return "https://tikup.xyz";
 }

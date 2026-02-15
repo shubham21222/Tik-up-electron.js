@@ -51,6 +51,7 @@ async function callPointsApi(params: Record<string, string> = {}, method = "GET"
   return json;
 }
 
+/** Leaderboard — direct DB query + realtime subscription for instant updates */
 export const useLeaderboard = (sort: string = "total_points", limit = 500) => {
   const { user } = useAuth();
   const qc = useQueryClient();
@@ -81,10 +82,36 @@ export const useLeaderboard = (sort: string = "total_points", limit = 500) => {
 
   return useQuery({
     queryKey: ["points-leaderboard", user?.id, sort, limit],
-    queryFn: () => callPointsApi({ leaderboard: "true", sort, limit: String(limit) }),
+    queryFn: async () => {
+      if (!user) return [];
+      const validSorts = ["total_points", "total_coins_sent", "total_gifts_sent", "total_likes", "total_messages", "level", "last_activity", "first_activity"];
+      const sortCol = validSorts.includes(sort) ? sort : "total_points";
+
+      const { data, error } = await supabase
+        .from("viewer_points")
+        .select("*")
+        .eq("creator_id", user.id)
+        .order(sortCol, { ascending: false })
+        .limit(Math.min(limit, 1000));
+
+      if (error) throw error;
+
+      return (data || []).map((row, i) => ({
+        rank: i + 1,
+        username: row.viewer_username,
+        avatar_url: row.viewer_avatar_url,
+        points_total: Number(row.total_points),
+        level: Number(row.level),
+        coins_sent: Number(row.total_coins_sent),
+        gifts: Number(row.total_gifts_sent),
+        likes: Number(row.total_likes),
+        messages: Number(row.total_messages),
+        first_activity: row.first_activity,
+        last_activity: row.last_activity,
+      })) as LeaderboardEntry[];
+    },
     enabled: !!user,
-    select: (data) => (data.leaderboard || []) as LeaderboardEntry[],
-    refetchInterval: 5000,
+    refetchInterval: 3000,
   });
 };
 

@@ -167,7 +167,7 @@ function createUserConnection(username) {
       diamond_count: diamondValue,
       total_diamonds: totalDiamonds,
       repeat_end: data.repeatEnd,
-      avatar: data.profilePictureUrl,
+      avatar: data.user?.profilePictureUrl || data.profilePictureUrl || data.user?.avatar_url || null,
     });
   });
 
@@ -176,7 +176,7 @@ function createUserConnection(username) {
     queueEvent("like", data.uniqueId, {
       like_count: data.likeCount,
       total_likes: data.totalLikeCount,
-      avatar: data.profilePictureUrl,
+      avatar: data.user?.profilePictureUrl || data.profilePictureUrl || null,
     });
   });
 
@@ -191,7 +191,7 @@ function createUserConnection(username) {
   tiktok.on(WebcastEvent.SHARE, (data) => {
     console.log(`  🔗 [${username}] ${data.uniqueId}`);
     queueEvent("share", data.uniqueId, {
-      avatar: data.profilePictureUrl,
+      avatar: data.user?.profilePictureUrl || data.profilePictureUrl || null,
     });
   });
 
@@ -199,7 +199,7 @@ function createUserConnection(username) {
     console.log(`  💬 [${username}] ${data.uniqueId}: ${data.comment}`);
     queueEvent("chat", data.uniqueId, {
       message: data.comment,
-      avatar: data.profilePictureUrl,
+      avatar: data.user?.profilePictureUrl || data.profilePictureUrl || null,
     });
   });
 
@@ -213,7 +213,7 @@ function createUserConnection(username) {
   tiktok.on(WebcastEvent.SUBSCRIBE, (data) => {
     console.log(`  ⭐ [${username}] ${data.uniqueId}`);
     queueEvent("subscribe", data.uniqueId, {
-      avatar: data.profilePictureUrl,
+      avatar: data.user?.profilePictureUrl || data.profilePictureUrl || null,
     });
   });
 

@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Crown, Lock, Zap, Sparkles } from "lucide-react";
+import { Crown, Lock, Sparkles, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSubscription } from "@/hooks/use-subscription";
 
@@ -8,10 +8,18 @@ interface ProGateProps {
   feature?: string;
 }
 
-/**
- * Wraps content that requires Pro. If user is not Pro,
- * shows a sleek upgrade overlay instead of the children.
- */
+const comparisonRows = [
+  { label: "Overlays", free: "5", pro: "Unlimited" },
+  { label: "Alert styles", free: "Basic", pro: "All styles" },
+  { label: "Text-to-Speech", free: false, pro: true },
+  { label: "Custom CSS", free: false, pro: true },
+  { label: "Custom branding", free: false, pro: true },
+  { label: "Sound alerts", free: "10", pro: "Unlimited" },
+  { label: "Chat commands", free: "5", pro: "Unlimited" },
+  { label: "Advanced analytics", free: false, pro: true },
+  { label: "Priority support", free: false, pro: true },
+];
+
 const ProGate = ({ children, feature }: ProGateProps) => {
   const { isPro, loading } = useSubscription();
 
@@ -19,29 +27,28 @@ const ProGate = ({ children, feature }: ProGateProps) => {
   if (isPro) return <>{children}</>;
 
   return (
-    <div className="relative">
-      {/* Blurred / dimmed content behind */}
-      <div className="pointer-events-none select-none opacity-40 blur-[2px]">
+    <>
+      {/* Blurred content behind */}
+      <div className="pointer-events-none select-none opacity-30 blur-[3px]">
         {children}
       </div>
 
-      {/* Upgrade overlay */}
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="absolute inset-0 z-30 flex items-center justify-center"
-      >
-        <div
-          className="relative rounded-2xl p-8 max-w-sm w-full text-center border backdrop-blur-xl"
+      {/* Fixed centered modal overlay */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.92, y: 10 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.3, ease: "easeOut" }}
+          className="relative rounded-2xl p-8 max-w-lg w-full mx-4 text-center border overflow-hidden"
           style={{
-            background: "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(280 30% 8% / 0.95) 100%)",
+            background: "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(280 30% 6% / 0.98) 100%)",
             borderColor: "hsl(280 100% 65% / 0.25)",
-            boxShadow: "0 0 60px hsl(280 100% 60% / 0.12), 0 8px 32px hsl(0 0% 0% / 0.4)",
+            boxShadow: "0 0 80px hsl(280 100% 60% / 0.15), 0 8px 40px hsl(0 0% 0% / 0.5)",
           }}
         >
-          {/* Glow accent */}
+          {/* Top glow */}
           <div
-            className="absolute -top-px left-1/2 -translate-x-1/2 w-24 h-[2px] rounded-full"
+            className="absolute -top-px left-1/2 -translate-x-1/2 w-32 h-[2px] rounded-full"
             style={{ background: "linear-gradient(90deg, transparent, hsl(280 100% 65%), transparent)" }}
           />
 
@@ -67,14 +74,33 @@ const ProGate = ({ children, feature }: ProGateProps) => {
             {feature ? `${feature} is a Pro Feature` : "Pro Feature"}
           </h3>
           <p className="text-sm text-muted-foreground mb-5 leading-relaxed">
-            Upgrade to <span style={{ color: "hsl(280 100% 70%)" }} className="font-semibold">TikUp Pro</span> to unlock this feature and supercharge your streams.
+            Upgrade to <span style={{ color: "hsl(280 100% 70%)" }} className="font-semibold">TikUp Pro</span> to unlock this and supercharge your streams.
           </p>
 
-          <div className="space-y-2 text-left mb-6">
-            {["Unlimited overlays & alerts", "Advanced animations & effects", "Priority support"].map((perk) => (
-              <div key={perk} className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Zap size={12} style={{ color: "hsl(280 100% 65%)" }} />
-                <span>{perk}</span>
+          {/* Comparison table */}
+          <div className="rounded-xl overflow-hidden border mb-6" style={{ borderColor: "hsl(0 0% 100% / 0.06)" }}>
+            {/* Header */}
+            <div className="grid grid-cols-3 text-[11px] font-bold uppercase tracking-wider px-4 py-2.5"
+              style={{ background: "hsl(0 0% 100% / 0.03)" }}>
+              <span className="text-left text-muted-foreground">Feature</span>
+              <span className="text-center text-muted-foreground">Free</span>
+              <span className="text-center" style={{ color: "hsl(280 100% 70%)" }}>Pro</span>
+            </div>
+            {/* Rows */}
+            {comparisonRows.map((row, i) => (
+              <div key={row.label} className="grid grid-cols-3 items-center px-4 py-2 text-xs"
+                style={{ background: i % 2 === 0 ? "transparent" : "hsl(0 0% 100% / 0.015)", borderTop: "1px solid hsl(0 0% 100% / 0.04)" }}>
+                <span className="text-left text-muted-foreground">{row.label}</span>
+                <span className="flex justify-center">
+                  {typeof row.free === "boolean"
+                    ? row.free ? <Check size={14} className="text-green-500" /> : <X size={14} className="text-muted-foreground/40" />
+                    : <span className="text-muted-foreground/60">{row.free}</span>}
+                </span>
+                <span className="flex justify-center">
+                  {typeof row.pro === "boolean"
+                    ? row.pro ? <Check size={14} style={{ color: "hsl(280 100% 70%)" }} /> : <X size={14} />
+                    : <span className="font-semibold text-foreground">{row.pro}</span>}
+                </span>
               </div>
             ))}
           </div>
@@ -94,9 +120,9 @@ const ProGate = ({ children, feature }: ProGateProps) => {
           <p className="text-[10px] text-muted-foreground/50 mt-3 flex items-center justify-center gap-1">
             <Sparkles size={10} /> Cancel anytime
           </p>
-        </div>
-      </motion.div>
-    </div>
+        </motion.div>
+      </div>
+    </>
   );
 };
 

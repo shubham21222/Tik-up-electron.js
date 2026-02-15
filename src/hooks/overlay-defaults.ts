@@ -533,6 +533,25 @@ export const defaultSpinWheelSettings = {
   custom_css: "",
 };
 
+// Gift Actions Slider
+export const defaultGiftActionsSettings = {
+  items: [
+    { emoji: "🏀", label: "Jump" },
+    { emoji: "🌹", label: "Dance" },
+    { emoji: "💜", label: "Emote" },
+    { emoji: "🍩", label: "Spin" },
+  ],
+  scroll_speed: 30,
+  icon_size: 64,
+  label_size: 16,
+  spacing: 24,
+  show_labels: true,
+  auto_scroll: true,
+  transparent_bg: true,
+  label_style: "bold" as "bold" | "outline" | "glow",
+  custom_css: "",
+};
+
 // Event Feed
 export const defaultEventFeedSettings = {
   eventTypes: ["followers", "gifts", "likes", "shares", "comments", "joins"] as string[],
@@ -573,5 +592,6 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   video_label_bar: defaultVideoLabelBarSettings,
   coin_jar: defaultCoinJarSettings,
   spin_wheel: defaultSpinWheelSettings,
+  gift_actions: defaultGiftActionsSettings,
   event_feed: defaultEventFeedSettings,
 };

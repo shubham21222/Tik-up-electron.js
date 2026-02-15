@@ -2,14 +2,14 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 
 const allMessages = [
-  { user: "StreamFan42", text: "This is so fire 🔥", type: "chat" },
-  { user: "GiftKing", text: "Sent a Rose 🌹", type: "gift" },
-  { user: "NightOwl", text: "Love this stream!", type: "chat" },
-  { user: "CoolViewer", text: "❤️❤️❤️", type: "like" },
-  { user: "TikTokPro", text: "Hello from Japan 🇯🇵", type: "chat" },
-  { user: "Supporter99", text: "Just followed!", type: "follow" },
-  { user: "VibeCheck", text: "Play some music!", type: "chat" },
-  { user: "StarGazer", text: "You're amazing", type: "chat" },
+  { user: "Tikup_User", text: "This is so fire 🔥", type: "chat" },
+  { user: "Tikup_User", text: "Sent a Rose 🌹", type: "gift" },
+  { user: "Tikup_User", text: "Love this stream!", type: "chat" },
+  { user: "Tikup_User", text: "❤️❤️❤️", type: "like" },
+  { user: "Tikup_User", text: "Hello from Japan 🇯🇵", type: "chat" },
+  { user: "Tikup_User", text: "Just followed!", type: "follow" },
+  { user: "Tikup_User", text: "Play some music!", type: "chat" },
+  { user: "Tikup_User", text: "You're amazing", type: "chat" },
 ];
 
 const userColors = [

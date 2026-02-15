@@ -1,14 +1,14 @@
 import { motion } from "framer-motion";
 
 const events = [
-  { icon: "❤️", text: "StreamFan42 liked" },
-  { icon: "👤", text: "NightOwl followed" },
-  { icon: "🎁", text: "GiftKing sent Rose" },
-  { icon: "🔄", text: "CoolViewer shared" },
-  { icon: "❤️", text: "StarGazer liked" },
-  { icon: "👤", text: "MusicLover followed" },
-  { icon: "🎁", text: "TikTokPro sent Lion" },
-  { icon: "❤️", text: "VibeCheck liked" },
+  { icon: "❤️", text: "Tikup_User liked" },
+  { icon: "👤", text: "Tikup_User followed" },
+  { icon: "🎁", text: "Tikup_User sent Rose" },
+  { icon: "🔄", text: "Tikup_User shared" },
+  { icon: "❤️", text: "Tikup_User liked" },
+  { icon: "👤", text: "Tikup_User followed" },
+  { icon: "🎁", text: "Tikup_User sent Lion" },
+  { icon: "❤️", text: "Tikup_User liked" },
 ];
 
 const TickerPreview = () => {

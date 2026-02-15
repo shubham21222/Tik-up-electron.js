@@ -3,11 +3,11 @@ import { useState, useEffect } from "react";
 import tikupLogo from "@/assets/tikup_logo.png";
 
 const mockFollows = [
-  { user: "StreamLover99", avatar: "🧑‍🎤" },
-  { user: "GamerX_Pro", avatar: "🎮" },
-  { user: "NightVibes", avatar: "🌙" },
-  { user: "CoolCreator42", avatar: "🎨" },
-  { user: "MusicFanatic", avatar: "🎵" },
+  { user: "Tikup_User", avatar: "🧑‍🎤" },
+  { user: "Tikup_User", avatar: "🎮" },
+  { user: "Tikup_User", avatar: "🌙" },
+  { user: "Tikup_User", avatar: "🎨" },
+  { user: "Tikup_User", avatar: "🎵" },
 ];
 
 interface FollowAlertPreviewProps {

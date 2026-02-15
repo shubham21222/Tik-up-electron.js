@@ -2,10 +2,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const mockShares = [
-  { user: "StreamFan42", count: 3 },
-  { user: "ShareKing", count: 12 },
-  { user: "TikTokPro", count: 1 },
-  { user: "Supporter99", count: 7 },
+  { user: "Tikup_User", count: 3 },
+  { user: "Tikup_User", count: 12 },
+  { user: "Tikup_User", count: 1 },
+  { user: "Tikup_User", count: 7 },
 ];
 
 interface ShareAlertPreviewProps {

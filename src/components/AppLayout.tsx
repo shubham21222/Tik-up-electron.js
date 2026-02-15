@@ -2,7 +2,8 @@ import { ReactNode, useState } from "react";
 import AppSidebar from "./AppSidebar";
 import StatusBar from "./StatusBar";
 import QuickControls from "./QuickControls";
-import { Search, Bell, HelpCircle, User, LogOut, Menu, X } from "lucide-react";
+import ProfileDropdown from "./ProfileDropdown";
+import { Search, Bell, HelpCircle, User, Menu } from "lucide-react";
 import { SidebarStateProvider, useSidebarState } from "@/hooks/use-sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -75,21 +76,7 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
               </button>
             )}
             {user ? (
-              <div className="flex items-center gap-2">
-                {!isMobile && (
-                  <span className="text-xs text-muted-foreground truncate max-w-[120px]">{user.email}</span>
-                )}
-                <button
-                  onClick={async () => {
-                    await signOut();
-                    navigate("/");
-                  }}
-                  className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
-                  title="Sign out"
-                >
-                  <LogOut size={16} />
-                </button>
-              </div>
+              <ProfileDropdown />
             ) : (
               <Link
                 to="/auth"

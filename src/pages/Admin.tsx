@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin, useAdminUsers, useAdminAnalytics, useAdminLogs } from "@/hooks/use-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown, Gauge, AlertTriangle } from "lucide-react";
+import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown, Gauge, AlertTriangle, Megaphone, Send, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +26,7 @@ const Admin = () => {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useIsAdmin();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses" | "ratelimits">("analytics");
+  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses" | "ratelimits" | "announcements">("analytics");
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -41,6 +41,7 @@ const Admin = () => {
   const tabs = [
     { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
     { id: "users" as const, label: "Users", icon: Users },
+    { id: "announcements" as const, label: "Announcements", icon: Megaphone },
     { id: "logs" as const, label: "System Logs", icon: ScrollText },
     { id: "licenses" as const, label: "Licenses", icon: CreditCard },
     { id: "ratelimits" as const, label: "API Limits", icon: Gauge },
@@ -71,6 +72,7 @@ const Admin = () => {
 
         {tab === "analytics" && <AnalyticsTab />}
         {tab === "users" && <UsersTab />}
+        {tab === "announcements" && <AnnouncementsTab />}
         {tab === "logs" && <LogsTab />}
         {tab === "licenses" && <LicensesTab />}
         {tab === "ratelimits" && <RateLimitsTab />}
@@ -254,6 +256,125 @@ const LicensesTab = () => {
     </div>
   );
 };
+
+const AnnouncementsTab = () => {
+  const [notifs, setNotifs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [type, setType] = useState("announcement");
+  const [sending, setSending] = useState(false);
+
+  const fetchNotifs = async () => {
+    setLoading(true);
+    const { data } = await supabase.from("notifications").select("*").order("created_at", { ascending: false }).limit(50);
+    setNotifs(data || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchNotifs(); }, []);
+
+  const handleSend = async () => {
+    if (!title.trim() || !body.trim()) return;
+    setSending(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    await supabase.from("notifications").insert({
+      title: title.trim(),
+      body: body.trim(),
+      type,
+      created_by: session?.user?.id,
+    });
+    setTitle("");
+    setBody("");
+    toast.success("Notification sent to all users");
+    await fetchNotifs();
+    setSending(false);
+  };
+
+  const handleDelete = async (id: string) => {
+    await supabase.from("notifications").delete().eq("id", id);
+    setNotifs((prev) => prev.filter((n) => n.id !== id));
+    toast.success("Notification deleted");
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Create new */}
+      <div className="rounded-2xl border border-border p-5 bg-muted/5 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
+          <Send size={14} className="text-primary" /> Send Notification
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
+            maxLength={100}
+            className="bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary md:col-span-2"
+          />
+          <select
+            value={type}
+            onChange={(e) => setType(e.target.value)}
+            className="bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+          >
+            <option value="announcement">📢 Announcement</option>
+            <option value="update">ℹ️ Update</option>
+            <option value="alert">⚠️ Alert</option>
+          </select>
+        </div>
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Notification body..."
+          rows={3}
+          maxLength={500}
+          className="w-full bg-muted/30 border border-border rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary resize-none"
+        />
+        <button
+          onClick={handleSend}
+          disabled={!title.trim() || !body.trim() || sending}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+        >
+          <Send size={14} /> {sending ? "Sending..." : "Send to All Users"}
+        </button>
+      </div>
+
+      {/* Existing notifications */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm text-muted-foreground">{notifs.length} notifications</span>
+          <button onClick={fetchNotifs} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <RefreshCw size={12} /> Refresh
+          </button>
+        </div>
+        <div className="space-y-2">
+          {loading ? (
+            <div className="animate-pulse text-muted-foreground text-sm">Loading...</div>
+          ) : notifs.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-8">No notifications sent yet.</p>
+          ) : (
+            notifs.map((n) => (
+              <div key={n.id} className="rounded-lg border border-border p-3 bg-muted/5 flex items-start gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono px-2 py-0.5 rounded bg-primary/10 text-primary">{n.type}</span>
+                    <span className="text-sm font-semibold text-foreground">{n.title}</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground">{n.body}</p>
+                  <span className="text-[10px] text-muted-foreground/50 mt-1 block">{new Date(n.created_at).toLocaleString()}</span>
+                </div>
+                <button onClick={() => handleDelete(n.id)} className="p-1.5 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const LimitBar = ({ label, used, max, color }: { label: string; used: number; max: number; color: string }) => {
   const pct = max > 0 ? ((max - used) / max) * 100 : 0;
   const remaining = used;

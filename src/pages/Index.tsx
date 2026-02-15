@@ -411,7 +411,7 @@ const Index = () => {
   const mergedViewers = Math.max(tikTokLive.stats.viewerCount, pollingViewers);
   const mergedLikes = Math.max(tikTokLive.stats.likeCount, pollingLikes);
   const mergedFollowers = pollingFollowers + tikTokLive.stats.followerCount;
-  const mergedGifts = Math.max(tikTokLive.stats.giftCount, pollingGifts);
+  const mergedGifts = Math.max(tikTokLive.stats.giftCoins, pollingGifts);
 
   /* ── Stat card data ── */
   const statCards = [

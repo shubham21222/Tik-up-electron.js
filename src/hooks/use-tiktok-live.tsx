@@ -15,7 +15,7 @@ export interface LiveStats {
   shareCount: number;
   diamondCount: number;
   followerCount: number;
-  giftCount: number;
+  giftCoins: number;
   title: string;
   roomId: string;
 }
@@ -28,7 +28,7 @@ export function useTikTokLive() {
     shareCount: 0,
     diamondCount: 0,
     followerCount: 0,
-    giftCount: 0,
+    giftCoins: 0,
     title: "",
     roomId: "",
   });
@@ -157,11 +157,12 @@ export function useTikTokLive() {
               const giftName = data.giftName || data.gift_name || "Unknown Gift";
               const repeatCount = Number(data.repeatCount || data.repeat_count || 1);
               const diamondCount = Number(data.diamondCount || data.diamond_count || 0);
+              const coinValue = Number(data.coinValue || data.coin_value || diamondCount);
 
               setStats(prev => ({
                 ...prev,
                 diamondCount: prev.diamondCount + (diamondCount * repeatCount),
-                giftCount: prev.giftCount + repeatCount,
+                giftCoins: prev.giftCoins + (coinValue * repeatCount),
               }));
 
               addEvent("gift", {

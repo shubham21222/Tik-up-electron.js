@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -52,6 +53,31 @@ async function callPointsApi(params: Record<string, string> = {}, method = "GET"
 
 export const useLeaderboard = (sort: string = "total_points", limit = 500) => {
   const { user } = useAuth();
+  const qc = useQueryClient();
+
+  // Subscribe to real-time viewer_points changes
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .channel("viewer-points-realtime")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "viewer_points",
+          filter: `creator_id=eq.${user.id}`,
+        },
+        () => {
+          qc.invalidateQueries({ queryKey: ["points-leaderboard"] });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, qc]);
 
   return useQuery({
     queryKey: ["points-leaderboard", user?.id, sort, limit],

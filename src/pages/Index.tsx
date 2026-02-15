@@ -1,6 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import {
   Eye, Heart, Share2, UserPlus, Radio,
   TrendingUp, ArrowUpRight, Activity, Gift, Star,
@@ -18,7 +18,7 @@ import FeatureGuideModal, { type GuideStep } from "@/components/FeatureGuideModa
 import tikupLogo from "@/assets/tikup_logo.png";
 import DashboardModeration from "@/components/dashboard/DashboardModeration";
 import DashboardFeatures from "@/components/dashboard/DashboardFeatures";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 interface LiveStats {
   is_live: boolean;
@@ -107,18 +107,35 @@ const updates = [
   { icon: Globe, title: "Streamer.bot Integration", description: "Connect with Streamer.bot for more features." },
 ];
 
-// Generate mock chart data for engagement
-const generateChartData = () => {
-  const hours = [];
-  for (let i = 0; i < 24; i++) {
-    const h = i < 10 ? `0${i}` : `${i}`;
-    hours.push({
-      hour: `${h}:00`,
-      viewers: Math.floor(Math.random() * 800 + 200),
-      engagement: Math.floor(Math.random() * 500 + 100),
-    });
+// Build engagement chart from live WS events grouped into time buckets
+const buildEngagementChart = (events: Array<{ type: string; timestamp: number }>) => {
+  if (events.length === 0) return [];
+
+  // Group events into 5-minute buckets over the last 2 hours
+  const now = Date.now();
+  const bucketSize = 5 * 60 * 1000; // 5 minutes
+  const numBuckets = 24;
+  const buckets: Array<{ time: string; likes: number; gifts: number; follows: number; chats: number }> = [];
+
+  for (let i = numBuckets - 1; i >= 0; i--) {
+    const bucketEnd = now - i * bucketSize;
+    const bucketStart = bucketEnd - bucketSize;
+    const d = new Date(bucketEnd);
+    const timeLabel = `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
+
+    let likes = 0, gifts = 0, follows = 0, chats = 0;
+    for (const ev of events) {
+      if (ev.timestamp >= bucketStart && ev.timestamp < bucketEnd) {
+        if (ev.type === "like") likes++;
+        else if (ev.type === "gift") gifts++;
+        else if (ev.type === "follow") follows++;
+        else if (ev.type === "chat") chats++;
+      }
+    }
+    buckets.push({ time: timeLabel, likes, gifts, follows, chats });
   }
-  return hours;
+
+  return buckets;
 };
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
@@ -164,7 +181,7 @@ const Index = () => {
   const [rankings, setRankings] = useState<RankEntry[]>([]);
   const [rankingsLoading, setRankingsLoading] = useState(false);
   const [showConnectGuide, setShowConnectGuide] = useState(false);
-  const [chartData] = useState(generateChartData);
+  const prevStatsRef = useRef<{ viewers: number; likes: number; followers: number; gifts: number }>({ viewers: 0, likes: 0, followers: 0, gifts: 0 });
   const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -413,38 +430,67 @@ const Index = () => {
   const mergedFollowers = pollingFollowers + tikTokLive.stats.followerCount;
   const mergedGifts = Math.max(tikTokLive.stats.giftCoins, pollingGifts);
 
+  // Track previous stat values for % change calculation
+  useEffect(() => {
+    if (wsConnected && (mergedViewers > 0 || mergedLikes > 0)) {
+      // Only store previous if we have a meaningful prior reading
+      const timer = setTimeout(() => {
+        prevStatsRef.current = { viewers: mergedViewers, likes: mergedLikes, followers: mergedFollowers, gifts: mergedGifts };
+      }, 15000); // Snapshot every 15s
+      return () => clearTimeout(timer);
+    }
+  }, [wsConnected, mergedViewers, mergedLikes, mergedFollowers, mergedGifts]);
+
+  const calcChange = (current: number, previous: number): string => {
+    if (!wsConnected) return "—";
+    if (previous === 0 && current === 0) return "—";
+    if (previous === 0) return `+${current}`;
+    const pct = ((current - previous) / previous) * 100;
+    if (pct === 0) return "—";
+    return `${pct > 0 ? "+" : ""}${pct.toFixed(1)}%`;
+  };
+
+  const getChangeColor = (current: number, previous: number): string => {
+    if (previous === 0 || current === previous) return "hsl(0 0% 50%)";
+    return current > previous ? "hsl(160 100% 45%)" : "hsl(0 70% 55%)";
+  };
+
+  // Build engagement chart from real events
+  const chartData = useMemo(() => buildEngagementChart(tikTokLive.events), [tikTokLive.events]);
+  const hasChartData = chartData.some(d => d.likes > 0 || d.gifts > 0 || d.follows > 0 || d.chats > 0);
+
   /* ── Stat card data ── */
   const statCards = [
     {
       label: "Viewers",
       value: mergedViewers,
       icon: Eye,
-      change: wsConnected ? "⚡ Live" : "+12%",
-      changeColor: "hsl(160 100% 45%)",
+      change: wsConnected ? (mergedViewers > 0 ? `⚡ ${mergedViewers} watching` : "⚡ Live") : "—",
+      changeColor: wsConnected ? "hsl(160 100% 45%)" : "hsl(0 0% 40%)",
       accentColor: "160 100% 45%",
     },
     {
       label: "Likes",
       value: mergedLikes,
       icon: Heart,
-      change: wsConnected ? "⚡ Live" : "+8.4%",
-      changeColor: "hsl(350 90% 55%)",
+      change: wsConnected ? calcChange(mergedLikes, prevStatsRef.current.likes) : "—",
+      changeColor: wsConnected ? getChangeColor(mergedLikes, prevStatsRef.current.likes) : "hsl(0 0% 40%)",
       accentColor: "350 90% 55%",
     },
     {
       label: "Followers",
       value: mergedFollowers,
       icon: Users,
-      change: wsConnected ? "⚡ Live" : "+15%",
-      changeColor: "hsl(45 100% 55%)",
+      change: wsConnected ? (mergedFollowers > 0 ? `+${mergedFollowers} this stream` : "⚡ Live") : "—",
+      changeColor: wsConnected ? "hsl(45 100% 55%)" : "hsl(0 0% 40%)",
       accentColor: "200 100% 55%",
     },
     {
       label: "Gifts",
       value: mergedGifts,
       icon: Gift,
-      change: wsConnected ? "⚡ Live" : "+5.2%",
-      changeColor: "hsl(280 100% 65%)",
+      change: wsConnected ? (mergedGifts > 0 ? `🪙 ${mergedGifts} coins earned` : "⚡ Waiting for gifts") : "—",
+      changeColor: wsConnected ? "hsl(280 100% 65%)" : "hsl(0 0% 40%)",
       accentColor: "280 100% 65%",
       prefix: "🪙 ",
     },
@@ -644,51 +690,56 @@ const Index = () => {
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Activity size={14} className="text-primary" />
-                <h2 className="text-sm font-heading font-bold text-foreground">Engagement</h2>
+                <h2 className="text-sm font-heading font-bold text-foreground">Stream Activity</h2>
+                {wsConnected && (
+                  <span className="text-[10px] text-muted-foreground ml-1">Last 2 hours · 5 min intervals</span>
+                )}
               </div>
               <div className="flex items-center gap-3">
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(160 100% 45%)" }} /> Viewers
+                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(350 90% 55%)" }} /> Likes
                 </span>
                 <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(160 100% 30%)" }} /> Engagement
+                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(160 100% 45%)" }} /> Chats
+                </span>
+                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(280 100% 65%)" }} /> Gifts
                 </span>
               </div>
             </div>
-            <div className="h-[200px] w-full">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={chartData} barGap={2}>
-                  <XAxis
-                    dataKey="hour"
-                    axisLine={false}
-                    tickLine={false}
-                    tick={{ fill: "hsl(0 0% 35%)", fontSize: 10 }}
-                    interval={3}
-                  />
-                  <YAxis hide />
-                  <Tooltip
-                    contentStyle={{
-                      background: "hsl(210 15% 8%)",
-                      border: "1px solid hsl(0 0% 15%)",
-                      borderRadius: "10px",
-                      fontSize: 11,
-                      color: "hsl(0 0% 88%)",
-                    }}
-                    cursor={{ fill: "hsl(0 0% 100% / 0.03)" }}
-                  />
-                  <Bar dataKey="viewers" radius={[3, 3, 0, 0]} maxBarSize={18}>
-                    {chartData.map((_, idx) => (
-                      <Cell key={idx} fill="hsl(160 100% 45%)" fillOpacity={0.7 + Math.random() * 0.3} />
-                    ))}
-                  </Bar>
-                  <Bar dataKey="engagement" radius={[3, 3, 0, 0]} maxBarSize={18}>
-                    {chartData.map((_, idx) => (
-                      <Cell key={idx} fill="hsl(160 60% 28%)" fillOpacity={0.6 + Math.random() * 0.3} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            {hasChartData ? (
+              <div className="h-[200px] w-full">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} barGap={1}>
+                    <XAxis
+                      dataKey="time"
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fill: "hsl(0 0% 35%)", fontSize: 10 }}
+                      interval={3}
+                    />
+                    <YAxis hide />
+                    <Tooltip
+                      contentStyle={{
+                        background: "hsl(210 15% 8%)",
+                        border: "1px solid hsl(0 0% 15%)",
+                        borderRadius: "10px",
+                        fontSize: 11,
+                        color: "hsl(0 0% 88%)",
+                      }}
+                      cursor={{ fill: "hsl(0 0% 100% / 0.03)" }}
+                    />
+                    <Bar dataKey="likes" name="Likes" radius={[3, 3, 0, 0]} maxBarSize={14} fill="hsl(350 90% 55%)" fillOpacity={0.8} />
+                    <Bar dataKey="chats" name="Chats" radius={[3, 3, 0, 0]} maxBarSize={14} fill="hsl(160 100% 45%)" fillOpacity={0.7} />
+                    <Bar dataKey="gifts" name="Gifts" radius={[3, 3, 0, 0]} maxBarSize={14} fill="hsl(280 100% 65%)" fillOpacity={0.8} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            ) : (
+              <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
+                {wsConnected ? "Collecting stream data… chart will appear as events come in" : "Connect to TikTok LIVE to see real-time stream activity"}
+              </div>
+            )}
           </GlassCard>
         </motion.div>
 

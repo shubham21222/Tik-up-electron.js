@@ -406,6 +406,63 @@ export type Database = {
           },
         ]
       }
+      integrations: {
+        Row: {
+          created_at: string
+          embed_color: string
+          id: string
+          is_enabled: boolean
+          last_triggered_at: string | null
+          milestone_config: Json
+          name: string
+          notify_follows: boolean
+          notify_gift_min_coins: number
+          notify_gifts: boolean
+          notify_go_live: boolean
+          notify_milestones: boolean
+          provider: string
+          updated_at: string
+          user_id: string
+          webhook_url: string
+        }
+        Insert: {
+          created_at?: string
+          embed_color?: string
+          id?: string
+          is_enabled?: boolean
+          last_triggered_at?: string | null
+          milestone_config?: Json
+          name?: string
+          notify_follows?: boolean
+          notify_gift_min_coins?: number
+          notify_gifts?: boolean
+          notify_go_live?: boolean
+          notify_milestones?: boolean
+          provider?: string
+          updated_at?: string
+          user_id: string
+          webhook_url?: string
+        }
+        Update: {
+          created_at?: string
+          embed_color?: string
+          id?: string
+          is_enabled?: boolean
+          last_triggered_at?: string | null
+          milestone_config?: Json
+          name?: string
+          notify_follows?: boolean
+          notify_gift_min_coins?: number
+          notify_gifts?: boolean
+          notify_go_live?: boolean
+          notify_milestones?: boolean
+          provider?: string
+          updated_at?: string
+          user_id?: string
+          webhook_url?: string
+        }
+        Relationships: []
+      }
       live_sessions: {
         Row: {
           created_at: string

@@ -1,5 +1,5 @@
 import AppLayout from "@/components/AppLayout";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Volume2, Plus, Trash2, Play, Search, Gift,
@@ -17,11 +17,139 @@ import SoundLibraryPicker from "@/components/sound-alerts/SoundLibraryPicker";
 const TRIGGER_TYPES = [
   { value: "any_gift", label: "Any Gift", icon: "🎁" },
   { value: "gift", label: "Specific Gift", icon: "🎀" },
-  { value: "follow", label: "New Follow", icon: "👤" },
-  { value: "like", label: "Like", icon: "❤️" },
-  { value: "share", label: "Share", icon: "🔗" },
 ];
 
+/* ── TikTok-style gift animation banner ── */
+const DEMO_GIFTS = [
+  { user: "sarah_tt", gift: "Rose", emoji: "🌹", coins: 1 },
+  { user: "gamer_king", gift: "Lion", emoji: "🦁", coins: 500 },
+  { user: "luna_live", gift: "Universe", emoji: "🌌", coins: 10000 },
+  { user: "vibe_check", gift: "Crown", emoji: "👑", coins: 2000 },
+];
+
+const GiftAnimationBanner = () => {
+  const [idx, setIdx] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setVisible(false);
+      setTimeout(() => {
+        setIdx(prev => (prev + 1) % DEMO_GIFTS.length);
+        setVisible(true);
+      }, 600);
+    }, 3500);
+    return () => clearInterval(timer);
+  }, []);
+
+  const g = DEMO_GIFTS[idx];
+
+  return (
+    <div className="relative h-[140px] rounded-2xl border border-white/[0.06] overflow-hidden flex items-center justify-center"
+      style={{ background: "rgba(11,15,20,0.65)" }}
+    >
+      {/* Subtle grid bg */}
+      <div className="absolute inset-0 opacity-[0.03]"
+        style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)", backgroundSize: "20px 20px" }}
+      />
+
+      <AnimatePresence mode="wait">
+        {visible && (
+          <motion.div
+            key={idx}
+            className="relative flex items-center gap-4"
+            initial={{ x: -60, opacity: 0, scale: 0.9 }}
+            animate={{ x: 0, opacity: 1, scale: 1 }}
+            exit={{ x: 40, opacity: 0, scale: 0.95 }}
+            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          >
+            {/* TikTok-style left bar accent */}
+            <motion.div
+              className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-10 rounded-full"
+              style={{ background: "hsl(160 100% 45%)" }}
+              initial={{ scaleY: 0 }}
+              animate={{ scaleY: 1 }}
+              transition={{ delay: 0.1 }}
+            />
+
+            {/* Gift icon with glow */}
+            <div className="relative">
+              <motion.div
+                className="absolute inset-0 rounded-full blur-xl"
+                style={{ background: "hsl(280 100% 65% / 0.15)" }}
+                animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0.7, 0.4] }}
+                transition={{ duration: 2, repeat: Infinity }}
+              />
+              <motion.div
+                className="relative w-14 h-14 rounded-full flex items-center justify-center"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  backdropFilter: "blur(12px)",
+                }}
+                animate={{ rotate: [0, -3, 3, 0] }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <span className="text-2xl">{g.emoji}</span>
+              </motion.div>
+
+              {/* Expanding ring */}
+              <motion.div
+                className="absolute inset-0 rounded-full border"
+                style={{ borderColor: "hsl(160 100% 45% / 0.3)" }}
+                initial={{ scale: 1, opacity: 0.6 }}
+                animate={{ scale: 2.5, opacity: 0 }}
+                transition={{ duration: 1.2, repeat: Infinity }}
+              />
+            </div>
+
+            {/* Text */}
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-foreground">{g.user}</span>
+                <motion.span
+                  className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
+                  style={{ background: "hsl(160 100% 45% / 0.12)", color: "hsl(160 100% 60%)" }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+                >
+                  {g.coins} coins
+                </motion.span>
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                sent <span className="text-foreground font-medium">{g.gift}</span>
+              </p>
+            </div>
+
+            {/* Sparkle particles */}
+            {[...Array(4)].map((_, i) => (
+              <motion.div
+                key={i}
+                className="absolute w-1 h-1 rounded-full"
+                style={{ background: "hsl(160 100% 45%)", left: 28, top: 28 }}
+                initial={{ x: 0, y: 0, opacity: 0.8 }}
+                animate={{
+                  x: Math.cos((i * 90 + 45) * Math.PI / 180) * 50,
+                  y: Math.sin((i * 90 + 45) * Math.PI / 180) * 50,
+                  opacity: 0,
+                }}
+                transition={{ duration: 0.8, delay: 0.15, repeat: Infinity, repeatDelay: 2.5 }}
+              />
+            ))}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Label */}
+      <div className="absolute bottom-3 right-4 text-[10px] text-muted-foreground/40 font-medium">
+        Gift Alert Preview
+      </div>
+    </div>
+  );
+};
+
+/* ── Main Page ── */
 const SoundAlertsPage = () => {
   const { user } = useAuth();
   const { alerts, loading, createAlert, updateAlert, deleteAlert, toggleEnabled } = useSoundAlerts();
@@ -88,8 +216,7 @@ const SoundAlertsPage = () => {
       if (gift?.image_url) return <img src={gift.image_url} alt={gift.name} className="w-6 h-6 rounded object-contain" />;
       return <span>🎁</span>;
     }
-    const t = TRIGGER_TYPES.find(t => t.value === alert.trigger_type);
-    return <span>{t?.icon || "🎁"}</span>;
+    return <span>🎁</span>;
   };
 
   if (!user) {
@@ -99,7 +226,7 @@ const SoundAlertsPage = () => {
           <div className="text-center">
             <Volume2 size={48} className="text-muted-foreground/30 mx-auto mb-4" />
             <h2 className="text-lg font-heading font-bold text-foreground mb-2">Sign in to use Sound Alerts</h2>
-            <p className="text-sm text-muted-foreground">Map gifts and events to custom sounds on your stream.</p>
+            <p className="text-sm text-muted-foreground">Map gifts to custom sounds on your stream.</p>
           </div>
         </div>
       </AppLayout>
@@ -122,21 +249,17 @@ const SoundAlertsPage = () => {
             </div>
             <div>
               <h1 className="text-2xl font-heading font-bold text-foreground">Sound Alerts</h1>
-              <p className="text-sm text-muted-foreground">Play sounds when gifts, follows, or other events are triggered on your TikTok LIVE.</p>
+              <p className="text-sm text-muted-foreground">Map TikTok gifts to sounds that play on your stream.</p>
             </div>
           </div>
         </motion.div>
 
-        {/* Info card */}
+        {/* Gift Animation Preview */}
         <motion.div
           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="mb-6 rounded-2xl border border-white/[0.06] p-5"
-          style={{ background: "linear-gradient(135deg, hsl(160 40% 8% / 0.5), hsl(160 20% 5% / 0.3))" }}
+          className="mb-6"
         >
-          <div className="space-y-1.5 text-[12px] text-muted-foreground leading-relaxed">
-            <p>Map <span className="text-foreground font-medium">TikTok gifts</span> or events to sounds from the <span className="text-primary font-medium">built-in library</span> or paste a custom URL.</p>
-            <p>Each alert uses a single OBS Browser Source URL. When a mapped event occurs, the sound plays automatically.</p>
-          </div>
+          <GiftAnimationBanner />
         </motion.div>
 
         {/* Toolbar */}
@@ -153,7 +276,7 @@ const SoundAlertsPage = () => {
               boxShadow: "0 0 20px hsl(160 100% 45% / 0.2)",
             }}
           >
-            <Plus size={14} /> Create Sound Alert
+            <Plus size={14} /> Add Gift Sound
           </button>
           <span className="text-xs text-muted-foreground">
             {alerts.filter(a => a.is_enabled).length} of {alerts.length} enabled
@@ -181,7 +304,7 @@ const SoundAlertsPage = () => {
             <span></span>
             <span></span>
             <span>On</span>
-            <span>Trigger</span>
+            <span>Gift Trigger</span>
             <span>Sound</span>
             <span>Volume</span>
           </div>
@@ -190,8 +313,8 @@ const SoundAlertsPage = () => {
             <div className="p-8 text-center text-muted-foreground text-sm">Loading...</div>
           ) : filteredAlerts.length === 0 ? (
             <div className="p-12 text-center">
-              <Volume2 size={32} className="text-muted-foreground/20 mx-auto mb-3" />
-              <p className="text-sm text-muted-foreground">No sound alerts yet. Create one to get started.</p>
+              <Gift size={32} className="text-muted-foreground/20 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">No gift sound alerts yet. Add one to get started.</p>
             </div>
           ) : (
             <div>
@@ -274,7 +397,7 @@ const SoundAlertsPage = () => {
       <Dialog open={showCreate} onOpenChange={setShowCreate}>
         <DialogContent className="sm:max-w-md bg-background border-white/[0.08]">
           <DialogHeader>
-            <DialogTitle className="font-heading">Create Sound Alert</DialogTitle>
+            <DialogTitle className="font-heading">Add Gift Sound</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             {/* Trigger type */}
@@ -337,7 +460,7 @@ const SoundAlertsPage = () => {
               className="w-full py-2.5 rounded-xl font-semibold text-sm text-white transition-all disabled:opacity-40"
               style={{ background: "linear-gradient(135deg, hsl(160 100% 45%), hsl(160 80% 35%))" }}
             >
-              Create Alert
+              Add Gift Sound
             </button>
           </div>
         </DialogContent>

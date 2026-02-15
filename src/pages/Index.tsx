@@ -92,12 +92,12 @@ const getEventAction = (type: string, data: Record<string, unknown>) => {
 };
 
 const staticEvents = [
-  { icon: Gift, user: "StreamFan42", action: "sent a Rose", time: "1s ago", color: "350 90% 55%" },
-  { icon: UserPlus, user: "NightOwl", action: "just followed", time: "2s ago", color: "160 100% 45%" },
-  { icon: Heart, user: "GiftKing", action: "liked the stream", time: "3s ago", color: "350 90% 55%" },
-  { icon: Share2, user: "CoolViewer", action: "shared the stream", time: "8s ago", color: "200 100% 55%" },
-  { icon: Star, user: "TikTokPro", action: "sent 5 Stars", time: "15s ago", color: "45 100% 55%" },
-  { icon: Gift, user: "MusicLover", action: "sent a Lion", time: "22s ago", color: "280 100% 65%" },
+  { icon: Gift, user: "StreamFan42", action: "sent a Rose 🌹", time: "1s ago", color: "280 100% 65%", coins: 1 },
+  { icon: Gift, user: "GiftKing", action: "sent a Lion 🦁", time: "3s ago", color: "280 100% 65%", coins: 500 },
+  { icon: Gift, user: "TikTokPro", action: "sent 5 Stars ⭐", time: "8s ago", color: "45 100% 55%", coins: 250 },
+  { icon: Gift, user: "MusicLover", action: "sent a Universe 🌌", time: "15s ago", color: "280 100% 65%", coins: 10000 },
+  { icon: Gift, user: "CoolViewer", action: "sent a Crown 👑", time: "22s ago", color: "280 100% 65%", coins: 2000 },
+  { icon: Gift, user: "NightOwl", action: "sent a Rose 🌹", time: "30s ago", color: "280 100% 65%", coins: 1 },
 ];
 
 const updates = [
@@ -778,8 +778,8 @@ const Index = () => {
           <GlassCard className="p-5">
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-2">
-                <Activity size={14} className="text-primary" />
-                <h2 className="text-sm font-heading font-bold text-foreground">Recent Activity</h2>
+                <Gift size={14} className="text-secondary" />
+                <h2 className="text-sm font-heading font-bold text-foreground">Gift Activity</h2>
               </div>
               {wsConnected ? (
                 <div className="flex items-center gap-1.5">
@@ -796,60 +796,95 @@ const Index = () => {
             <div className="space-y-0.5">
               {wsConnected && tikTokLive.events.length > 0 ? (
                 <AnimatePresence initial={false}>
-                  {tikTokLive.events.slice(0, 15).map((event, i) => {
-                    const cfg = eventIconMap[event.type] || { icon: Activity, color: "0 0% 50%" };
-                    const Icon = cfg.icon;
+                  {tikTokLive.events
+                    .filter((event) => event.type === "gift")
+                    .slice(0, 15)
+                    .map((event, i) => {
                     const username = String(event.data.username || "Unknown");
-                    const action = getEventAction(event.type, event.data);
+                    const giftName = String(event.data.giftName || "a gift");
+                    const repeatCount = (event.data.repeatCount as number) || 1;
+                    const coinValue = (event.data.diamondCount as number) || (event.data.coinValue as number) || 0;
+                    const avatarUrl = String(event.data.profilePictureUrl || event.data.avatar_url || event.data.avatar || "");
                     return (
                       <motion.div
-                        key={`${event.type}-${event.timestamp}-${i}`}
-                        initial={{ opacity: 0, x: -12, height: 0 }}
+                        key={`gift-${event.timestamp}-${i}`}
+                        initial={{ opacity: 0, x: -20, height: 0 }}
                         animate={{ opacity: 1, x: 0, height: "auto" }}
-                        exit={{ opacity: 0, x: 12, height: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
+                        exit={{ opacity: 0, x: 20, height: 0 }}
+                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.03)] transition-colors group/gift"
                       >
-                        <div className="w-7 h-7 rounded-full flex items-center justify-center"
-                          style={{ background: `hsl(${cfg.color} / 0.1)` }}>
-                          <Icon size={12} style={{ color: `hsl(${cfg.color})` }} />
+                        {/* Avatar / Gift icon with glow */}
+                        <div className="relative flex-shrink-0">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+                            style={{ background: "hsl(280 100% 65% / 0.1)", border: "1px solid hsl(280 100% 65% / 0.15)" }}>
+                            {avatarUrl ? (
+                              <img src={avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
+                            ) : (
+                              <Gift size={14} style={{ color: "hsl(280 100% 65%)" }} />
+                            )}
+                          </div>
+                          {/* Pulse ring on hover */}
+                          <div className="absolute inset-0 rounded-full border border-[hsl(280_100%_65%/0.2)] opacity-0 group-hover/gift:opacity-100 group-hover/gift:animate-ping transition-opacity" />
                         </div>
-                        <p className="text-[13px] text-foreground flex-1 truncate">
-                          <span className="font-semibold">{username}</span>{" "}
-                          <span className="text-muted-foreground">{action}</span>
-                        </p>
-                        <span className="text-[11px] text-muted-foreground/50">{formatTimeAgo(event.timestamp)}</span>
+
+                        {/* Content */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[13px] text-foreground truncate">
+                            <span className="font-semibold">{username}</span>{" "}
+                            <span className="text-muted-foreground">sent</span>{" "}
+                            <span className="font-medium" style={{ color: "hsl(280 100% 70%)" }}>{giftName}</span>
+                            {repeatCount > 1 && (
+                              <span className="text-xs font-bold ml-1" style={{ color: "hsl(45 100% 55%)" }}>x{repeatCount}</span>
+                            )}
+                          </p>
+                        </div>
+
+                        {/* Coin badge */}
+                        {coinValue > 0 && (
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0"
+                            style={{ background: "hsl(280 100% 65% / 0.1)", color: "hsl(280 100% 70%)" }}>
+                            🪙 {coinValue.toLocaleString()}
+                          </span>
+                        )}
+
+                        <span className="text-[11px] text-muted-foreground/40 flex-shrink-0">{formatTimeAgo(event.timestamp)}</span>
                       </motion.div>
                     );
                   })}
                 </AnimatePresence>
               ) : wsConnected ? (
                 <div className="text-center py-6 text-muted-foreground text-xs">
-                  Waiting for stream events…
+                  Waiting for gifts…
                 </div>
               ) : (
-                staticEvents.map((event, i) => {
-                  const Icon = event.icon;
-                  return (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, x: -8 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: 0.3 + i * 0.04 }}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
-                    >
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center"
-                        style={{ background: `hsl(${event.color} / 0.1)` }}>
-                        <Icon size={12} style={{ color: `hsl(${event.color})` }} />
+                staticEvents.map((event, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 + i * 0.04 }}
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.03)] transition-colors group/gift"
+                  >
+                    <div className="relative flex-shrink-0">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                        style={{ background: `hsl(${event.color} / 0.1)`, border: `1px solid hsl(${event.color} / 0.15)` }}>
+                        <Gift size={14} style={{ color: `hsl(${event.color})` }} />
                       </div>
-                      <p className="text-[13px] text-foreground flex-1">
-                        <span className="font-semibold">{event.user}</span>{" "}
-                        <span className="text-muted-foreground">{event.action}</span>
-                      </p>
-                      <span className="text-[11px] text-muted-foreground/50">{event.time}</span>
-                    </motion.div>
-                  );
-                })
+                    </div>
+                    <p className="text-[13px] text-foreground flex-1 truncate">
+                      <span className="font-semibold">{event.user}</span>{" "}
+                      <span className="text-muted-foreground">{event.action}</span>
+                    </p>
+                    {event.coins && (
+                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0"
+                        style={{ background: "hsl(280 100% 65% / 0.1)", color: "hsl(280 100% 70%)" }}>
+                        🪙 {event.coins.toLocaleString()}
+                      </span>
+                    )}
+                    <span className="text-[11px] text-muted-foreground/40 flex-shrink-0">{event.time}</span>
+                  </motion.div>
+                ))
               )}
             </div>
           </GlassCard>

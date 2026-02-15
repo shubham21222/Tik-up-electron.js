@@ -49,6 +49,7 @@ const sections: SidebarSection[] = [
     emoji: "🔥",
     items: [
       { id: "/sounds", label: "Spotify Connect", icon: Volume2, pro: true },
+      { id: "/sound-alerts", label: "Sound Alerts", icon: Volume2 },
       { id: "/overlays", label: "Effects Browser", icon: Layers },
       { id: "/backgrounds", label: "Backgrounds", icon: Image, pro: true },
       { id: "/recent-activity", label: "Event Feed", icon: Activity },

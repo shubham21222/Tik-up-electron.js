@@ -6,53 +6,62 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function parseDiamonds(text: string): number {
+  const clean = text.trim();
+  const match = clean.match(/([\d.]+)\s*(M|K)?/i);
+  if (!match) return 0;
+  const num = parseFloat(match[1]);
+  const suffix = (match[2] || "").toUpperCase();
+  if (suffix === "M") return Math.round(num * 1_000_000);
+  if (suffix === "K") return Math.round(num * 1_000);
+  return Math.round(num);
+}
+
 function parseRankingsFromHtml(html: string): any[] {
   const ranks: any[] = [];
   const seen = new Set<string>();
 
-  // Match all list items with profile links, avatars, nicknames, and dollar amounts
-  const itemRegex = /href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)"[^>]*class="main-premium-list-item"[\s\S]*?<div class="main-premium-list-rank[^"]*">(\d+)\.<\/div>[\s\S]*?<img\s+src="([^"]*)"[^>]*>[\s\S]*?<div class="main-premium-list-username">\s*([\s\S]*?)\s*<\/div>[\s\S]*?<div class="main-premium-list-item-amount">\s*\$([\d,]+)/g;
+  // Match the main ranklist-table-row entries (the full 20-entry table)
+  // Each row: <a class="ranklist-table-row" href="...profile/UNIQUE_ID">
+  //   rank number in <span>N</span>
+  //   avatar <img src="..." alt="NICKNAME">
+  //   username in <span class="ranklist-username">NAME</span>
+  //   diamonds in <div class="ranklist-diamonds-wrapper"><span>VALUE</span>
+  const rowRegex = /<a\s+class="ranklist-table-row"\s+href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)">([\s\S]*?)<\/a>/g;
 
-  let match;
-  while ((match = itemRegex.exec(html)) !== null) {
-    const [, uniqueId, , avatar, nickname, dollars] = match;
+  let rowMatch;
+  while ((rowMatch = rowRegex.exec(html)) !== null) {
+    const [, uniqueId, rowHtml] = rowMatch;
     const uid = uniqueId.trim();
     if (seen.has(uid)) continue;
     seen.add(uid);
-    const dollarsNum = parseInt(dollars.replace(/,/g, ""), 10);
-    const estimatedDiamonds = dollarsNum * 200;
+
+    // Extract rank number
+    const rankMatch = rowHtml.match(/<div class="ranklist-place-wrapper">\s*<span>(\d+)<\/span>/);
+    const rank = rankMatch ? parseInt(rankMatch[1], 10) : ranks.length + 1;
+
+    // Extract avatar URL
+    const avatarMatch = rowHtml.match(/<div class="avatar-wrapper">\s*<img\s+src="([^"]+)"/);
+    const avatar = avatarMatch ? avatarMatch[1].replace(/&amp;/g, "&") : "";
+
+    // Extract username
+    const usernameMatch = rowHtml.match(/<span class="ranklist-username">([\s\S]*?)<\/span>/);
+    const nickname = usernameMatch ? usernameMatch[1].trim() : uid;
+
+    // Extract diamonds text
+    const diamondsMatch = rowHtml.match(/<div class="ranklist-diamonds-wrapper">\s*<span>([\s\S]*?)<\/span>/);
+    const diamondsText = diamondsMatch ? diamondsMatch[1].trim() : "0";
+    const diamonds = parseDiamonds(diamondsText);
+
     ranks.push({
-      rank: ranks.length + 1,
+      rank,
       unique_id: uid,
-      avatar: avatar.trim(),
-      nickname: nickname.trim(),
-      diamonds: estimatedDiamonds,
-      diamonds_description: `${estimatedDiamonds.toLocaleString()} 💎`,
+      avatar,
+      nickname,
+      diamonds,
+      diamonds_description: diamondsText,
     });
     if (ranks.length >= 20) break;
-  }
-
-  // Fallback: simpler pattern
-  if (ranks.length === 0) {
-    const simpleItemRegex = /href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)"[\s\S]*?<img\s+src="([^"]*)"[^>]*alt="([^"]*)"[\s\S]*?class="main-premium-list-item-amount">\s*\$([\d,]+)/g;
-    let simpleMatch;
-    while ((simpleMatch = simpleItemRegex.exec(html)) !== null) {
-      const [, uniqueId, avatar, nickname, dollars] = simpleMatch;
-      const uid = uniqueId.trim();
-      if (seen.has(uid)) continue;
-      seen.add(uid);
-      const dollarsNum = parseInt(dollars.replace(/,/g, ""), 10);
-      const estimatedDiamonds = dollarsNum * 200;
-      ranks.push({
-        rank: ranks.length + 1,
-        unique_id: uid,
-        avatar: avatar.trim(),
-        nickname: nickname.trim(),
-        diamonds: estimatedDiamonds,
-        diamonds_description: `${estimatedDiamonds.toLocaleString()} 💎`,
-      });
-      if (ranks.length >= 20) break;
-    }
   }
 
   return ranks;

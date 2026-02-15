@@ -870,7 +870,7 @@ const Index = () => {
               <div className="flex items-center gap-2">
                 <Trophy size={14} className="text-secondary" />
                 <h2 className="text-sm font-heading font-bold text-foreground">TikTok LIVE Rankings</h2>
-                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Today</span>
+                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Daily</span>
               </div>
               <div className="flex items-center gap-2">
                 <select

@@ -5,16 +5,16 @@ import { motion } from "framer-motion";
 import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface GiftActionItem {
-  emoji: string;
+  img: string;
   label: string;
 }
 
 const defaults = {
   items: [
-    { emoji: "🏀", label: "Jump" },
-    { emoji: "🌹", label: "Dance" },
-    { emoji: "💜", label: "Emote" },
-    { emoji: "🍩", label: "Spin" },
+    { img: "/gifts/rose.png", label: "Jump" },
+    { img: "/gifts/flame_heart.png", label: "Dance" },
+    { img: "/gifts/fluffy_heart.png", label: "Emote" },
+    { img: "/gifts/morning_bloom.png", label: "Spin" },
   ],
   scroll_speed: 30,
   icon_size: 64,
@@ -91,7 +91,7 @@ const GiftActionsRenderer = () => {
           >
             {scrollItems.map((item, i) => (
               <div key={i} className="flex flex-col items-center gap-1 flex-shrink-0" style={{ minWidth: settings.icon_size }}>
-                <span style={{ fontSize: settings.icon_size * 0.85, lineHeight: 1 }}>{item.emoji}</span>
+                <img src={item.img} alt={item.label} style={{ width: settings.icon_size * 0.85, height: settings.icon_size * 0.85, objectFit: "contain", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))" }} draggable={false} />
                 {settings.show_labels && <span style={labelStyle}>{item.label}</span>}
               </div>
             ))}
@@ -106,7 +106,7 @@ const GiftActionsRenderer = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.1 }}
               >
-                <span style={{ fontSize: settings.icon_size * 0.85, lineHeight: 1 }}>{item.emoji}</span>
+                <img src={item.img} alt={item.label} style={{ width: settings.icon_size * 0.85, height: settings.icon_size * 0.85, objectFit: "contain", filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))" }} draggable={false} />
                 {settings.show_labels && <span style={labelStyle}>{item.label}</span>}
               </motion.div>
             ))}

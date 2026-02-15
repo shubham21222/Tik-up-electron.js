@@ -94,6 +94,9 @@ import VoteBattleOverlay from "./pages/VoteBattleOverlay";
 import VoteBattleRenderer from "./pages/renderers/VoteBattleRenderer";
 import ProgressRaceOverlay from "./pages/ProgressRaceOverlay";
 import ProgressRaceRenderer from "./pages/renderers/ProgressRaceRenderer";
+import AgencyDashboard from "./pages/AgencyDashboard";
+import AgencyCreate from "./pages/AgencyCreate";
+import AgencyDetail from "./pages/AgencyDetail";
 
 const queryClient = new QueryClient();
 
@@ -200,6 +203,9 @@ const App = () => (
                 <Route path="/slot-machine" element={<SlotMachineOverlay />} />
                 <Route path="/vote-battle" element={<VoteBattleOverlay />} />
                 <Route path="/progress-race" element={<ProgressRaceOverlay />} />
+                <Route path="/agencies" element={<AgencyDashboard />} />
+                <Route path="/agency/new" element={<AgencyCreate />} />
+                <Route path="/agency/:id" element={<AgencyDetail />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

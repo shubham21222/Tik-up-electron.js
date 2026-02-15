@@ -49,6 +49,89 @@ export type Database = {
           },
         ]
       }
+      agencies: {
+        Row: {
+          brand_config: Json
+          created_at: string
+          created_by: string
+          custom_domain: string | null
+          id: string
+          is_active: boolean
+          max_clients: number
+          max_overlays: number
+          max_ws_connections: number
+          name: string
+          plan: Database["public"]["Enums"]["agency_plan"]
+          slug: string
+          stripe_customer_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          brand_config?: Json
+          created_at?: string
+          created_by: string
+          custom_domain?: string | null
+          id?: string
+          is_active?: boolean
+          max_clients?: number
+          max_overlays?: number
+          max_ws_connections?: number
+          name: string
+          plan?: Database["public"]["Enums"]["agency_plan"]
+          slug: string
+          stripe_customer_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          brand_config?: Json
+          created_at?: string
+          created_by?: string
+          custom_domain?: string | null
+          id?: string
+          is_active?: boolean
+          max_clients?: number
+          max_overlays?: number
+          max_ws_connections?: number
+          name?: string
+          plan?: Database["public"]["Enums"]["agency_plan"]
+          slug?: string
+          stripe_customer_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      agency_members: {
+        Row: {
+          agency_id: string
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["agency_role"]
+          user_id: string
+        }
+        Insert: {
+          agency_id: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["agency_role"]
+          user_id: string
+        }
+        Update: {
+          agency_id?: string
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["agency_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_members_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       automations: {
         Row: {
           cooldown: number
@@ -870,6 +953,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      has_agency_role: {
+        Args: {
+          _agency_id: string
+          _role: Database["public"]["Enums"]["agency_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -877,10 +968,16 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_agency_member: {
+        Args: { _agency_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_owner: { Args: { _user_id: string }; Returns: boolean }
       owns_automation: { Args: { _automation_id: string }; Returns: boolean }
     }
     Enums: {
+      agency_plan: "starter" | "pro" | "enterprise"
+      agency_role: "owner" | "admin" | "designer"
       app_role: "admin" | "moderator" | "user"
     }
     CompositeTypes: {
@@ -1009,6 +1106,8 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      agency_plan: ["starter", "pro", "enterprise"],
+      agency_role: ["owner", "admin", "designer"],
       app_role: ["admin", "moderator", "user"],
     },
   },

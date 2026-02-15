@@ -45,6 +45,8 @@ export function useTikTokLive() {
   const eventBatchRef = useRef<Array<{ type: string; username: string; data: Record<string, unknown> }>>([]);
   const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const tiktokUsernameRef = useRef<string>("");
+  // Track combo gift repeat counts to only add the delta (TikTok sends cumulative repeatCount per combo)
+  const comboTrackerRef = useRef<Record<string, number>>({});
 
   const addEvent = useCallback((type: string, data: Record<string, unknown>) => {
     setEvents(prev => {
@@ -115,6 +117,7 @@ export function useTikTokLive() {
       wsRef.current.close(1000);
       wsRef.current = null;
     }
+    comboTrackerRef.current = {};
     setStatus("disconnected");
     setError(null);
   }, [flushEventBatch, stats]);
@@ -248,22 +251,36 @@ export function useTikTokLive() {
               const repeatCount = Number(data.repeatCount || data.repeat_count || 1);
               const diamondCount = Number(data.diamondCount || data.diamond_count || mapEntry?.diamond || 0);
               const coinValue = Number(data.coinValue || data.coin_value || mapEntry?.coinValue || diamondCount);
+              const senderUsername = data.uniqueId || data.user?.uniqueId || "unknown";
+
+              // TikTok combo gifts send cumulative repeatCount — only add the delta
+              const comboKey = `${senderUsername}:${giftId}`;
+              const prevRepeat = comboTrackerRef.current[comboKey] || 0;
+              const deltaRepeat = Math.max(repeatCount - prevRepeat, 1);
+              comboTrackerRef.current[comboKey] = repeatCount;
+
+              // Clear combo tracker entry after 10s of no updates (combo ended)
+              setTimeout(() => {
+                if (comboTrackerRef.current[comboKey] === repeatCount) {
+                  delete comboTrackerRef.current[comboKey];
+                }
+              }, 10000);
 
               setStats(prev => ({
                 ...prev,
-                diamondCount: prev.diamondCount + (diamondCount * repeatCount),
-                giftCoins: prev.giftCoins + (coinValue * repeatCount),
+                diamondCount: prev.diamondCount + (diamondCount * deltaRepeat),
+                giftCoins: prev.giftCoins + (coinValue * deltaRepeat),
               }));
 
               const giftPayload = {
-                username: data.uniqueId || data.user?.uniqueId || "unknown",
+                username: senderUsername,
                 giftName,
-                repeatCount,
+                repeatCount: deltaRepeat,
                 diamondCount,
                 coinValue,
                 avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
                 giftId,
-                total_coins: coinValue * repeatCount,
+                total_coins: coinValue * deltaRepeat,
               };
 
               addEvent("gift", giftPayload);

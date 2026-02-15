@@ -498,6 +498,20 @@ export const defaultVideoLabelBarSettings = {
   custom_css: "",
 };
 
+// Coin Jar
+export const defaultCoinJarSettings = {
+  jar_style: "glass" as "glass" | "crystal" | "neon" | "gold",
+  target_coins: 5000,
+  fill_animation: "bounce" as "bounce" | "float" | "pop" | "spiral",
+  show_gift_icons: true,
+  show_sender: true,
+  show_total: true,
+  glow_intensity: 50,
+  completion_effect: "confetti" as "confetti" | "fireworks" | "glow_burst" | "none",
+  transparent_bg: true,
+  custom_css: "",
+};
+
 // Event Feed
 export const defaultEventFeedSettings = {
   eventTypes: ["followers", "gifts", "likes", "shares", "comments", "joins"] as string[],
@@ -536,5 +550,6 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   webcam_frame: defaultWebcamFrameSettings,
   video_cam_frame: defaultVideoCamFrameSettings,
   video_label_bar: defaultVideoLabelBarSettings,
+  coin_jar: defaultCoinJarSettings,
   event_feed: defaultEventFeedSettings,
 };

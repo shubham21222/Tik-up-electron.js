@@ -446,6 +446,7 @@ const Index = () => {
       change: wsConnected ? "⚡ Live" : "+5.2%",
       changeColor: "hsl(280 100% 65%)",
       accentColor: "280 100% 65%",
+      prefix: "🪙 ",
     },
   ];
 
@@ -621,7 +622,7 @@ const Index = () => {
                     </div>
                   </div>
                   <p className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-1">
-                    <AnimatedCounter value={stat.value} />
+                    <AnimatedCounter value={stat.value} prefix={stat.prefix} />
                   </p>
                   <span className="text-[11px] font-semibold" style={{ color: stat.changeColor }}>
                     {stat.change}

@@ -52,28 +52,21 @@ Deno.serve(async (req) => {
 
     const uniqueId = profile.tiktok_username;
 
-    // Fetch diamond map, WebSocket stats, and DB diamonds in parallel
-    const [diamondMap, wsStats, dbDiamonds] = await Promise.all([
-      fetchDiamondMap(apiKey),
+    // Fetch WebSocket stats and DB coins in parallel (skip diamond map - often 401)
+    const [wsStats, dbCoins] = await Promise.all([
       fetchLiveStats(uniqueId, apiKey),
-      fetchAccumulatedDiamonds(adminClient, user.id),
+      fetchAccumulatedCoins(adminClient, user.id),
     ]);
 
-    // Calculate diamonds from WebSocket gift events using the diamond map
     const stats = { ...wsStats } as Record<string, unknown>;
-    const wsGifts = (stats._gift_events as Array<{ name: string; count: number }>) || [];
-    let wsDiamonds = 0;
-    for (const gift of wsGifts) {
-      const value = diamondMap[gift.name] || 0;
-      wsDiamonds += value * gift.count;
-    }
     delete stats._gift_events;
 
-    // Use the highest diamond count from all sources
-    const finalDiamonds = Math.max(wsDiamonds, dbDiamonds, Number(stats.diamond_count) || 0);
-    stats.diamond_count = finalDiamonds;
+    // Use DB accumulated coins as the gift/coin count
+    const wsCoins = Number(stats.diamond_count) || 0;
+    const finalCoins = Math.max(wsCoins, dbCoins);
+    stats.diamond_count = finalCoins;
 
-    console.log(`Diamond sources: WS=${wsDiamonds}, DB=${dbDiamonds}, final=${finalDiamonds}`);
+    console.log(`Coin sources: WS=${wsCoins}, DB=${dbCoins}, final=${finalCoins}`);
 
     return new Response(JSON.stringify(stats), {
       status: 200,
@@ -88,35 +81,8 @@ Deno.serve(async (req) => {
   }
 });
 
-/** Fetch gift name → diamond value map from EulerStream API */
-async function fetchDiamondMap(apiKey: string): Promise<Record<string, number>> {
-  try {
-    const res = await fetch(
-      "https://tiktok.eulerstream.com/webcast/gift_info?client=ttlive-other",
-      { headers: { "x-api-key": apiKey } }
-    );
-    if (!res.ok) {
-      console.error(`gift_info API error: ${res.status}`);
-      return {};
-    }
-    const json = await res.json();
-    const gifts = json.data || [];
-    const map: Record<string, number> = {};
-    for (const gift of gifts) {
-      if (gift.name && gift.diamond !== undefined) {
-        map[gift.name.toLowerCase()] = Number(gift.diamond);
-      }
-    }
-    console.log(`Loaded ${Object.keys(map).length} gift diamond values`);
-    return map;
-  } catch (e) {
-    console.error("Failed to fetch diamond map:", e);
-    return {};
-  }
-}
-
-/** Query events_log for gift events and sum diamonds using total_diamonds field */
-async function fetchAccumulatedDiamonds(
+/** Query events_log for gift events and sum coin values */
+async function fetchAccumulatedCoins(
   adminClient: ReturnType<typeof createClient>,
   userId: string
 ): Promise<number> {
@@ -131,26 +97,30 @@ async function fetchAccumulatedDiamonds(
 
     if (error || !giftEvents) return 0;
 
-    let totalDiamonds = 0;
+    let totalCoins = 0;
     for (const event of giftEvents) {
       const payload = event.payload as Record<string, unknown> | null;
       if (!payload) continue;
-      // Prefer total_diamonds (pre-calculated by bridge v2.1)
-      const total = Number(payload.total_diamonds || 0);
-      if (total > 0) {
-        totalDiamonds += total;
+      // Try multiple field names for coin value
+      const coins = Number(
+        payload.total_coins || payload.coinValue || payload.coin_value ||
+        payload.total_diamonds || 0
+      );
+      if (coins > 0) {
+        const repeatCount = Number(payload.repeat_count || payload.repeatCount || 1);
+        totalCoins += coins * repeatCount;
       } else {
         // Fallback: diamond_count × repeat_count
         const diamondCount = Number(payload.diamond_count || payload.diamondCount || 0);
         const repeatCount = Number(payload.repeat_count || payload.repeatCount || 1);
-        totalDiamonds += diamondCount * repeatCount;
+        totalCoins += diamondCount * repeatCount;
       }
     }
 
-    console.log(`DB diamonds: ${totalDiamonds} from ${giftEvents.length} gift events`);
-    return totalDiamonds;
+    console.log(`DB coins: ${totalCoins} from ${giftEvents.length} gift events`);
+    return totalCoins;
   } catch (e) {
-    console.error("Failed to fetch accumulated diamonds:", e);
+    console.error("Failed to fetch accumulated coins:", e);
     return 0;
   }
 }

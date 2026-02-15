@@ -71,7 +71,6 @@ const sections: SidebarSection[] = [
       { id: "/tts", label: "TTS Chat", icon: Mic },
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
-      { id: "/polls", label: "Polls", icon: BarChart, pro: true },
       { id: "/gift-browser", label: "Gift Browser", icon: Gift },
     ],
   },

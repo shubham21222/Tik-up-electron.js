@@ -233,7 +233,7 @@ async function upsertViewerPoints(
   let coinsInc = 0;
   let likesInc = 0;
   let messagesInc = 0;
-  const avatarUrl = (eventData.profilePictureUrl as string) || (eventData.avatar_url as string) || null;
+  const avatarUrl = (eventData.profilePictureUrl as string) || (eventData.avatar_url as string) || (eventData.avatar as string) || null;
 
   switch (eventType) {
     case "gift": {

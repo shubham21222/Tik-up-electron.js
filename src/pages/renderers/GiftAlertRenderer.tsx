@@ -12,6 +12,7 @@ interface AlertEvent {
   gift: string;
   emoji: string;
   value: number;
+  avatar?: string;
 }
 
 const getEntryVariants = (style: string) => {
@@ -59,8 +60,16 @@ const GiftAlertRenderer = () => {
     const channel = supabase
       .channel(`gift-alert-${publicToken}`)
       .on("broadcast", { event: "gift_alert" }, (msg) => {
-        const event = msg.payload as AlertEvent;
-        setAlerts(prev => [...prev, { ...event, id: Date.now() }]);
+        const p = msg.payload || {};
+        const event: AlertEvent = {
+          id: Date.now(),
+          user: p.username || p.user || "Viewer",
+          gift: p.giftName || p.gift_name || p.gift || "Gift",
+          emoji: p.emoji || "🎁",
+          value: Number(p.coinValue || p.coin_value || p.diamondCount || p.diamond_count || 0),
+          avatar: p.avatar || p.profilePictureUrl || p.avatar_url || undefined,
+        };
+        setAlerts(prev => [...prev, event]);
       })
       .on("broadcast", { event: "test_alert" }, () => {
         setAlerts(prev => [...prev, {
@@ -136,14 +145,24 @@ const GiftAlertRenderer = () => {
               transition={{ duration: 2, repeat: Infinity }}
             />
 
-            {/* Gift icon */}
-            <div className="rounded-full flex items-center justify-center mb-4"
-              style={{ width: imageSize, height: imageSize, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(20px)", border: `1px solid hsl(280 100% 65% / 0.2)` }}>
-              <span style={{ fontSize: imageSize * 0.45 }}>{alert.emoji}</span>
-            </div>
+            {/* Avatar / Gift icon */}
+            {alert.avatar ? (
+              <img
+                src={alert.avatar}
+                alt={alert.user}
+                className="rounded-full mb-4 object-cover"
+                style={{ width: imageSize, height: imageSize, border: `2px solid hsl(280 100% 65% / 0.4)` }}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              />
+            ) : (
+              <div className="rounded-full flex items-center justify-center mb-4"
+                style={{ width: imageSize, height: imageSize, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(20px)", border: `1px solid hsl(280 100% 65% / 0.2)` }}>
+                <span style={{ fontSize: imageSize * 0.45 }}>{alert.emoji}</span>
+              </div>
+            )}
 
             <div className="text-center">
-              <p className={`text-sm font-bold text-white ${settings.username_font === "mono" ? "font-mono" : settings.username_font === "heading" ? "font-heading" : ""}`}>
+              <p className={`text-sm font-bold text-white truncate max-w-[200px] ${settings.username_font === "mono" ? "font-mono" : settings.username_font === "heading" ? "font-heading" : ""}`}>
                 {alert.user}
               </p>
               <p className="text-[11px] text-white/50 mt-0.5">sent a gift!</p>

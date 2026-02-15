@@ -1,7 +1,8 @@
 import AppLayout from "@/components/AppLayout";
 import { useState, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Coins, Plus } from "lucide-react";
+import { Coins, Plus, RotateCcw } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
 import OverlaySettingsShell from "@/components/overlays/OverlaySettingsShell";
@@ -88,6 +89,18 @@ const CoinJarOverlay = () => {
                     <SettingRow label="Completion Effect"><SettingSelect value={s.completion_effect} onChange={v => set("completion_effect", v)} options={[
                       { value: "confetti", label: "Confetti" }, { value: "fireworks", label: "Fireworks" },
                       { value: "glow_burst", label: "Glow Burst" }, { value: "none", label: "None" }]} /></SettingRow>
+                    <div className="pt-2 border-t border-white/[0.06]">
+                      <button
+                        onClick={async () => {
+                          await supabase.channel(`coin-jar-${widget.public_token}`).send({ type: "broadcast", event: "reset_jar", payload: {} });
+                        }}
+                        className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 hover:-translate-y-0.5"
+                        style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "hsl(45 100% 65%)" }}
+                      >
+                        <RotateCcw size={13} /> Reset Jar
+                      </button>
+                      <p className="text-[10px] text-muted-foreground/50 mt-1.5 text-center">Empties the jar and resets the coin counter to zero</p>
+                    </div>
                   </div>}
                   advancedSlot={<div className="space-y-4">
                     <SettingRow label="Transparent Background"><SettingToggle checked={s.transparent_bg} onChange={v => set("transparent_bg", v)} /></SettingRow>

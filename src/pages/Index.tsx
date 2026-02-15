@@ -406,7 +406,7 @@ const Index = () => {
   const mergedViewers = wsConnected ? tikTokLive.stats.viewerCount : (liveStats?.viewer_count ?? 0);
   const mergedLikes = wsConnected ? tikTokLive.stats.likeCount : (liveStats?.like_count ?? 0);
   const mergedFollowers = wsConnected ? tikTokLive.stats.followerCount : (liveStats?.follower_count ?? 0);
-  const mergedDiamonds = wsConnected ? tikTokLive.stats.diamondCount : (liveStats?.diamond_count ?? 0);
+  const mergedGifts = wsConnected ? tikTokLive.stats.giftCount : (liveStats?.diamond_count ?? 0);
 
   /* ── Stat card data ── */
   const statCards = [
@@ -435,13 +435,12 @@ const Index = () => {
       accentColor: "200 100% 55%",
     },
     {
-      label: "Revenue",
-      value: mergedDiamonds,
-      icon: DollarSign,
+      label: "Gifts",
+      value: mergedGifts,
+      icon: Gift,
       change: wsConnected ? "⚡ Live" : "+5.2%",
-      changeColor: "hsl(45 100% 55%)",
-      accentColor: "45 100% 55%",
-      prefix: "$",
+      changeColor: "hsl(280 100% 65%)",
+      accentColor: "280 100% 65%",
     },
   ];
 
@@ -617,7 +616,7 @@ const Index = () => {
                     </div>
                   </div>
                   <p className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-1">
-                    <AnimatedCounter value={stat.value} prefix={stat.prefix} />
+                    <AnimatedCounter value={stat.value} />
                   </p>
                   <span className="text-[11px] font-semibold" style={{ color: stat.changeColor }}>
                     {stat.change}

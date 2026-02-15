@@ -15,6 +15,7 @@ export interface LiveStats {
   shareCount: number;
   diamondCount: number;
   followerCount: number;
+  giftCount: number;
   title: string;
   roomId: string;
 }
@@ -27,6 +28,7 @@ export function useTikTokLive() {
     shareCount: 0,
     diamondCount: 0,
     followerCount: 0,
+    giftCount: 0,
     title: "",
     roomId: "",
   });
@@ -159,6 +161,7 @@ export function useTikTokLive() {
               setStats(prev => ({
                 ...prev,
                 diamondCount: prev.diamondCount + (diamondCount * repeatCount),
+                giftCount: prev.giftCount + repeatCount,
               }));
 
               addEvent("gift", {
@@ -171,15 +174,22 @@ export function useTikTokLive() {
               });
             }
 
-            // Follow events
-            if (msgType === "WebcastMemberMessage" || msgType === "WebcastSocialMessage") {
-              if (msgType === "WebcastSocialMessage") {
-                setStats(prev => ({ ...prev, shareCount: prev.shareCount + 1 }));
-                addEvent("share", {
-                  username: data.uniqueId || data.user?.uniqueId || "unknown",
-                  avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
-                });
-              }
+            // Follow & Social events
+            if (msgType === "WebcastMemberMessage") {
+              // Member join — also counts as a follow on TikTok LIVE
+              setStats(prev => ({ ...prev, followerCount: prev.followerCount + 1 }));
+              addEvent("follow", {
+                username: data.uniqueId || data.user?.uniqueId || "unknown",
+                avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
+              });
+            }
+
+            if (msgType === "WebcastSocialMessage") {
+              setStats(prev => ({ ...prev, shareCount: prev.shareCount + 1 }));
+              addEvent("share", {
+                username: data.uniqueId || data.user?.uniqueId || "unknown",
+                avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
+              });
             }
 
             // Chat events

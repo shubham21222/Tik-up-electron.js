@@ -15,6 +15,10 @@ interface PointsConfig {
   currency_name: string;
   points_per_coin: number;
   points_per_coin_enabled: boolean;
+  points_per_like: number;
+  points_per_like_enabled: boolean;
+  points_per_follow: number;
+  points_per_follow_enabled: boolean;
   points_per_share: number;
   points_per_share_enabled: boolean;
   points_per_chat_minute: number;
@@ -28,6 +32,10 @@ const defaultPointsConfig: PointsConfig = {
   currency_name: "Points",
   points_per_coin: 1,
   points_per_coin_enabled: true,
+  points_per_like: 0.1,
+  points_per_like_enabled: true,
+  points_per_follow: 5,
+  points_per_follow_enabled: true,
   points_per_share: 3,
   points_per_share_enabled: false,
   points_per_chat_minute: 0.5,
@@ -71,6 +79,10 @@ const Setup = () => {
             currency_name: d.currency_name || "Points",
             points_per_coin: Number(d.points_per_coin) || 1,
             points_per_coin_enabled: d.points_per_coin_enabled ?? true,
+            points_per_like: Number(d.points_per_like) || 0.1,
+            points_per_like_enabled: d.points_per_like_enabled ?? true,
+            points_per_follow: Number(d.points_per_follow) || 5,
+            points_per_follow_enabled: d.points_per_follow_enabled ?? true,
             points_per_share: Number(d.points_per_share) || 3,
             points_per_share_enabled: d.points_per_share_enabled ?? false,
             points_per_chat_minute: Number(d.points_per_chat_minute) || 0.5,
@@ -289,9 +301,11 @@ const Setup = () => {
 
                   {/* Points per action rows */}
                   {([
-                    { key: "points_per_coin", enabledKey: "points_per_coin_enabled", label: "Points per coin" },
+                    { key: "points_per_coin", enabledKey: "points_per_coin_enabled", label: "Points per coin (gift value)" },
+                    { key: "points_per_like", enabledKey: "points_per_like_enabled", label: "Points per like" },
+                    { key: "points_per_follow", enabledKey: "points_per_follow_enabled", label: "Points per follow" },
                     { key: "points_per_share", enabledKey: "points_per_share_enabled", label: "Points per share" },
-                    { key: "points_per_chat_minute", enabledKey: "points_per_chat_minute_enabled", label: "Points per chat minute" },
+                    { key: "points_per_chat_minute", enabledKey: "points_per_chat_minute_enabled", label: "Points per chat message" },
                   ] as const).map(row => (
                     <div key={row.key} className="flex items-center gap-3">
                       <button

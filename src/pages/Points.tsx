@@ -6,7 +6,7 @@ import {
   Trophy, Crown, Search, ArrowUpDown, ArrowUp, ArrowDown,
   Users, Coins, MessageCircle, Gift, RotateCcw, Medal
 } from "lucide-react";
-import { useLeaderboard, useResetAllPoints } from "@/hooks/use-points-api";
+import { useLeaderboard, useResetAllPoints, usePointsConfig } from "@/hooks/use-points-api";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -31,6 +31,41 @@ const rankColors: Record<number, string> = {
   1: "45 100% 55%",
   2: "0 0% 72%",
   3: "25 70% 45%",
+};
+
+const PointsConfigBar = () => {
+  const { data: config } = usePointsConfig();
+  if (!config) return null;
+
+  const c = config as any;
+  const rewards = [
+    { label: "Coin", value: c.points_per_coin ?? c.coins?.weight ?? 1, enabled: c.points_per_coin_enabled ?? c.coins?.enabled ?? true, emoji: "🪙" },
+    { label: "Like", value: c.points_per_like ?? c.like?.weight ?? 0.1, enabled: c.points_per_like_enabled ?? c.like?.enabled ?? true, emoji: "❤️" },
+    { label: "Follow", value: c.points_per_follow ?? c.follow?.weight ?? 5, enabled: c.points_per_follow_enabled ?? c.follow?.enabled ?? true, emoji: "👤" },
+    { label: "Share", value: c.points_per_share ?? c.share?.weight ?? 3, enabled: c.points_per_share_enabled ?? c.share?.enabled ?? false, emoji: "🔄" },
+    { label: "Message", value: c.points_per_chat_minute ?? c.message?.weight ?? 0.5, enabled: c.points_per_chat_minute_enabled ?? c.message?.enabled ?? false, emoji: "💬" },
+  ];
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+      className="rounded-xl p-[1px] mb-4" style={glassGradient}>
+      <div className="rounded-xl px-4 py-2.5 flex items-center gap-5 flex-wrap" style={glassInnerStyle}>
+        <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mr-1">
+          {config.currency_name || "Points"} per action
+        </span>
+        {rewards.map(r => (
+          <div key={r.label} className={`flex items-center gap-1.5 text-xs ${r.enabled ? "text-foreground" : "text-muted-foreground/40 line-through"}`}>
+            <span>{r.emoji}</span>
+            <span className="font-medium">{r.label}</span>
+            <span className="font-heading font-bold" style={{ color: r.enabled ? "hsl(45 100% 55%)" : undefined }}>
+              {r.value ?? 0}
+            </span>
+          </div>
+        ))}
+        <Link to="/setup" className="ml-auto text-[11px] text-primary hover:underline">Edit</Link>
+      </div>
+    </motion.div>
+  );
 };
 
 const Points = () => {
@@ -119,6 +154,9 @@ const Points = () => {
             </div>
           ))}
         </motion.div>
+
+        {/* Points Config Summary */}
+        <PointsConfigBar />
 
         {/* Search & Actions */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} className="flex items-center gap-3 mb-4">

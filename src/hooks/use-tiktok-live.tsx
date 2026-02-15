@@ -20,6 +20,9 @@ export interface LiveStats {
   roomId: string;
 }
 
+type GiftMapEntry = { name: string; diamond: number; coinValue: number };
+type GiftMap = Record<string, GiftMapEntry>;
+
 export function useTikTokLive() {
   const [status, setStatus] = useState<ConnectionStatus>("disconnected");
   const [stats, setStats] = useState<LiveStats>({
@@ -37,6 +40,7 @@ export function useTikTokLive() {
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const giftMapRef = useRef<GiftMap>({});
 
   const addEvent = useCallback((type: string, data: Record<string, unknown>) => {
     setEvents(prev => {
@@ -88,6 +92,12 @@ export function useTikTokLive() {
         return;
       }
 
+      // Load gift map for enriching gift events (fire and forget, don't block connect)
+      if (Object.keys(giftMapRef.current).length === 0) {
+        // We'll load gift map once we have a room_id from roomInfo message
+        console.log("Gift map will load after roomInfo provides room_id");
+      }
+
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
@@ -118,6 +128,25 @@ export function useTikTokLive() {
                 shareCount: Number(ri.shareCount || ri.totalShares || prev.shareCount) || 0,
                 followerCount: Number(ri.followerCount || prev.followerCount) || 0,
               }));
+
+              // Load gift map using room_id
+              const roomId = String(ri.id || "");
+              if (roomId && Object.keys(giftMapRef.current).length === 0) {
+                supabase.auth.getSession().then(({ data: sess }) => {
+                  if (!sess?.session) return;
+                  fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gift-map?room_id=${roomId}`, {
+                    headers: { Authorization: `Bearer ${sess.session.access_token}` },
+                  })
+                    .then(r => r.json())
+                    .then(giftData => {
+                      if (giftData.gifts && Object.keys(giftData.gifts).length > 0) {
+                        giftMapRef.current = giftData.gifts;
+                        console.log(`💎 Gift map loaded: ${giftData.count} gifts`);
+                      }
+                    })
+                    .catch(e => console.error("Failed to load gift map:", e));
+                });
+              }
 
               if (ri.liveRoomStats) {
                 const s = ri.liveRoomStats;
@@ -151,11 +180,14 @@ export function useTikTokLive() {
             }
 
             // Gift events
+            // Gift events — enrich with gift map
             if (msgType === "WebcastGiftMessage") {
-              const giftName = data.giftName || data.gift_name || "Unknown Gift";
+              const giftId = String(data.giftId || data.gift_id || "");
+              const mapEntry = giftMapRef.current[giftId];
+              const giftName = data.giftName || data.gift_name || mapEntry?.name || "Unknown Gift";
               const repeatCount = Number(data.repeatCount || data.repeat_count || 1);
-              const diamondCount = Number(data.diamondCount || data.diamond_count || 0);
-              const coinValue = Number(data.coinValue || data.coin_value || diamondCount);
+              const diamondCount = Number(data.diamondCount || data.diamond_count || mapEntry?.diamond || 0);
+              const coinValue = Number(data.coinValue || data.coin_value || mapEntry?.coinValue || diamondCount);
 
               setStats(prev => ({
                 ...prev,
@@ -170,7 +202,7 @@ export function useTikTokLive() {
                 diamondCount,
                 coinValue,
                 avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
-                giftId: data.giftId,
+                giftId,
                 total_coins: coinValue * repeatCount,
               };
 

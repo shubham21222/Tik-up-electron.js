@@ -6,20 +6,59 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+function parseRankingsFromHtml(html: string): any[] {
+  const ranks: any[] = [];
+
+  // Match the "Last day" archive section items
+  // Pattern: <a href="...tiknode.com/profile/USERNAME" class="main-premium-list-item">
+  //   rank, avatar img, nickname, dollar amount
+  const itemRegex = /<a\s+href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)"\s+class="main-premium-list-item">\s*<div class="main-premium-list-item-info">\s*<div class="main-premium-list-rank[^"]*">(\d+)\.<\/div>\s*<div class="main-premium-list-avatar">\s*<img\s+src="([^"]*)"[^>]*>\s*<\/div>\s*<div class="main-premium-list-username">\s*([\s\S]*?)\s*<\/div>\s*<\/div>\s*<div class="main-premium-list-item-amount">\s*\$([\d,]+)\s*<\/div>/g;
+
+  let match;
+  while ((match = itemRegex.exec(html)) !== null) {
+    const [, uniqueId, rankStr, avatar, nickname, dollars] = match;
+    ranks.push({
+      rank: parseInt(rankStr, 10),
+      unique_id: uniqueId.trim(),
+      avatar: avatar.trim(),
+      nickname: nickname.trim(),
+      dollars: dollars.replace(/,/g, ""),
+      diamonds: 0,
+      diamonds_description: `$${dollars}`,
+    });
+  }
+
+  // If regex didn't match (HTML structure varies), try a simpler approach
+  if (ranks.length === 0) {
+    // Fallback: find all list items in the archive section
+    const archiveSection = html.split("main-premium-archive-list")[1] || "";
+    const simpleItemRegex = /href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)"[\s\S]*?<img\s+src="([^"]*)"[^>]*alt="([^"]*)"[\s\S]*?class="main-premium-list-item-amount">\s*\$([\d,]+)/g;
+    
+    let simpleMatch;
+    let rank = 1;
+    while ((simpleMatch = simpleItemRegex.exec(archiveSection)) !== null) {
+      const [, uniqueId, avatar, nickname, dollars] = simpleMatch;
+      ranks.push({
+        rank: rank++,
+        unique_id: uniqueId.trim(),
+        avatar: avatar.trim(),
+        nickname: nickname.trim(),
+        dollars: dollars.replace(/,/g, ""),
+        diamonds: 0,
+        diamonds_description: `$${dollars}`,
+      });
+    }
+  }
+
+  return ranks;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const apiKey = Deno.env.get("TIKTOK_DATA_API_KEY");
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "TikTok API key not configured" }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
     // Auth: get user from token
     const authHeader = req.headers.get("authorization") || "";
     const supabase = createClient(
@@ -38,46 +77,37 @@ Deno.serve(async (req) => {
 
     // Parse query params
     const url = new URL(req.url);
-    const region = url.searchParams.get("region") || "GB";
-    const rankType = url.searchParams.get("rank_type") || "DAILY_RANK";
+    const region = url.searchParams.get("region") || "gb";
 
-    const apiUrl = `https://tiktok.eulerstream.com/webcast/rankings?region=${encodeURIComponent(region)}&rank_type=${encodeURIComponent(rankType)}&apiKey=${encodeURIComponent(apiKey)}`;
+    const tiknodeUrl = `https://www.tiknode.com/country/${encodeURIComponent(region.toLowerCase())}`;
+    console.log("Fetching tiknode rankings from:", tiknodeUrl);
 
-    const cookieHeader = Deno.env.get("TIKTOK_COOKIE_HEADER");
-    const headers: Record<string, string> = {};
-    if (cookieHeader) {
-      headers["x-cookie-header"] = cookieHeader;
-    }
-
-    const response = await fetch(apiUrl, { headers });
+    const response = await fetch(tiknodeUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+      },
+    });
 
     if (!response.ok) {
-      const text = await response.text();
-      console.error("Rankings API error:", response.status, text);
+      console.error("Tiknode fetch error:", response.status);
       return new Response(
-        JSON.stringify({ error: `Rankings API returned ${response.status}`, ranks: [] }),
+        JSON.stringify({ error: `Tiknode returned ${response.status}`, ranks: [] }),
         { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const data = await response.json();
+    const html = await response.text();
+    const ranks = parseRankingsFromHtml(html);
 
-    // Extract ranks from the response structure
-    const ranks = data?.response?.ranks || [];
-    const simplified = ranks.slice(0, 20).map((r: any) => ({
-      rank: r.rank,
-      diamonds: r.diamonds,
-      diamonds_description: r.diamonds_description,
-      nickname: r.user?.nickname || "Unknown",
-      unique_id: r.user?.unique_id || "",
-      avatar: r.user?.avatar_thumb?.[0] || "",
-    }));
+    console.log(`Parsed ${ranks.length} rankings from tiknode`);
 
     return new Response(
       JSON.stringify({
-        ranks: simplified,
-        rank_type: rankType,
-        region,
+        ranks: ranks.slice(0, 20),
+        region: region.toUpperCase(),
+        source: "tiknode",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

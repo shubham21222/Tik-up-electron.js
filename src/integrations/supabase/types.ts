@@ -361,6 +361,48 @@ export type Database = {
           },
         ]
       }
+      live_sessions: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          id: string
+          is_active: boolean
+          room_id: string | null
+          started_at: string
+          total_diamonds: number
+          total_gifts: number
+          unique_gifters: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          room_id?: string | null
+          started_at?: string
+          total_diamonds?: number
+          total_gifts?: number
+          unique_gifters?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_active?: boolean
+          room_id?: string | null
+          started_at?: string
+          total_diamonds?: number
+          total_gifts?: number
+          unique_gifters?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       moderation_config: {
         Row: {
           allow_subscriber_links: boolean
@@ -654,6 +696,103 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      session_gifts: {
+        Row: {
+          created_at: string
+          diamond_value: number
+          gift_id: string | null
+          gift_name: string
+          id: string
+          repeat_count: number
+          sender_avatar_url: string | null
+          sender_username: string
+          session_id: string
+          total_diamonds: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          diamond_value?: number
+          gift_id?: string | null
+          gift_name: string
+          id?: string
+          repeat_count?: number
+          sender_avatar_url?: string | null
+          sender_username: string
+          session_id: string
+          total_diamonds?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          diamond_value?: number
+          gift_id?: string | null
+          gift_name?: string
+          id?: string
+          repeat_count?: number
+          sender_avatar_url?: string | null
+          sender_username?: string
+          session_id?: string
+          total_diamonds?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_gifts_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_user_totals: {
+        Row: {
+          created_at: string
+          id: string
+          last_gift_at: string
+          sender_avatar_url: string | null
+          sender_username: string
+          session_id: string
+          total_diamonds: number
+          total_gifts: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          last_gift_at?: string
+          sender_avatar_url?: string | null
+          sender_username: string
+          session_id: string
+          total_diamonds?: number
+          total_gifts?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          last_gift_at?: string
+          sender_avatar_url?: string | null
+          sender_username?: string
+          session_id?: string
+          total_diamonds?: number
+          total_gifts?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_user_totals_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "live_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       subscriptions: {
         Row: {

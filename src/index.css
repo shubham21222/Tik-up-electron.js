@@ -164,3 +164,13 @@
 main > div[class*="max-w-"] {
   max-width: 100% !important;
 }
+
+/* Stream Buddies animations */
+@keyframes buddyCrown {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-3px); }
+}
+@keyframes buddyAura {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}

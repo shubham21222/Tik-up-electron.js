@@ -21,11 +21,27 @@ interface JarGift {
   rotation: number;
 }
 
+interface ConfettiPiece {
+  id: number;
+  x: number;
+  delay: number;
+  color: string;
+  size: number;
+}
+
+const CONFETTI_COLORS = [
+  "hsl(45 100% 60%)", "hsl(350 80% 60%)", "hsl(160 100% 50%)",
+  "hsl(200 80% 60%)", "hsl(280 70% 60%)", "hsl(30 90% 55%)",
+];
+
 const CoinJarPreview = () => {
   const [gifts, setGifts] = useState<JarGift[]>([]);
   const [totalCoins, setTotalCoins] = useState(0);
   const [lastSender, setLastSender] = useState<{ name: string; coins: number } | null>(null);
+  const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
+  const [celebrated, setCelebrated] = useState(false);
   const nextId = useRef(0);
+  const TARGET = 500;
 
   useEffect(() => {
     const addGift = () => {
@@ -57,16 +73,77 @@ const CoinJarPreview = () => {
     return () => clearInterval(interval);
   }, []);
 
+  // Confetti burst when target reached
+  useEffect(() => {
+    if (totalCoins >= TARGET && !celebrated) {
+      setCelebrated(true);
+      const pieces: ConfettiPiece[] = Array.from({ length: 24 }, (_, i) => ({
+        id: i,
+        x: 10 + Math.random() * 80,
+        delay: Math.random() * 0.4,
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
+        size: 4 + Math.random() * 4,
+      }));
+      setConfetti(pieces);
+      setTimeout(() => setConfetti([]), 3000);
+    }
+  }, [totalCoins, celebrated]);
+
+  // Reset cycle for demo
+  useEffect(() => {
+    if (celebrated) {
+      const t = setTimeout(() => {
+        setGifts([]);
+        setTotalCoins(0);
+        setCelebrated(false);
+      }, 5000);
+      return () => clearTimeout(t);
+    }
+  }, [celebrated]);
+
   useEffect(() => {
     if (!lastSender) return;
     const t = setTimeout(() => setLastSender(null), 3000);
     return () => clearTimeout(t);
   }, [lastSender]);
 
-  const fillPercent = Math.min((gifts.length / 25) * 100, 100);
+  const fillPercent = Math.min((totalCoins / TARGET) * 100, 100);
+  const isComplete = totalCoins >= TARGET;
 
   return (
     <div className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden select-none">
+      {/* Confetti layer */}
+      <AnimatePresence>
+        {confetti.map(piece => (
+          <motion.div
+            key={piece.id}
+            initial={{ y: "50%", x: `${piece.x}%`, opacity: 1, scale: 0 }}
+            animate={{
+              y: ["-10%", "110%"],
+              x: `${piece.x + (Math.random() * 20 - 10)}%`,
+              opacity: [1, 1, 0],
+              scale: [0, 1, 0.6],
+              rotate: [0, Math.random() * 360],
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2 + Math.random(), delay: piece.delay, ease: "easeOut" }}
+            className="absolute pointer-events-none z-20"
+            style={{ width: piece.size, height: piece.size * 1.5, borderRadius: 1, background: piece.color }}
+          />
+        ))}
+      </AnimatePresence>
+
+      {/* Completion glow */}
+      {isComplete && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.3, 0.15] }}
+          transition={{ duration: 1.5 }}
+          className="absolute inset-0 pointer-events-none z-10"
+          style={{ background: "radial-gradient(circle, hsl(45 100% 60% / 0.2), transparent 60%)" }}
+        />
+      )}
+
       {/* Subtle warm ambient */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-40 h-40 rounded-full opacity-15"
@@ -75,15 +152,17 @@ const CoinJarPreview = () => {
 
       {/* Jar */}
       <div className="relative w-[130px] h-[170px]">
-        {/* Jar body — clear glass */}
+        {/* Jar body */}
         <div className="absolute inset-x-2 top-[24px] bottom-0 rounded-b-[24px] rounded-t-[4px] overflow-hidden"
           style={{
             background: "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)",
-            border: "1.5px solid rgba(255,255,255,0.14)",
-            boxShadow: "inset 0 0 15px rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.3)",
+            border: `1.5px solid ${isComplete ? "hsl(45 100% 55% / 0.3)" : "rgba(255,255,255,0.14)"}`,
+            boxShadow: isComplete
+              ? "inset 0 0 15px hsl(45 100% 55% / 0.08), 0 0 25px hsl(45 100% 55% / 0.15)"
+              : "inset 0 0 15px rgba(255,255,255,0.03), 0 4px 20px rgba(0,0,0,0.3)",
           }}>
 
-          {/* Liquid fill — warm gold tint */}
+          {/* Liquid fill */}
           <motion.div
             className="absolute bottom-0 left-0 right-0"
             animate={{ height: `${fillPercent}%` }}
@@ -126,15 +205,14 @@ const CoinJarPreview = () => {
             ))}
           </AnimatePresence>
 
-          {/* Glass highlight — left edge */}
+          {/* Glass highlights */}
           <div className="absolute top-0 left-[2px] w-[28%] h-full opacity-[0.07] rounded-bl-[24px]"
             style={{ background: "linear-gradient(135deg, white 0%, transparent 50%)" }} />
-          {/* Glass highlight — right subtle */}
           <div className="absolute top-[10%] right-[3px] w-[12%] h-[60%] opacity-[0.04] rounded-r-[20px]"
             style={{ background: "linear-gradient(180deg, white, transparent)" }} />
         </div>
 
-        {/* Jar lid — clean metallic */}
+        {/* Jar lid */}
         <div className="absolute top-0 left-0 right-0 h-[28px]">
           <div className="absolute inset-x-[-3px] top-[10px] h-[18px] rounded-t-[5px]"
             style={{
@@ -161,7 +239,7 @@ const CoinJarPreview = () => {
         className="mt-3 flex items-center gap-1.5 px-3 py-1.5 rounded-full"
         style={{
           background: "rgba(255,255,255,0.04)",
-          border: "1px solid rgba(255,255,255,0.08)",
+          border: `1px solid ${isComplete ? "hsl(45 100% 55% / 0.2)" : "rgba(255,255,255,0.08)"}`,
         }}
         animate={{ scale: lastSender ? [1, 1.06, 1] : 1 }}
         transition={{ duration: 0.3 }}
@@ -169,18 +247,34 @@ const CoinJarPreview = () => {
         <span className="text-sm">🪙</span>
         <motion.span
           className="text-sm font-bold font-heading"
-          style={{ color: "hsl(45 100% 65%)" }}
+          style={{ color: isComplete ? "hsl(45 100% 70%)" : "hsl(45 100% 65%)" }}
           key={totalCoins}
           initial={{ y: -6, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
           {totalCoins.toLocaleString()}
         </motion.span>
+        <span className="text-[9px] text-white/25">/ {TARGET}</span>
       </motion.div>
+
+      {/* Completion text */}
+      <AnimatePresence>
+        {isComplete && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+            className="mt-1 text-[10px] font-bold"
+            style={{ color: "hsl(45 100% 65%)" }}
+          >
+            🎉 Goal Reached!
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Last sender */}
       <AnimatePresence>
-        {lastSender && (
+        {lastSender && !isComplete && (
           <motion.div
             initial={{ opacity: 0, y: 8, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}

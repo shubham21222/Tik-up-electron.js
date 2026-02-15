@@ -5,36 +5,23 @@ import { motion, AnimatePresence } from "framer-motion";
 import useOverlayBody from "@/hooks/use-overlay-body";
 
 const GIFT_IMAGES = [
-  "/gifts/rose.png",
-  "/gifts/flame_heart.png",
-  "/gifts/fluffy_heart.png",
-  "/gifts/morning_bloom.png",
-  "/gifts/wink_wink.png",
-  "/gifts/youre_awesome.png",
-  "/gifts/blow_a_kiss.png",
-  "/gifts/love_you_so_much.png",
+  "/gifts/rose.png", "/gifts/flame_heart.png", "/gifts/fluffy_heart.png",
+  "/gifts/morning_bloom.png", "/gifts/wink_wink.png", "/gifts/youre_awesome.png",
+  "/gifts/blow_a_kiss.png", "/gifts/love_you_so_much.png",
 ];
 
-interface JarGift {
-  id: number;
-  img: string;
-  x: number;
-  y: number;
-  size: number;
-  rotation: number;
-}
+interface JarGift { id: number; img: string; x: number; y: number; size: number; rotation: number; }
+interface ConfettiPiece { id: number; x: number; delay: number; color: string; size: number; }
+
+const CONFETTI_COLORS = [
+  "hsl(45 100% 60%)", "hsl(350 80% 60%)", "hsl(160 100% 50%)",
+  "hsl(200 80% 60%)", "hsl(280 70% 60%)", "hsl(30 90% 55%)",
+];
 
 const defaultSettings = {
-  jar_style: "glass",
-  target_coins: 5000,
-  fill_animation: "bounce",
-  show_gift_icons: true,
-  show_sender: true,
-  show_total: true,
-  glow_intensity: 50,
-  completion_effect: "confetti",
-  transparent_bg: true,
-  custom_css: "",
+  jar_style: "glass", target_coins: 5000, fill_animation: "bounce",
+  show_gift_icons: true, show_sender: true, show_total: true,
+  glow_intensity: 50, completion_effect: "confetti", transparent_bg: true, custom_css: "",
 };
 
 const STYLE_COLORS: Record<string, { border: string; liquid: string; glow: string }> = {
@@ -52,6 +39,8 @@ const CoinJarRenderer = () => {
   const [totalCoins, setTotalCoins] = useState(0);
   const [lastSender, setLastSender] = useState<{ name: string; coins: number; img: string } | null>(null);
   const [connected, setConnected] = useState(false);
+  const [confetti, setConfetti] = useState<ConfettiPiece[]>([]);
+  const [celebrated, setCelebrated] = useState(false);
   const nextId = useRef(0);
 
   useEffect(() => {
@@ -59,6 +48,15 @@ const CoinJarRenderer = () => {
     supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).maybeSingle()
       .then(({ data }) => { if (data) setSettings({ ...defaultSettings, ...(data as any).settings }); });
   }, [publicToken]);
+
+  const resetJar = () => {
+    setGifts([]);
+    setTotalCoins(0);
+    setLastSender(null);
+    setConfetti([]);
+    setCelebrated(false);
+    nextId.current = 0;
+  };
 
   useEffect(() => {
     if (!publicToken) return;
@@ -69,14 +67,13 @@ const CoinJarRenderer = () => {
         const fillLevel = Math.min(prev.length / 40, 1);
         const maxY = 82;
         const minY = maxY - fillLevel * 52;
-        const next = [...prev, {
+        return [...prev, {
           id, img,
           x: 18 + Math.random() * 64,
           y: minY + Math.random() * (maxY - minY) * 0.35,
           size: 20 + Math.random() * 18,
           rotation: Math.random() * 30 - 15,
-        }];
-        return next.slice(-50);
+        }].slice(-50);
       });
       setTotalCoins(prev => prev + coins);
       setLastSender({ name: sender, coins, img });
@@ -86,13 +83,13 @@ const CoinJarRenderer = () => {
       .on("broadcast", { event: "gift" }, (msg) => {
         const p = msg.payload;
         if (!p) return;
-        // Use actual gift image if available, else random from our set
         const img = p.giftPictureUrl || GIFT_IMAGES[Math.floor(Math.random() * GIFT_IMAGES.length)];
         addGiftToJar(img, p.coinValue || p.diamondCount || 1, p.username || "Viewer");
       })
       .on("broadcast", { event: "test_alert" }, () => {
         addGiftToJar(GIFT_IMAGES[Math.floor(Math.random() * GIFT_IMAGES.length)], 10, "TestUser");
       })
+      .on("broadcast", { event: "reset_jar" }, () => resetJar())
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
 
     const db = supabase.channel(`coin-jar-db-${publicToken}`)
@@ -107,6 +104,22 @@ const CoinJarRenderer = () => {
     return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
   }, [publicToken]);
 
+  // Confetti on completion
+  useEffect(() => {
+    const target = settings.target_coins || 5000;
+    if (totalCoins >= target && !celebrated && settings.completion_effect !== "none") {
+      setCelebrated(true);
+      if (settings.completion_effect === "confetti" || settings.completion_effect === "fireworks") {
+        const pieces: ConfettiPiece[] = Array.from({ length: 40 }, (_, i) => ({
+          id: i, x: 10 + Math.random() * 80, delay: Math.random() * 0.5,
+          color: CONFETTI_COLORS[i % CONFETTI_COLORS.length], size: 6 + Math.random() * 6,
+        }));
+        setConfetti(pieces);
+        setTimeout(() => setConfetti([]), 4000);
+      }
+    }
+  }, [totalCoins, celebrated, settings]);
+
   useEffect(() => {
     if (!lastSender) return;
     const t = setTimeout(() => setLastSender(null), 4000);
@@ -117,12 +130,45 @@ const CoinJarRenderer = () => {
   const fillPercent = Math.min((totalCoins / target) * 100, 100);
   const glowInt = (settings.glow_intensity || 50) / 100;
   const style = STYLE_COLORS[settings.jar_style] || STYLE_COLORS.glass;
+  const isComplete = totalCoins >= target;
 
   return (
     <div className={`w-screen h-screen overflow-hidden flex flex-col items-center justify-center ${settings.transparent_bg ? "bg-transparent" : "bg-black"}`}>
       <div className="absolute top-2 right-2 opacity-20">
         <div className={`w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`} />
       </div>
+
+      {/* Confetti burst */}
+      <AnimatePresence>
+        {confetti.map(piece => (
+          <motion.div
+            key={piece.id}
+            initial={{ y: "50%", x: `${piece.x}%`, opacity: 1, scale: 0 }}
+            animate={{
+              y: ["-10%", "110%"],
+              x: `${piece.x + (Math.random() * 30 - 15)}%`,
+              opacity: [1, 1, 0],
+              scale: [0, 1.2, 0.7],
+              rotate: [0, Math.random() * 540],
+            }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 2.5 + Math.random(), delay: piece.delay, ease: "easeOut" }}
+            className="absolute pointer-events-none z-20"
+            style={{ width: piece.size, height: piece.size * 1.6, borderRadius: 2, background: piece.color }}
+          />
+        ))}
+      </AnimatePresence>
+
+      {/* Completion glow */}
+      {isComplete && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 0.25, 0.12] }}
+          transition={{ duration: 2 }}
+          className="absolute inset-0 pointer-events-none z-10"
+          style={{ background: `radial-gradient(circle, hsl(${style.glow} / 0.25), transparent 60%)` }}
+        />
+      )}
 
       {/* Ambient glow */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
@@ -132,15 +178,14 @@ const CoinJarRenderer = () => {
 
       {/* Jar */}
       <div className="relative w-[220px] h-[280px]">
-        {/* Jar body */}
         <div className="absolute inset-x-3 top-[34px] bottom-0 rounded-b-[32px] rounded-t-[5px] overflow-hidden"
           style={{
             background: "linear-gradient(180deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.02) 100%)",
-            border: `1.5px solid ${style.border}`,
-            boxShadow: `inset 0 0 20px rgba(255,255,255,0.03), 0 4px 30px rgba(0,0,0,0.3)`,
+            border: `1.5px solid ${isComplete ? `hsl(${style.glow} / 0.35)` : style.border}`,
+            boxShadow: isComplete
+              ? `inset 0 0 20px hsl(${style.glow} / 0.08), 0 0 30px hsl(${style.glow} / 0.15)`
+              : `inset 0 0 20px rgba(255,255,255,0.03), 0 4px 30px rgba(0,0,0,0.3)`,
           }}>
-
-          {/* Liquid */}
           <motion.div
             className="absolute bottom-0 left-0 right-0"
             animate={{ height: `${fillPercent}%` }}
@@ -150,114 +195,84 @@ const CoinJarRenderer = () => {
               borderTop: `1px solid hsl(${style.liquid} / 0.18)`,
             }}
           >
-            <motion.div
-              className="absolute inset-0"
+            <motion.div className="absolute inset-0"
               animate={{ x: [-25, 25, -25] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              style={{ background: `linear-gradient(90deg, transparent, hsl(${style.liquid} / 0.06), transparent)` }}
-            />
+              style={{ background: `linear-gradient(90deg, transparent, hsl(${style.liquid} / 0.06), transparent)` }} />
           </motion.div>
 
-          {/* Gifts */}
           {settings.show_gift_icons && (
             <AnimatePresence>
               {gifts.map(gift => (
-                <motion.img
-                  key={gift.id}
-                  src={gift.img}
+                <motion.img key={gift.id} src={gift.img}
                   initial={{ y: -50, opacity: 0, scale: 0.2 }}
                   animate={{ y: 0, opacity: 1, scale: 1, rotate: gift.rotation }}
                   exit={{ opacity: 0 }}
                   transition={
-                    settings.fill_animation === "bounce"
-                      ? { type: "spring", damping: 10, stiffness: 180 }
-                      : settings.fill_animation === "spiral"
-                      ? { type: "spring", damping: 15, stiffness: 100 }
-                      : { duration: 0.6, ease: "easeOut" }
+                    settings.fill_animation === "bounce" ? { type: "spring", damping: 10, stiffness: 180 }
+                    : settings.fill_animation === "spiral" ? { type: "spring", damping: 15, stiffness: 100 }
+                    : { duration: 0.6, ease: "easeOut" }
                   }
                   className="absolute pointer-events-none"
                   style={{
-                    left: `${gift.x}%`,
-                    top: `${gift.y}%`,
-                    width: gift.size,
-                    height: gift.size,
-                    objectFit: "contain",
-                    transform: "translate(-50%, -50%)",
+                    left: `${gift.x}%`, top: `${gift.y}%`,
+                    width: gift.size, height: gift.size,
+                    objectFit: "contain", transform: "translate(-50%, -50%)",
                     filter: "drop-shadow(0 1px 4px rgba(0,0,0,0.4))",
                   }}
-                  draggable={false}
-                />
+                  draggable={false} />
               ))}
             </AnimatePresence>
           )}
 
-          {/* Glass highlights */}
           <div className="absolute top-0 left-1 w-[25%] h-full opacity-[0.06] rounded-bl-[32px]"
             style={{ background: "linear-gradient(135deg, white 0%, transparent 50%)" }} />
           <div className="absolute top-[8%] right-[3px] w-[10%] h-[50%] opacity-[0.03] rounded-r-[28px]"
             style={{ background: "linear-gradient(180deg, white, transparent)" }} />
         </div>
 
-        {/* Jar lid */}
         <div className="absolute top-0 left-0 right-0 h-[38px]">
           <div className="absolute inset-x-[-4px] top-[12px] h-[26px] rounded-t-[7px]"
-            style={{
-              background: "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))",
-              border: `1.5px solid ${style.border}`,
-              borderBottom: "none",
-            }} />
+            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04))", border: `1.5px solid ${style.border}`, borderBottom: "none" }} />
           <div className="absolute inset-x-[-10px] top-[6px] h-[14px] rounded-[5px]"
-            style={{
-              background: "linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04))",
-              border: `1px solid ${style.border}`,
-            }} />
+            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04))", border: `1px solid ${style.border}` }} />
           <div className="absolute left-1/2 -translate-x-1/2 top-0 w-[26px] h-[10px] rounded-t-full"
-            style={{
-              background: "linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06))",
-              border: `1px solid ${style.border}`,
-              borderBottom: "none",
-            }} />
+            style={{ background: "linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.06))", border: `1px solid ${style.border}`, borderBottom: "none" }} />
         </div>
       </div>
 
       {/* Coin total */}
       {settings.show_total && (
-        <motion.div
-          className="mt-4 flex items-center gap-2 px-4 py-2 rounded-full"
-          style={{
-            background: "rgba(255,255,255,0.04)",
-            border: "1px solid rgba(255,255,255,0.08)",
-          }}
-          animate={{ scale: lastSender ? [1, 1.08, 1] : 1 }}
-          transition={{ duration: 0.3 }}
-        >
+        <motion.div className="mt-4 flex items-center gap-2 px-4 py-2 rounded-full"
+          style={{ background: "rgba(255,255,255,0.04)", border: `1px solid ${isComplete ? `hsl(${style.glow} / 0.2)` : "rgba(255,255,255,0.08)"}` }}
+          animate={{ scale: lastSender ? [1, 1.08, 1] : 1 }} transition={{ duration: 0.3 }}>
           <span className="text-lg">🪙</span>
-          <motion.span
-            className="text-lg font-bold font-heading"
-            style={{ color: "hsl(45 100% 65%)" }}
-            key={totalCoins}
-            initial={{ y: -8, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-          >
+          <motion.span className="text-lg font-bold font-heading" style={{ color: isComplete ? `hsl(${style.glow})` : "hsl(45 100% 65%)" }}
+            key={totalCoins} initial={{ y: -8, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
             {totalCoins.toLocaleString()}
           </motion.span>
           <span className="text-xs text-white/30">/ {target.toLocaleString()}</span>
         </motion.div>
       )}
 
+      {/* Completion text */}
+      <AnimatePresence>
+        {isComplete && (
+          <motion.div initial={{ opacity: 0, scale: 0.8, y: 4 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="mt-2 px-4 py-1.5 rounded-full text-sm font-bold"
+            style={{ color: `hsl(${style.glow})`, background: `hsl(${style.glow} / 0.08)`, border: `1px solid hsl(${style.glow} / 0.15)` }}>
+            🎉 Goal Reached!
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Last sender */}
       <AnimatePresence>
-        {lastSender && settings.show_sender && (
-          <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.9 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
+        {lastSender && settings.show_sender && !isComplete && (
+          <motion.div initial={{ opacity: 0, y: 10, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.9 }}
             className="mt-2 flex items-center gap-2 px-4 py-2 rounded-full"
-            style={{
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-            }}
-          >
+            style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <span className="text-xs text-white/60 font-medium">{lastSender.name}</span>
             <span className="text-xs font-bold" style={{ color: "hsl(160 100% 50%)" }}>+{lastSender.coins}</span>
           </motion.div>

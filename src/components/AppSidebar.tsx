@@ -5,7 +5,7 @@ import {
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, BarChart, Link2, Palette, Settings,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
-  Star, Keyboard, Coins, Image, Building2
+  Star, Keyboard, Coins, Image, Building2, Mic
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -68,6 +68,7 @@ const sections: SidebarSection[] = [
     emoji: "🛠",
     items: [
       { id: "/chat-commands", label: "Chat Commands", icon: Terminal },
+      { id: "/tts", label: "TTS Chat", icon: Mic },
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
       { id: "/polls", label: "Polls", icon: BarChart, pro: true },

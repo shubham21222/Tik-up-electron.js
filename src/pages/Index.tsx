@@ -301,6 +301,10 @@ const Index = () => {
       return;
     }
     setTiktokUsername(clean);
+    // Reset all stats for the new username — start fresh
+    setLiveStats(null);
+    peakStatsRef.current = { likes: 0, gifts: 0, followers: 0 };
+    prevStatsRef.current = { viewers: 0, likes: 0, followers: 0, gifts: 0 };
     setConnectionStatus("connected");
     toast.success(`Connected to @${clean}`);
   }, [inputUsername, user]);
@@ -318,6 +322,10 @@ const Index = () => {
     await supabase.from("profiles").update({ tiktok_connected: false } as any).eq("user_id", user.id);
     setConnectionStatus("disconnected");
     setTiktokUsername("");
+    // Reset all stats so next username starts clean
+    setLiveStats(null);
+    peakStatsRef.current = { likes: 0, gifts: 0, followers: 0 };
+    prevStatsRef.current = { viewers: 0, likes: 0, followers: 0, gifts: 0 };
     toast.info("Disconnected from TikTok");
   };
 

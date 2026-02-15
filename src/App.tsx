@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/use-auth";
+import { TikTokLiveProvider } from "@/hooks/use-tiktok-live-context";
 import Index from "./pages/Index";
 import LandingPage from "./pages/LandingPage";
 import Setup from "./pages/Setup";
@@ -146,6 +147,7 @@ const App = () => (
           {/* All other routes wrapped in AuthProvider */}
           <Route path="/*" element={
             <AuthProvider>
+              <TikTokLiveProvider>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/auth" element={<Auth />} />
@@ -210,6 +212,7 @@ const App = () => (
                 <Route path="/enterprise" element={<EnterpriseDashboard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </TikTokLiveProvider>
             </AuthProvider>
           } />
         </Routes>

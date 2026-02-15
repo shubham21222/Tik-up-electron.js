@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
-import { useTikTokLive } from "@/hooks/use-tiktok-live";
+import { useTikTokLiveGlobal } from "@/hooks/use-tiktok-live-context";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import FeatureGuideModal, { type GuideStep } from "@/components/FeatureGuideModal";
@@ -169,7 +169,7 @@ const GlassCard = ({ children, className = "", style = {}, ...rest }: React.HTML
 
 const Index = () => {
   const { user } = useAuth();
-  const tikTokLive = useTikTokLive();
+  const tikTokLive = useTikTokLiveGlobal();
   const [isLive, setIsLive] = useState(false);
   const [tiktokUsername, setTiktokUsername] = useState("");
   const [inputUsername, setInputUsername] = useState("");

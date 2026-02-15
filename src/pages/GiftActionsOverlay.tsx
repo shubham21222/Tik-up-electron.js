@@ -1,9 +1,10 @@
 import AppLayout from "@/components/AppLayout";
-import { useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Sparkles, Plus, Trash2 } from "lucide-react";
+import { Sparkles, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
+import { useGiftCatalog } from "@/hooks/use-gift-catalog";
 import OverlaySettingsShell from "@/components/overlays/OverlaySettingsShell";
 import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
@@ -11,11 +12,6 @@ import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
 import GiftActionsPreview from "@/components/overlays/previews/GiftActionsPreview";
 import ProGate from "@/components/ProGate";
-
-const GIFT_OPTIONS = [
-  "/gifts/rose.png", "/gifts/flame_heart.png", "/gifts/fluffy_heart.png", "/gifts/morning_bloom.png",
-  "/gifts/wink_wink.png", "/gifts/youre_awesome.png", "/gifts/blow_a_kiss.png", "/gifts/love_you_so_much.png",
-];
 
 const defaultGiftActionsSettings = {
   items: [
@@ -35,9 +31,68 @@ const defaultGiftActionsSettings = {
   custom_css: "",
 };
 
+/* ── Gift Image Picker (popover grid) ── */
+const GiftImagePicker = ({
+  value,
+  onChange,
+  gifts,
+}: {
+  value: string;
+  onChange: (img: string) => void;
+  gifts: { image_url: string | null; name: string; coin_value: number }[];
+}) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handle = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handle);
+    return () => document.removeEventListener("mousedown", handle);
+  }, [open]);
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-14 h-10 flex items-center justify-center gap-0.5 bg-white/[0.03] border border-white/[0.08] rounded-lg hover:border-white/[0.15] transition-colors"
+      >
+        <img src={value} alt="" className="w-7 h-7 object-contain" draggable={false} />
+        <ChevronDown size={10} className="text-muted-foreground/50" />
+      </button>
+
+      {open && (
+        <div className="absolute top-full left-0 mt-1 z-50 w-[280px] max-h-[240px] overflow-y-auto rounded-xl border border-white/[0.1] bg-background/95 backdrop-blur-xl shadow-2xl p-2">
+          <div className="grid grid-cols-6 gap-1">
+            {gifts.map((gift) =>
+              gift.image_url ? (
+                <button
+                  key={gift.image_url}
+                  type="button"
+                  onClick={() => { onChange(gift.image_url!); setOpen(false); }}
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center transition-all hover:bg-white/[0.08] ${
+                    value === gift.image_url ? "bg-primary/20 ring-1 ring-primary/40" : ""
+                  }`}
+                  title={`${gift.name} (${gift.coin_value} coins)`}
+                >
+                  <img src={gift.image_url} alt={gift.name} className="w-7 h-7 object-contain" draggable={false} />
+                </button>
+              ) : null
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 const GiftActionsOverlay = () => {
   const { user } = useAuth();
   const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("gift_actions");
+  const { gifts: catalogGifts } = useGiftCatalog();
 
   const handleCreate = async () => { await createWidget("gift_actions", `Gift Actions ${widgets.length + 1}`); };
   const updateSetting = useCallback((id: string, cur: Record<string, any>, key: string, val: any) => {
@@ -85,7 +140,12 @@ const GiftActionsOverlay = () => {
               };
               const addItem = () => {
                 if (items.length >= 12) return;
-                set("items", [...items, { img: GIFT_OPTIONS[items.length % GIFT_OPTIONS.length], label: `Action ${items.length + 1}` }]);
+                // Pick a random gift from catalog or fallback
+                const randomGift = catalogGifts.length > 0
+                  ? catalogGifts[Math.floor(Math.random() * catalogGifts.length)]
+                  : null;
+                const img = randomGift?.image_url || "/gifts/rose.png";
+                set("items", [...items, { img, label: `Action ${items.length + 1}` }]);
               };
               const removeItem = (idx: number) => {
                 if (items.length <= 1) return;
@@ -96,27 +156,19 @@ const GiftActionsOverlay = () => {
                 <OverlaySettingsShell key={widget.id} widget={widget}
                   onDelete={() => deleteWidget(widget.id)} onReset={() => updateSettings(widget.id, defaultGiftActionsSettings)}
                   onToggleActive={() => toggleActive(widget.id)} onTest={() => {}}
-                  previewSlot={<div className="w-full h-full"><GiftActionsPreview /></div>}
+                  previewSlot={<div className="w-full h-full"><GiftActionsPreview items={items} /></div>}
                   settingsSlot={<div className="space-y-4">
                     {/* Items editor */}
                     <div>
                       <p className="text-[12px] font-medium text-foreground mb-2">Gift → Action Items</p>
                       <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                         {items.map((item: any, idx: number) => (
-                      <div key={idx} className="flex items-center gap-2">
-                            {/* Gift image picker */}
-                            <div className="relative">
-                              <select
-                                value={item.img}
-                                onChange={e => updateItem(idx, "img", e.target.value)}
-                                className="w-12 h-9 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground focus:outline-none focus:border-primary/30 cursor-pointer opacity-0 absolute inset-0 z-10"
-                              >
-                                {GIFT_OPTIONS.map(g => <option key={g} value={g}>{g.split("/").pop()?.replace(".png","")}</option>)}
-                              </select>
-                              <div className="w-12 h-9 flex items-center justify-center bg-white/[0.02] border border-white/[0.08] rounded-lg">
-                                <img src={item.img} alt="" className="w-7 h-7 object-contain" draggable={false} />
-                              </div>
-                            </div>
+                          <div key={idx} className="flex items-center gap-2">
+                            <GiftImagePicker
+                              value={item.img}
+                              onChange={(img) => updateItem(idx, "img", img)}
+                              gifts={catalogGifts}
+                            />
                             <input
                               value={item.label}
                               onChange={e => updateItem(idx, "label", e.target.value)}

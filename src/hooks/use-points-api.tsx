@@ -84,6 +84,7 @@ export const useLeaderboard = (sort: string = "total_points", limit = 500) => {
     queryFn: () => callPointsApi({ leaderboard: "true", sort, limit: String(limit) }),
     enabled: !!user,
     select: (data) => (data.leaderboard || []) as LeaderboardEntry[],
+    refetchInterval: 5000,
   });
 };
 

@@ -567,6 +567,19 @@ export const defaultEventFeedSettings = {
   maxEvents: 10,
 };
 
+// Stream Buddies
+export const defaultStreamBuddiesSettings = {
+  theme: "pixel" as "pixel" | "chibi" | "cyber" | "fantasy",
+  max_avatars: 15,
+  show_chat_bubbles: true,
+  show_usernames: true,
+  min_gift_coins: 1,
+  avatar_speed: 1,
+  spawn_cooldown: 3,
+  transparent_bg: true,
+  custom_css: "",
+};
+
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -600,4 +613,5 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   vote_battle: { team_a_name: "Team A", team_b_name: "Team B", vote_source: "gifts", duration: 120, show_pct: true, transparent_bg: true, custom_css: "" },
   progress_race: { team_count: 3, target: 100, score_source: "gifts", show_pct: true, auto_reset: true, transparent_bg: true, custom_css: "" },
   event_feed: defaultEventFeedSettings,
+  stream_buddies: defaultStreamBuddiesSettings,
 };

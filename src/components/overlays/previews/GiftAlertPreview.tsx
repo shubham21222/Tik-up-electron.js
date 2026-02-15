@@ -2,10 +2,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const mockAlerts = [
-  { user: "Tikup_user", gift: "Rose", emoji: "🌹", value: 1 },
-  { user: "StreamLover99", gift: "Lion", emoji: "🦁", value: 500 },
-  { user: "TikTokPro", gift: "Universe", emoji: "🌌", value: 10000 },
-  { user: "CoolViewer42", gift: "Crown", emoji: "👑", value: 2000 },
+  { user: "Tikup_User", gift: "Rose", emoji: "🌹", value: 1 },
+  { user: "Tikup_User", gift: "Lion", emoji: "🦁", value: 500 },
+  { user: "Tikup_User", gift: "Universe", emoji: "🌌", value: 10000 },
+  { user: "Tikup_User", gift: "Crown", emoji: "👑", value: 2000 },
 ];
 
 interface GiftAlertPreviewProps {

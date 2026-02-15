@@ -43,7 +43,7 @@ const StreamBuddiesPreview = () => (
           </motion.div>
         )}
 
-        <img src={t.src} alt={t.name} style={{ width: t.size, height: t.size, objectFit: "contain", imageRendering: "pixelated" }} />
+        <img src={t.src} alt={t.name} style={{ width: t.size, height: t.size, objectFit: "contain", imageRendering: "auto" }} />
 
         <div className="absolute -bottom-2.5 left-1/2 -translate-x-1/2 text-[7px] font-bold whitespace-nowrap" style={{ color: i === 0 ? "rgba(255,200,50,0.9)" : "rgba(255,255,255,0.5)", textShadow: "0 1px 3px rgba(0,0,0,0.8)" }}>
           {t.name}

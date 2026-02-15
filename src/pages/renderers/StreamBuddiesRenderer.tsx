@@ -466,7 +466,7 @@ const StreamBuddiesRenderer = () => {
                   width: "100%",
                   height: "100%",
                   objectFit: "contain",
-                  imageRendering: "pixelated",
+                  imageRendering: "auto",
                 }}
               />
             </div>

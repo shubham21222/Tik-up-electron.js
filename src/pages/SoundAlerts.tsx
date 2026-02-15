@@ -1,5 +1,5 @@
 import AppLayout from "@/components/AppLayout";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Volume2, Plus, Trash2, Play, Search, Gift,
@@ -19,135 +19,7 @@ const TRIGGER_TYPES = [
   { value: "gift", label: "Specific Gift", icon: "🎀" },
 ];
 
-/* ── TikTok-style gift animation banner ── */
-const DEMO_GIFTS = [
-  { user: "sarah_tt", gift: "Rose", emoji: "🌹", coins: 1 },
-  { user: "gamer_king", gift: "Lion", emoji: "🦁", coins: 500 },
-  { user: "luna_live", gift: "Universe", emoji: "🌌", coins: 10000 },
-  { user: "vibe_check", gift: "Crown", emoji: "👑", coins: 2000 },
-];
 
-const GiftAnimationBanner = () => {
-  const [idx, setIdx] = useState(0);
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setIdx(prev => (prev + 1) % DEMO_GIFTS.length);
-        setVisible(true);
-      }, 600);
-    }, 3500);
-    return () => clearInterval(timer);
-  }, []);
-
-  const g = DEMO_GIFTS[idx];
-
-  return (
-    <div className="relative h-[140px] rounded-2xl border border-white/[0.06] overflow-hidden flex items-center justify-center"
-      style={{ background: "rgba(11,15,20,0.65)" }}
-    >
-      {/* Subtle grid bg */}
-      <div className="absolute inset-0 opacity-[0.03]"
-        style={{ backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.4) 1px, transparent 1px)", backgroundSize: "20px 20px" }}
-      />
-
-      <AnimatePresence mode="wait">
-        {visible && (
-          <motion.div
-            key={idx}
-            className="relative flex items-center gap-4"
-            initial={{ x: -60, opacity: 0, scale: 0.9 }}
-            animate={{ x: 0, opacity: 1, scale: 1 }}
-            exit={{ x: 40, opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
-          >
-            {/* TikTok-style left bar accent */}
-            <motion.div
-              className="absolute -left-3 top-1/2 -translate-y-1/2 w-1 h-10 rounded-full"
-              style={{ background: "hsl(160 100% 45%)" }}
-              initial={{ scaleY: 0 }}
-              animate={{ scaleY: 1 }}
-              transition={{ delay: 0.1 }}
-            />
-
-            {/* Gift icon with glow */}
-            <div className="relative">
-              <motion.div
-                className="absolute inset-0 rounded-full blur-xl"
-                style={{ background: "hsl(280 100% 65% / 0.15)" }}
-                animate={{ scale: [1, 1.4, 1], opacity: [0.4, 0.7, 0.4] }}
-                transition={{ duration: 2, repeat: Infinity }}
-              />
-              <motion.div
-                className="relative w-14 h-14 rounded-full flex items-center justify-center"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
-                }}
-                animate={{ rotate: [0, -3, 3, 0] }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-              >
-                <span className="text-2xl">{g.emoji}</span>
-              </motion.div>
-
-              {/* Expanding ring */}
-              <motion.div
-                className="absolute inset-0 rounded-full border"
-                style={{ borderColor: "hsl(160 100% 45% / 0.3)" }}
-                initial={{ scale: 1, opacity: 0.6 }}
-                animate={{ scale: 2.5, opacity: 0 }}
-                transition={{ duration: 1.2, repeat: Infinity }}
-              />
-            </div>
-
-            {/* Text */}
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-bold text-foreground">{g.user}</span>
-                <motion.span
-                  className="text-[10px] px-1.5 py-0.5 rounded-md font-semibold"
-                  style={{ background: "hsl(160 100% 45% / 0.12)", color: "hsl(160 100% 60%)" }}
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
-                >
-                  {g.coins} coins
-                </motion.span>
-              </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                sent <span className="text-foreground font-medium">{g.gift}</span>
-              </p>
-            </div>
-
-            {/* Sparkle particles */}
-            {[...Array(4)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 rounded-full"
-                style={{ background: "hsl(160 100% 45%)", left: 28, top: 28 }}
-                initial={{ x: 0, y: 0, opacity: 0.8 }}
-                animate={{
-                  x: Math.cos((i * 90 + 45) * Math.PI / 180) * 50,
-                  y: Math.sin((i * 90 + 45) * Math.PI / 180) * 50,
-                  opacity: 0,
-                }}
-                transition={{ duration: 0.8, delay: 0.15, repeat: Infinity, repeatDelay: 2.5 }}
-              />
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Label */}
-      <div className="absolute bottom-3 right-4 text-[10px] text-muted-foreground/40 font-medium">
-        Gift Alert Preview
-      </div>
-    </div>
-  );
-};
 
 /* ── Main Page ── */
 const SoundAlertsPage = () => {
@@ -254,13 +126,6 @@ const SoundAlertsPage = () => {
           </div>
         </motion.div>
 
-        {/* Gift Animation Preview */}
-        <motion.div
-          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
-          className="mb-6"
-        >
-          <GiftAnimationBanner />
-        </motion.div>
 
         {/* Toolbar */}
         <motion.div

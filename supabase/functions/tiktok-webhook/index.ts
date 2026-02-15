@@ -253,11 +253,14 @@ async function upsertViewerPoints(
     case "like": {
       const likeCount = Number(eventData.likeCount || eventData.count || 1);
       likesInc = likeCount;
-      // Likes don't have a dedicated points rule in points_config, give 0.1 per like
-      pointsEarned = likeCount * 0.1;
+      // {LIKE_POINT_WEIGHT} — configurable via points_config
+      if (pointsConfig?.points_per_like_enabled !== false) {
+        pointsEarned = likeCount * Number(pointsConfig?.points_per_like ?? 0.1);
+      }
       break;
     }
     case "share": {
+      // {SHARE_POINT_WEIGHT} — configurable via points_config
       if (pointsConfig?.points_per_share_enabled) {
         pointsEarned = Number(pointsConfig.points_per_share || 3);
       }
@@ -265,14 +268,17 @@ async function upsertViewerPoints(
     }
     case "chat": {
       messagesInc = 1;
+      // {MESSAGE_POINT_WEIGHT} — configurable via points_config
       if (pointsConfig?.points_per_chat_minute_enabled) {
         pointsEarned = Number(pointsConfig.points_per_chat_minute || 0.5);
       }
       break;
     }
     case "follow": {
-      // Follow gives a flat bonus
-      pointsEarned = 5;
+      // {FOLLOW_POINT_WEIGHT} — configurable via points_config
+      if (pointsConfig?.points_per_follow_enabled !== false) {
+        pointsEarned = Number(pointsConfig?.points_per_follow ?? 5);
+      }
       break;
     }
     default:
@@ -319,6 +325,27 @@ async function upsertViewerPoints(
       total_coins_sent: coinsInc,
       total_likes: likesInc,
       total_messages: messagesInc,
+    });
+  }
+
+  // ── Log points history for audit trail ──────────────────────────
+  if (pointsEarned !== 0) {
+    const newTotal = existing
+      ? Number(existing.total_points) + pointsEarned
+      : pointsEarned;
+
+    await supabase.from("points_history").insert({
+      creator_id: userId,
+      viewer_username: username,
+      event_type: eventType,
+      points_delta: pointsEarned,
+      points_after: newTotal,
+      event_detail: {
+        coins: coinsInc || undefined,
+        gifts: giftsInc || undefined,
+        likes: likesInc || undefined,
+        messages: messagesInc || undefined,
+      },
     });
   }
 }

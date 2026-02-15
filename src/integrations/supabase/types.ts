@@ -492,6 +492,10 @@ export type Database = {
           points_per_chat_minute_enabled: boolean
           points_per_coin: number
           points_per_coin_enabled: boolean
+          points_per_follow: number
+          points_per_follow_enabled: boolean
+          points_per_like: number
+          points_per_like_enabled: boolean
           points_per_share: number
           points_per_share_enabled: boolean
           subscriber_bonus_ratio: number
@@ -508,6 +512,10 @@ export type Database = {
           points_per_chat_minute_enabled?: boolean
           points_per_coin?: number
           points_per_coin_enabled?: boolean
+          points_per_follow?: number
+          points_per_follow_enabled?: boolean
+          points_per_like?: number
+          points_per_like_enabled?: boolean
           points_per_share?: number
           points_per_share_enabled?: boolean
           subscriber_bonus_ratio?: number
@@ -524,11 +532,48 @@ export type Database = {
           points_per_chat_minute_enabled?: boolean
           points_per_coin?: number
           points_per_coin_enabled?: boolean
+          points_per_follow?: number
+          points_per_follow_enabled?: boolean
+          points_per_like?: number
+          points_per_like_enabled?: boolean
           points_per_share?: number
           points_per_share_enabled?: boolean
           subscriber_bonus_ratio?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      points_history: {
+        Row: {
+          created_at: string
+          creator_id: string
+          event_detail: Json | null
+          event_type: string
+          id: string
+          points_after: number
+          points_delta: number
+          viewer_username: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          event_detail?: Json | null
+          event_type: string
+          id?: string
+          points_after?: number
+          points_delta?: number
+          viewer_username: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          event_detail?: Json | null
+          event_type?: string
+          id?: string
+          points_after?: number
+          points_delta?: number
+          viewer_username?: string
         }
         Relationships: []
       }

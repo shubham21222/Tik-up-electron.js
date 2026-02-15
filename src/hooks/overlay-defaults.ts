@@ -31,6 +31,8 @@ export const defaultGiftAlertSettings = {
   alert_cooldown: 1,
   animation_speed: 1,
   transparent_bg: true,
+  no_background: false,
+  no_border: false,
   dark_bg: false,
   fps_limit: 60,
   custom_css: "",

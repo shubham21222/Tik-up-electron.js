@@ -1,19 +1,27 @@
 import AppLayout from "@/components/AppLayout";
-import { useState, useCallback, Suspense } from "react";
+import { useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Gift, Plus } from "lucide-react";
+import { Gift, Plus, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useOverlayWidgets, defaultGiftAlertSettings } from "@/hooks/use-overlay-widgets";
+import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import OverlaySettingsShell from "@/components/overlays/OverlaySettingsShell";
 import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
 import GiftAlertPreview from "@/components/overlays/previews/GiftAlertPreview";
+import { useNavigate } from "react-router-dom";
 
 const GiftAlertOverlay = () => {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("gift_alert");
+  const { gifts } = useGiftCatalog();
+  const { triggers } = useUserGiftTriggers();
+
+  const enabledTriggers = triggers.filter(t => t.is_enabled);
+  const enabledGifts = gifts.filter(g => enabledTriggers.some(t => t.gift_id === g.gift_id));
 
   const handleCreate = async () => {
     await createWidget("gift_alert", `Gift Alert ${widgets.length + 1}`);
@@ -76,7 +84,6 @@ const GiftAlertOverlay = () => {
           style={{ background: "linear-gradient(135deg, hsl(280 40% 8% / 0.6), hsl(280 20% 6% / 0.4))" }}
         >
           <div className="flex flex-col md:flex-row items-center gap-6 p-6">
-            {/* Visual gift illustration */}
             <div className="relative flex-shrink-0">
               <div className="w-24 h-24 rounded-full flex items-center justify-center" style={{ background: "rgba(0,0,0,0.5)", border: "1px solid hsl(280 100% 65% / 0.2)" }}>
                 <span className="text-5xl">🌹</span>
@@ -88,8 +95,6 @@ const GiftAlertOverlay = () => {
                 transition={{ duration: 2, repeat: Infinity }}
               />
             </div>
-
-            {/* Steps */}
             <div className="flex-1 space-y-3">
               <h3 className="text-sm font-heading font-bold text-foreground">How Gift Alerts Work</h3>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -99,15 +104,67 @@ const GiftAlertOverlay = () => {
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.15)", color: "hsl(280 100% 75%)" }}>2</span>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Copy the URL</span> and add it as a Browser Source in OBS</p>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Enable gifts</span> in the Gift Browser & copy the URL</p>
                 </div>
                 <div className="flex items-start gap-2.5">
                   <span className="flex-shrink-0 w-5 h-5 rounded-full text-[10px] font-bold flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.15)", color: "hsl(280 100% 75%)" }}>3</span>
-                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Go live</span> and gifts trigger animated alerts automatically</p>
+                  <p className="text-[12px] text-muted-foreground leading-relaxed"><span className="text-foreground font-medium">Go live</span> — all enabled gifts trigger through one URL</p>
                 </div>
               </div>
             </div>
           </div>
+        </motion.div>
+
+        {/* Enabled Gifts Summary */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-6 rounded-2xl border border-white/[0.08] p-4"
+          style={{ background: "hsl(280 20% 6% / 0.4)" }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Gift size={14} className="text-purple-400" />
+              <span className="text-sm font-heading font-bold text-foreground">Alerts Enabled</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold"
+                style={{ background: enabledGifts.length > 0 ? "hsl(280 100% 65% / 0.15)" : "hsl(0 0% 50% / 0.15)", color: enabledGifts.length > 0 ? "hsl(280 100% 75%)" : "hsl(0 0% 60%)" }}
+              >
+                {enabledGifts.length} gift{enabledGifts.length !== 1 ? "s" : ""}
+              </span>
+            </div>
+            <button
+              onClick={() => navigate("/gift-browser")}
+              className="flex items-center gap-1.5 text-[11px] font-medium transition-colors"
+              style={{ color: "hsl(280 100% 70%)" }}
+            >
+              Manage in Gift Browser <ExternalLink size={11} />
+            </button>
+          </div>
+
+          {enabledGifts.length === 0 ? (
+            <p className="text-[12px] text-muted-foreground">No gifts enabled yet. Go to the Gift Browser to enable gifts for alerts.</p>
+          ) : (
+            <div className="flex flex-wrap gap-1.5">
+              {enabledGifts.slice(0, 30).map(gift => (
+                <div key={gift.gift_id}
+                  className="flex items-center gap-1.5 px-2 py-1 rounded-lg text-[11px] border border-white/[0.06]"
+                  style={{ background: "rgba(255,255,255,0.03)" }}
+                  title={`${gift.name} (${gift.coin_value} coins)`}
+                >
+                  {gift.image_url ? (
+                    <img src={gift.image_url} alt={gift.name} className="w-4 h-4 rounded-sm object-contain" />
+                  ) : (
+                    <span className="text-xs">🎁</span>
+                  )}
+                  <span className="text-foreground/80 truncate max-w-[60px]">{gift.name}</span>
+                </div>
+              ))}
+              {enabledGifts.length > 30 && (
+                <span className="text-[11px] text-muted-foreground px-2 py-1">+{enabledGifts.length - 30} more</span>
+              )}
+            </div>
+          )}
         </motion.div>
 
         {loading ? (
@@ -145,6 +202,12 @@ const GiftAlertOverlay = () => {
                     }
                     settingsSlot={
                       <div className="space-y-4">
+                        <SettingRow label="No Background" description="Remove alert card background">
+                          <SettingToggle checked={s.no_background} onChange={v => set("no_background", v)} />
+                        </SettingRow>
+                        <SettingRow label="No Border" description="Remove alert card border">
+                          <SettingToggle checked={s.no_border} onChange={v => set("no_border", v)} />
+                        </SettingRow>
                         <SettingRow label="Trigger Mode" description="When to show alerts">
                           <SettingSelect value={s.trigger_mode} onChange={v => set("trigger_mode", v)} options={[
                             { value: "any_gift", label: "Any Gift" },

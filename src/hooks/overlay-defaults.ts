@@ -593,5 +593,9 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   coin_jar: defaultCoinJarSettings,
   spin_wheel: defaultSpinWheelSettings,
   gift_actions: defaultGiftActionsSettings,
+  battle_royale: { entry_trigger: "gift", max_fighters: 8, round_speed: 3, show_hp: true, winner_shoutout: true, transparent_bg: true, custom_css: "" },
+  slot_machine: { trigger: "gift", spin_duration: 2, win_chance: 20, jackpot_action: "shoutout", show_jackpot: true, transparent_bg: true, custom_css: "" },
+  vote_battle: { team_a_name: "Team A", team_b_name: "Team B", vote_source: "gifts", duration: 120, show_pct: true, transparent_bg: true, custom_css: "" },
+  progress_race: { team_count: 3, target: 100, score_source: "gifts", show_pct: true, auto_reset: true, transparent_bg: true, custom_css: "" },
   event_feed: defaultEventFeedSettings,
 };

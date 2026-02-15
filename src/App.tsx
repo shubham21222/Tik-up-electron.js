@@ -86,6 +86,14 @@ import SpinWheelOverlay from "./pages/SpinWheelOverlay";
 import SpinWheelRenderer from "./pages/renderers/SpinWheelRenderer";
 import GiftActionsOverlay from "./pages/GiftActionsOverlay";
 import GiftActionsRenderer from "./pages/renderers/GiftActionsRenderer";
+import BattleRoyaleOverlay from "./pages/BattleRoyaleOverlay";
+import BattleRoyaleRenderer from "./pages/renderers/BattleRoyaleRenderer";
+import SlotMachineOverlay from "./pages/SlotMachineOverlay";
+import SlotMachineRenderer from "./pages/renderers/SlotMachineRenderer";
+import VoteBattleOverlay from "./pages/VoteBattleOverlay";
+import VoteBattleRenderer from "./pages/renderers/VoteBattleRenderer";
+import ProgressRaceOverlay from "./pages/ProgressRaceOverlay";
+import ProgressRaceRenderer from "./pages/renderers/ProgressRaceRenderer";
 
 const queryClient = new QueryClient();
 
@@ -124,6 +132,10 @@ const App = () => (
           <Route path="/overlay/coin-jar/:publicToken" element={<CoinJarRenderer />} />
           <Route path="/overlay/spin-wheel/:publicToken" element={<SpinWheelRenderer />} />
           <Route path="/overlay/gift-actions/:publicToken" element={<GiftActionsRenderer />} />
+          <Route path="/overlay/battle-royale/:publicToken" element={<BattleRoyaleRenderer />} />
+          <Route path="/overlay/slot-machine/:publicToken" element={<SlotMachineRenderer />} />
+          <Route path="/overlay/vote-battle/:publicToken" element={<VoteBattleRenderer />} />
+          <Route path="/overlay/progress-race/:publicToken" element={<ProgressRaceRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
           <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 
@@ -184,6 +196,10 @@ const App = () => (
                 <Route path="/coin-jar" element={<CoinJarOverlay />} />
                 <Route path="/spin-wheel" element={<SpinWheelOverlay />} />
                 <Route path="/gift-actions" element={<GiftActionsOverlay />} />
+                <Route path="/battle-royale" element={<BattleRoyaleOverlay />} />
+                <Route path="/slot-machine" element={<SlotMachineOverlay />} />
+                <Route path="/vote-battle" element={<VoteBattleOverlay />} />
+                <Route path="/progress-race" element={<ProgressRaceOverlay />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

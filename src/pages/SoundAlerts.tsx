@@ -2,8 +2,8 @@ import AppLayout from "@/components/AppLayout";
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Volume2, Plus, Trash2, Play, Search, Gift, 
-  Users, Heart, Share2, Pause
+  Volume2, Plus, Trash2, Play, Search, Gift,
+  Pause
 } from "lucide-react";
 import { useSoundAlerts } from "@/hooks/use-sound-alerts";
 import { useGiftCatalog } from "@/hooks/use-gift-catalog";
@@ -12,6 +12,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import SoundLibraryPicker from "@/components/sound-alerts/SoundLibraryPicker";
 
 const TRIGGER_TYPES = [
   { value: "any_gift", label: "Any Gift", icon: "🎁" },
@@ -19,18 +20,6 @@ const TRIGGER_TYPES = [
   { value: "follow", label: "New Follow", icon: "👤" },
   { value: "like", label: "Like", icon: "❤️" },
   { value: "share", label: "Share", icon: "🔗" },
-];
-
-// Built-in sounds
-const BUILT_IN_SOUNDS = [
-  { name: "Default Chime", url: "" },
-  { name: "Cash Register", url: "" },
-  { name: "Ding Dong", url: "" },
-  { name: "Applause", url: "" },
-  { name: "Air Horn", url: "" },
-  { name: "Level Up", url: "" },
-  { name: "Notification Pop", url: "" },
-  { name: "Coin Drop", url: "" },
 ];
 
 const SoundAlertsPage = () => {
@@ -75,7 +64,7 @@ const SoundAlertsPage = () => {
     if (audioRef.current) audioRef.current.pause();
     const audio = new Audio(url);
     audioRef.current = audio;
-    audio.play();
+    audio.play().catch(() => {});
     setPlayingId(id);
     audio.onended = () => setPlayingId(null);
   };
@@ -119,7 +108,7 @@ const SoundAlertsPage = () => {
 
   return (
     <AppLayout>
-      {/* Cyan ambient glow */}
+      {/* Ambient glow */}
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full pointer-events-none z-0"
         style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.04), transparent 70%)" }}
       />
@@ -145,9 +134,8 @@ const SoundAlertsPage = () => {
           style={{ background: "linear-gradient(135deg, hsl(160 40% 8% / 0.5), hsl(160 20% 5% / 0.3))" }}
         >
           <div className="space-y-1.5 text-[12px] text-muted-foreground leading-relaxed">
-            <p>Map <span className="text-foreground font-medium">TikTok gifts</span> or events to custom sounds that play on your stream.</p>
-            <p>Each alert uses a single OBS Browser Source URL. When a mapped gift is received, the sound plays automatically.</p>
-            <p>Use <span className="text-primary font-medium">Actions & Events</span> for more advanced automation workflows.</p>
+            <p>Map <span className="text-foreground font-medium">TikTok gifts</span> or events to sounds from the <span className="text-primary font-medium">built-in library</span> or paste a custom URL.</p>
+            <p>Each alert uses a single OBS Browser Source URL. When a mapped event occurs, the sound plays automatically.</p>
           </div>
         </motion.div>
 
@@ -253,18 +241,13 @@ const SoundAlertsPage = () => {
                       </span>
                     </div>
 
-                    {/* Sound name */}
+                    {/* Sound - Library Picker */}
                     <div className="min-w-0">
-                      <input
-                        type="text"
-                        value={alert.sound_url}
-                        onChange={e => updateAlert(alert.id, { sound_url: e.target.value })}
-                        placeholder="Paste sound URL..."
-                        className="w-full bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/30 border-none outline-none truncate"
+                      <SoundLibraryPicker
+                        currentUrl={alert.sound_url}
+                        currentName={alert.sound_name}
+                        onSelect={(url, name) => updateAlert(alert.id, { sound_url: url, sound_name: name })}
                       />
-                      {alert.sound_name && (
-                        <p className="text-[10px] text-muted-foreground/50 truncate">{alert.sound_name}</p>
-                      )}
                     </div>
 
                     {/* Volume */}

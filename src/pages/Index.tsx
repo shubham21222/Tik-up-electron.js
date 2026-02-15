@@ -909,43 +909,51 @@ const Index = () => {
             ) : rankings.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground text-sm">No ranking data</div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2">
-                {rankings.slice(0, 20).map((entry, i) => {
-                  const medalEmojis = ["🥇", "🥈", "🥉"];
-                  const isTop3 = i < 3;
-                  const rankColors = ["45 100% 55%", "0 0% 65%", "25 70% 45%"];
-                  return (
-                    <div
-                      key={entry.unique_id || i}
-                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
-                      style={{
-                        background: isTop3 ? `linear-gradient(90deg, hsl(${rankColors[i]} / 0.04), transparent)` : undefined,
-                        border: isTop3 ? `1px solid hsl(${rankColors[i]} / 0.08)` : "1px solid transparent",
-                      }}
-                    >
-                      <span className="text-sm font-heading font-bold w-6 text-center">
-                        {isTop3 ? medalEmojis[i] : <span className="text-[11px] text-muted-foreground">#{entry.rank}</span>}
-                      </span>
-                      {entry.avatar ? (
-                        <img src={entry.avatar} alt={entry.nickname} className="w-7 h-7 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div className="w-7 h-7 rounded-full bg-muted/30 flex items-center justify-center text-[10px] font-bold text-muted-foreground shrink-0">
-                          {entry.nickname.charAt(0).toUpperCase()}
+              <div className="w-full">
+                {/* Table header */}
+                <div className="flex items-center px-4 py-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border/30">
+                  <span className="w-12">Rank</span>
+                  <span className="flex-1">User</span>
+                  <span className="w-24 text-right">Diamonds</span>
+                </div>
+                {/* Table rows */}
+                <div className="divide-y divide-border/20">
+                  {rankings.slice(0, 20).map((entry, i) => {
+                    const medalEmojis = ["🏆", "🏆", "🏆"];
+                    const isTop3 = i < 3;
+                    const rankColors = ["45 100% 55%", "0 0% 65%", "25 70% 45%"];
+                    return (
+                      <div
+                        key={entry.unique_id || i}
+                        className="flex items-center px-4 py-3 hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
+                      >
+                        {/* Rank */}
+                        <span className="w-12 text-sm font-bold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
+                          {isTop3 ? (
+                            <span className="flex items-center gap-1.5">
+                              {entry.rank} <span className="text-base">{medalEmojis[i]}</span>
+                            </span>
+                          ) : entry.rank}
+                        </span>
+                        {/* Avatar + Name */}
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          {entry.avatar ? (
+                            <img src={entry.avatar} alt={entry.nickname} className="w-9 h-9 rounded-full object-cover shrink-0 border border-border/30" />
+                          ) : (
+                            <div className="w-9 h-9 rounded-full bg-muted/30 flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
+                              {entry.nickname.charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-foreground truncate">{entry.nickname}</span>
                         </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[12px] font-medium text-foreground truncate">{entry.nickname}</p>
-                        <p className="text-[10px] text-muted-foreground truncate">@{entry.unique_id}</p>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <Gem size={11} style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }} />
-                        <span className="text-[11px] font-bold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
-                          {entry.diamonds?.toLocaleString() || "0"}
+                        {/* Diamonds */}
+                        <span className="w-24 text-right text-sm font-semibold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
+                          {formatCompact(entry.diamonds || 0)}
                         </span>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
             )}
           </GlassCard>

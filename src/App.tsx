@@ -75,6 +75,7 @@ import EventFeedRenderer from "./pages/renderers/EventFeedRenderer";
 import GiftBrowser from "./pages/GiftBrowser";
 import StreamPresets from "./pages/StreamPresets";
 import KeystrokeTriggers from "./pages/KeystrokeTriggers";
+import GTATriggers from "./pages/GTATriggers";
 import PresetDetail from "./pages/PresetDetail";
 import VideoCamFrameOverlay from "./pages/VideoCamFrameOverlay";
 import VideoLabelBarOverlay from "./pages/VideoLabelBarOverlay";
@@ -192,6 +193,7 @@ const App = () => (
                 <Route path="/webcam-frame" element={<WebcamFrameOverlay />} />
                 <Route path="/gift-browser" element={<GiftBrowser />} />
                 <Route path="/keystroke-triggers" element={<KeystrokeTriggers />} />
+                <Route path="/gta-triggers" element={<GTATriggers />} />
                 <Route path="/presets" element={<StreamPresets />} />
                 <Route path="/presets/:presetId" element={<PresetDetail />} />
                 <Route path="/video-cam-frame" element={<VideoCamFrameOverlay />} />

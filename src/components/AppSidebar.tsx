@@ -5,7 +5,7 @@ import {
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, BarChart, Link2, Palette, Settings,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
-  Star, Keyboard, Coins, Image, Building2, Mic
+  Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -71,6 +71,7 @@ const sections: SidebarSection[] = [
       { id: "/tts", label: "TTS Chat", icon: Mic },
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
+      { id: "/gta-triggers", label: "GTA Interactive", icon: Gamepad2, pro: true },
       { id: "/gift-browser", label: "Gift Browser", icon: Gift },
     ],
   },

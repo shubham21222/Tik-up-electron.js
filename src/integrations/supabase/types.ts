@@ -296,6 +296,51 @@ export type Database = {
           },
         ]
       }
+      game_triggers: {
+        Row: {
+          action_params: Json
+          cooldown: number
+          created_at: string
+          event_config: Json
+          event_type: string
+          game_action: string
+          id: string
+          is_enabled: boolean
+          name: string
+          priority: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_params?: Json
+          cooldown?: number
+          created_at?: string
+          event_config?: Json
+          event_type?: string
+          game_action?: string
+          id?: string
+          is_enabled?: boolean
+          name?: string
+          priority?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_params?: Json
+          cooldown?: number
+          created_at?: string
+          event_config?: Json
+          event_type?: string
+          game_action?: string
+          id?: string
+          is_enabled?: boolean
+          name?: string
+          priority?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       goals: {
         Row: {
           auto_reset: boolean

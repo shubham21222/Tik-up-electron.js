@@ -97,6 +97,7 @@ import ProgressRaceRenderer from "./pages/renderers/ProgressRaceRenderer";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import AgencyCreate from "./pages/AgencyCreate";
 import AgencyDetail from "./pages/AgencyDetail";
+import EnterpriseDashboard from "./pages/EnterpriseDashboard";
 
 const queryClient = new QueryClient();
 
@@ -206,6 +207,7 @@ const App = () => (
                 <Route path="/agencies" element={<AgencyDashboard />} />
                 <Route path="/agency/new" element={<AgencyCreate />} />
                 <Route path="/agency/:id" element={<AgencyDetail />} />
+                <Route path="/enterprise" element={<EnterpriseDashboard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

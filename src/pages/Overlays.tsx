@@ -91,42 +91,65 @@ interface OverlayItem {
   pro?: boolean;
   route?: string;
   tags?: string[];
+  category?: string;
 }
+
+/* ── Category definitions for the main Overlays tab ── */
+const OVERLAY_CATEGORIES = [
+  { id: "stream", label: "🎬 Stream Essentials", description: "Core overlays every streamer needs" },
+  { id: "alerts", label: "🔔 Alert Overlays", description: "Notifications for gifts, follows, likes & shares" },
+  { id: "goals", label: "🎯 Goals & Progress", description: "Track milestones and viewer goals" },
+  { id: "widgets", label: "📊 Widgets & Counters", description: "Live stats, timers, and display widgets" },
+  { id: "actions", label: "🎁 Gift Actions & In-Game", description: "Map gifts to actions and interactive games" },
+  { id: "design", label: "🎨 Banners & Stream Design", description: "Frames, borders, backgrounds & branding" },
+];
 
 const overlayData: Record<string, OverlayItem[]> = {
   "Overlays": [
-    { title: "Text-to-Speech (TTS)", description: "Floating notification bubble with soundwave animation. Premium glassmorphism design.", hasPreview: true, color: "160 100% 45%", route: "/tts" },
-    { title: "TikTok Chat Overlay", description: "Stacked chat messages with smooth slide-in animations and fading effects.", hasPreview: true, color: "200 100% 55%", route: "/chat-overlay" },
-    { title: "Sound Alert Overlay", description: "Center-screen animated alert with expanding neon rings and particle effects.", hasPreview: true, color: "350 90% 55%", route: "/sounds" },
-    { title: "Like/Follow Overlay", description: "Elegant floating notifications with heart particle animations.", hasPreview: true, color: "350 90% 55%", route: "/like-alerts" },
-    { title: "Gift Alert Overlay", description: "Animated gift alerts with glow pulse and ring expansion effects.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-alerts" },
-    { title: "Goal Progress Bar", description: "Animated progress bars for likes, follows, shares & stars with shimmer effects.", hasPreview: true, color: "45 100% 55%", route: "/goal-overlays" },
-    { title: "Super Gift Combo", description: "Stacking combo counter with escalating tiers: Combo, Super, Epic, Legendary.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/gift-combo", tags: ["Gift", "Combo"] },
-    { title: "Notifications Ticker", description: "Scrolling event ticker bar showing follows, likes, gifts in real-time.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/ticker", tags: ["Ticker", "Events"] },
-    { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/animated-bg", tags: ["Background", "Loop"] },
-    { title: "Sound Reactive", description: "Audio visualizer with peak meters and waveform backgrounds synced to stream audio.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/sound-reactive", tags: ["Audio", "Visual"] },
-    { title: "Follow Alert", description: "Clean notification when a new user follows. Slide-in animation with avatar display.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follow-alerts", tags: ["Follow"] },
-    { title: "Share Alert", description: "Stream share notification with animated share icon and username display.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/share-alerts", tags: ["Share"] },
-    { title: "Viewer Count", description: "Live viewer count display with spike animations, peak tracking, and mini graph mode.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/viewer-count", tags: ["Live", "Counter"] },
-    { title: "Like Counter", description: "Real-time like counter with progress ring, bar, and animated digit modes.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/like-counter", tags: ["Counter", "Like"] },
-    { title: "Follower Goal", description: "Animated follower goal bar with milestone markers and completion celebration.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follower-goal", tags: ["Goal", "Follow"] },
-    { title: "Leaderboard", description: "Live top gifters/fans leaderboard with animated ranking transitions.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/leaderboard", tags: ["Ranking", "Gifters"] },
-    { title: "Stream Timer", description: "Digital countdown/count-up timer with segment display. Extendable by gifts.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/stream-timer", tags: ["Timer", "Countdown"] },
-    { title: "Custom Text", description: "Dynamic text overlay supporting real-time variable binding ({viewers}, {likes}, etc).", hasPreview: true, color: "160 100% 45%", pro: true, route: "/custom-text", tags: ["Text", "Variables"] },
-    { title: "Social Media Rotator", description: "Animated 3D carousel of your social media links with glow effects and smooth rotation.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/social-rotator", tags: ["Social", "Links"] },
-    { title: "Gift Firework", description: "Cinematic firework explosions triggered by gifts with particle trails and username tags.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/gift-firework", tags: ["Gift", "Firework"] },
-    { title: "Promo Overlay", description: "Branded promo overlay with your TikUp logo, animated rings, and follow CTA for stream.", hasPreview: true, color: "160 100% 45%", route: "/promo-overlay", tags: ["Promo", "Brand"] },
-    { title: "Stream Border", description: "10 premium animated transparent borders: Neon Pulse, Gold Metallic, Glitch, Electric Spark, Liquid Flow & more.", hasPreview: true, color: "210 100% 55%", pro: true, route: "/stream-border", tags: ["Border", "Frame"] },
-    { title: "Webcam Frame", description: "10 premium animated webcam frames for TikTok Live game layout. Neon, Gold, Circuit, Holographic & more.", hasPreview: true, color: "180 100% 50%", pro: true, route: "/webcam-frame", tags: ["Webcam", "Frame"] },
-    { title: "Video Cam Frame", description: "Animated WebM video webcam frame with glow and color options. Transparent loop for OBS.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/video-cam-frame", tags: ["Video", "Webcam"] },
-    { title: "Video Label Bar", description: "Animated WebM label bar overlay for your stream. Color customizable transparent loop.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/video-label-bar", tags: ["Video", "Label"] },
-    { title: "Coin Jar", description: "Watch the jar fill with gifts as viewers interact. A fun, visual way to track your gift goal in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/coin-jar", tags: ["Gift", "Goal", "Interactive"] },
-    { title: "Spin Wheel", description: "Viewers trigger spins with gifts. Land on custom dares, prizes, or actions. Fully animated with winner reveal.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/spin-wheel", tags: ["Interactive", "Gift", "Game"] },
-    { title: "Gift Actions Slider", description: "Scrolling carousel showing which gifts trigger which actions. Easy to edit text & emoji.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-actions", tags: ["Interactive", "Gift", "Carousel"] },
-    { title: "Battle Royale", description: "Viewers enter by gifting — avatars fight on screen, last one standing wins a shoutout.", hasPreview: true, color: "350 80% 55%", pro: true, route: "/battle-royale", tags: ["Interactive", "Game", "Gift"] },
-    { title: "Slot Machine", description: "Gift-triggered 3-reel slot machine with customizable jackpot rewards and win effects.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/slot-machine", tags: ["Interactive", "Game", "Gift"] },
-    { title: "Vote Battle", description: "Two-sided animated vote bar. Viewers power their team with gifts — visual tug-of-war.", hasPreview: true, color: "200 80% 55%", pro: true, route: "/vote-battle", tags: ["Interactive", "Vote", "Gift"] },
-    { title: "Progress Race", description: "Multiple teams race to the finish line powered by gifts and likes in real-time.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/progress-race", tags: ["Interactive", "Race", "Gift"] },
+    // Stream Essentials
+    { title: "Text-to-Speech (TTS)", description: "Floating notification bubble with soundwave animation. Premium glassmorphism design.", hasPreview: true, color: "160 100% 45%", route: "/tts", category: "stream" },
+    { title: "TikTok Chat Overlay", description: "Stacked chat messages with smooth slide-in animations and fading effects.", hasPreview: true, color: "200 100% 55%", route: "/chat-overlay", category: "stream" },
+    { title: "Sound Alert Overlay", description: "Center-screen animated alert with expanding neon rings and particle effects.", hasPreview: true, color: "350 90% 55%", route: "/sounds", category: "stream" },
+    { title: "Notifications Ticker", description: "Scrolling event ticker bar showing follows, likes, gifts in real-time.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/ticker", category: "stream" },
+
+    // Alert Overlays
+    { title: "Like/Follow Overlay", description: "Elegant floating notifications with heart particle animations.", hasPreview: true, color: "350 90% 55%", route: "/like-alerts", category: "alerts" },
+    { title: "Gift Alert Overlay", description: "Animated gift alerts with glow pulse and ring expansion effects.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-alerts", category: "alerts" },
+    { title: "Follow Alert", description: "Clean notification when a new user follows. Slide-in animation with avatar display.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follow-alerts", category: "alerts" },
+    { title: "Share Alert", description: "Stream share notification with animated share icon and username display.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/share-alerts", category: "alerts" },
+    { title: "Like Alert", description: "Floating hearts animation triggered by viewer likes with particle burst.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/like-alerts", category: "alerts" },
+    { title: "Super Gift Combo", description: "Stacking combo counter with escalating tiers: Combo, Super, Epic, Legendary.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/gift-combo", category: "alerts" },
+    { title: "Gift Firework", description: "Cinematic firework explosions triggered by gifts with particle trails and username tags.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/gift-firework", category: "alerts" },
+
+    // Goals & Progress
+    { title: "Goal Progress Bar", description: "Animated progress bars for likes, follows, shares & stars with shimmer effects.", hasPreview: true, color: "45 100% 55%", route: "/goal-overlays", category: "goals" },
+    { title: "Follower Goal", description: "Animated follower goal bar with milestone markers and completion celebration.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follower-goal", category: "goals" },
+    { title: "Coin Jar", description: "Watch the jar fill with gifts. A fun, visual way to track your gift goal in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/coin-jar", category: "goals" },
+    { title: "Progress Race", description: "Multiple teams race to the finish line powered by gifts and likes in real-time.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/progress-race", category: "goals" },
+
+    // Widgets & Counters
+    { title: "Viewer Count", description: "Live viewer count display with spike animations, peak tracking, and mini graph mode.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/viewer-count", category: "widgets" },
+    { title: "Like Counter", description: "Real-time like counter with progress ring, bar, and animated digit modes.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/like-counter", category: "widgets" },
+    { title: "Leaderboard", description: "Live top gifters/fans leaderboard with animated ranking transitions.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/leaderboard", category: "widgets" },
+    { title: "Stream Timer", description: "Digital countdown/count-up timer with segment display. Extendable by gifts.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/stream-timer", category: "widgets" },
+    { title: "Custom Text", description: "Dynamic text overlay supporting real-time variable binding ({viewers}, {likes}, etc).", hasPreview: true, color: "160 100% 45%", pro: true, route: "/custom-text", category: "widgets" },
+    { title: "Social Media Rotator", description: "Animated 3D carousel of your social media links with glow effects and smooth rotation.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/social-rotator", category: "widgets" },
+    { title: "Sound Reactive", description: "Audio visualizer with peak meters and waveform backgrounds synced to stream audio.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/sound-reactive", category: "widgets" },
+
+    // Gift Actions & In-Game
+    { title: "Gift Actions Slider", description: "Scrolling carousel showing which gifts trigger which actions. Easy to edit.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-actions", category: "actions" },
+    { title: "Spin Wheel", description: "Viewers trigger spins with gifts. Land on custom dares, prizes, or actions.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/spin-wheel", category: "actions" },
+    { title: "Battle Royale", description: "Viewers enter by gifting — avatars fight on screen, last one standing wins.", hasPreview: true, color: "350 80% 55%", pro: true, route: "/battle-royale", category: "actions" },
+    { title: "Slot Machine", description: "Gift-triggered 3-reel slot machine with customizable jackpot rewards.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/slot-machine", category: "actions" },
+    { title: "Vote Battle", description: "Two-sided animated vote bar. Viewers power their team with gifts.", hasPreview: true, color: "200 80% 55%", pro: true, route: "/vote-battle", category: "actions" },
+
+    // Banners & Stream Design
+    { title: "Promo Overlay", description: "Branded promo overlay with logo, animated rings, and follow CTA.", hasPreview: true, color: "160 100% 45%", route: "/promo-overlay", category: "design" },
+    { title: "Stream Border", description: "10 premium animated transparent borders: Neon Pulse, Gold Metallic, Glitch & more.", hasPreview: true, color: "210 100% 55%", pro: true, route: "/stream-border", category: "design" },
+    { title: "Webcam Frame", description: "10 premium animated webcam frames. Neon, Gold, Circuit, Holographic & more.", hasPreview: true, color: "180 100% 50%", pro: true, route: "/webcam-frame", category: "design" },
+    { title: "Video Cam Frame", description: "Animated WebM video webcam frame with glow and color options.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/video-cam-frame", category: "design" },
+    { title: "Video Label Bar", description: "Animated WebM label bar overlay. Color customizable transparent loop.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/video-label-bar", category: "design" },
+    { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/animated-bg", category: "design" },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },
@@ -256,147 +279,89 @@ const Overlays = () => {
           </div>
         </motion.div>
 
-        {/* Live Preview Grid for main Overlays tab */}
+        {/* Live Preview Grid for main Overlays tab — grouped by category */}
         {activeTab === "Overlays" && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
-            {items.filter(o => overlayPreviews[o.title]).map((overlay, i) => {
-              const PreviewComponent = overlayPreviews[overlay.title];
+          <div className="space-y-10">
+            {OVERLAY_CATEGORIES.map((cat) => {
+              const catItems = items.filter(o => o.category === cat.id && overlayPreviews[o.title]);
+              if (catItems.length === 0) return null;
               return (
-                <motion.div
-                  key={overlay.title}
-                  initial={{ opacity: 0, y: 16 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.06, duration: 0.4 }}
-                  whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                  className="group rounded-2xl p-[1px] cursor-default"
-                  style={glassGradient}
-                >
-                  <div className="rounded-2xl overflow-hidden transition-shadow duration-300 group-hover:shadow-[0_0_40px_hsl(160_100%_45%/0.08)]" style={glassInnerStyle}>
-                    {/* Preview viewport */}
-                    <div className="relative h-[280px] overflow-hidden">
-                      <div className="absolute inset-0 opacity-[0.03]"
-                        style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-                      <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Loading...</div>}>
-                        <PreviewComponent />
-                      </Suspense>
-                      <button
-                        onClick={() => setFullscreenOverlay(overlay.title)}
-                        className="absolute top-3 right-3 p-2 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 text-white/40 hover:text-white/80 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                      >
-                        <Maximize2 size={14} />
-                      </button>
-                      {overlay.pro && (
-                        <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-secondary/15 backdrop-blur-sm px-2 py-1 rounded-lg border border-secondary/20">
-                          <Crown size={9} /> PRO
-                        </span>
-                      )}
-                    </div>
+                <div key={cat.id}>
+                  {/* Section header */}
+                  <motion.div
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    className="mb-4"
+                  >
+                    <h2 className="text-lg font-heading font-bold text-foreground">{cat.label}</h2>
+                    <p className="text-xs text-muted-foreground">{cat.description}</p>
+                  </motion.div>
 
-                    {/* Info bar */}
-                    <div className="px-4 py-3 border-t border-white/[0.05]">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="text-sm font-heading font-semibold text-foreground">{overlay.title}</h3>
-                        <div className="flex items-center gap-1">
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium flex items-center gap-1">
-                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> Live
-                          </span>
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">{overlay.description}</p>
-                      {overlay.route && (
-                        <div className="flex items-center gap-2 mt-3">
-                          <Link to={overlay.route} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
-                            <Settings size={11} /> Configure
-                          </Link>
-                          <button
-                            onClick={() => {
-                              const url = `${getOverlayBaseUrl()}/overlay/${overlay.route?.replace("/", "")}`;
-                              copyToClipboard(url, "Overlay URL copied!");
-                            }}
-                            className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
-                          >
-                            <Copy size={11} /> Copy URL
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Card Grid for non-preview items */}
-        {(activeTab !== "Overlays" || items.some(o => !overlayPreviews[o.title])) && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {(activeTab === "Overlays" ? items.filter(o => !overlayPreviews[o.title]) : items).map((overlay, i) => (
-              <motion.div
-                key={overlay.title}
-                initial={{ opacity: 0, y: 14 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.04, duration: 0.35 }}
-                whileHover={{ y: -3, transition: { duration: 0.2 } }}
-                className="group rounded-2xl p-[1px]"
-                style={glassGradient}
-              >
-                <div className="rounded-2xl p-4 h-full transition-shadow duration-300 group-hover:shadow-[0_0_30px_hsl(160_100%_45%/0.06)]" style={glassInnerStyle}>
-                  <div className="flex items-start gap-3 mb-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: `hsl(${overlay.color} / 0.1)` }}>
-                      <Eye size={16} style={{ color: `hsl(${overlay.color})` }} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-0.5">
-                        <h3 className="text-sm font-heading font-bold text-foreground truncate">{overlay.title}</h3>
-                        {overlay.pro && (
-                          <span className="inline-flex items-center gap-0.5 text-[9px] font-bold text-secondary bg-secondary/10 px-1.5 py-0.5 rounded-md flex-shrink-0">
-                            <Crown size={8} /> PRO
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground leading-relaxed">{overlay.description}</p>
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  {overlay.tags && (
-                    <div className="flex flex-wrap gap-1.5 mb-3">
-                      {overlay.tags.map(tag => (
-                        <span key={tag} className="text-[9px] font-medium px-2 py-0.5 rounded-md bg-muted/40 text-muted-foreground">{tag}</span>
-                      ))}
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-2">
-                    {overlay.route ? (
-                      <Link to={overlay.route} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
-                        <Settings size={11} /> Configure
-                      </Link>
-                    ) : (
-                      <button className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
-                        <Eye size={11} /> Preview
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        const path = overlay.route?.replace("/", "") || overlay.title.toLowerCase().replace(/\s+/g, "-");
-                        const url = `${getOverlayBaseUrl()}/overlay/${path}`;
-                        copyToClipboard(url, "Overlay URL copied!");
-                      }}
-                      className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
-                    >
-                      <Copy size={11} /> URL
-                    </button>
-                    {activeTab === "Browser Sources" && (
-                      <button className="px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5">
-                        <ExternalLink size={11} />
-                      </button>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {catItems.map((overlay, i) => {
+                      const PreviewComponent = overlayPreviews[overlay.title];
+                      return (
+                        <motion.div
+                          key={overlay.title}
+                          initial={{ opacity: 0, y: 16 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: i * 0.06, duration: 0.4 }}
+                          whileHover={{ y: -4, transition: { duration: 0.25 } }}
+                          className="group rounded-2xl p-[1px] cursor-default"
+                          style={glassGradient}
+                        >
+                          <div className="rounded-2xl overflow-hidden transition-shadow duration-300 group-hover:shadow-[0_0_40px_hsl(160_100%_45%/0.08)]" style={glassInnerStyle}>
+                            <div className="relative h-[280px] overflow-hidden">
+                              <div className="absolute inset-0 opacity-[0.03]"
+                                style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+                              <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Loading...</div>}>
+                                <PreviewComponent />
+                              </Suspense>
+                              <button
+                                onClick={() => setFullscreenOverlay(overlay.title)}
+                                className="absolute top-3 right-3 p-2 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 text-white/40 hover:text-white/80 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                              >
+                                <Maximize2 size={14} />
+                              </button>
+                              {overlay.pro && (
+                                <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-secondary/15 backdrop-blur-sm px-2 py-1 rounded-lg border border-secondary/20">
+                                  <Crown size={9} /> PRO
+                                </span>
+                              )}
+                            </div>
+                            <div className="px-4 py-3 border-t border-white/[0.05]">
+                              <div className="flex items-center justify-between mb-1">
+                                <h3 className="text-sm font-heading font-semibold text-foreground">{overlay.title}</h3>
+                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium flex items-center gap-1">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> Live
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-muted-foreground">{overlay.description}</p>
+                              {overlay.route && (
+                                <div className="flex items-center gap-2 mt-3">
+                                  <Link to={overlay.route} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
+                                    <Settings size={11} /> Configure
+                                  </Link>
+                                  <button
+                                    onClick={() => {
+                                      const url = `${getOverlayBaseUrl()}/overlay/${overlay.route?.replace("/", "")}`;
+                                      copyToClipboard(url, "Overlay URL copied!");
+                                    }}
+                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
+                                  >
+                                    <Copy size={11} /> Copy URL
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
                   </div>
                 </div>
-              </motion.div>
-            ))}
+              );
+            })}
           </div>
         )}
         </>

@@ -1,5 +1,48 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/** Inline subset of GIFT_VALUE_MAP for accurate coin normalization */
+const GIFT_COINS: Record<string, { name: string; coins: number }> = {
+  "5655": { name: "Rose", coins: 1 }, "5487": { name: "GG", coins: 1 }, "5879": { name: "Heart", coins: 1 },
+  "6064": { name: "Ice Cream Cone", coins: 1 }, "6090": { name: "Finger Heart", coins: 5 },
+  "5939": { name: "Perfume", coins: 20 }, "7093": { name: "Doughnut", coins: 30 },
+  "6560": { name: "Tiny Diny", coins: 5 }, "7167": { name: "Thumbs Up", coins: 1 },
+  "7169": { name: "Hello", coins: 1 }, "6426": { name: "TikTok", coins: 1 },
+  "5827": { name: "Weights", coins: 1 }, "6080": { name: "BFF Necklace", coins: 1 },
+  "5500": { name: "Like", coins: 5 }, "7520": { name: "Kiss Your Heart", coins: 5 },
+  "5570": { name: "Friendship Necklace", coins: 10 }, "7125": { name: "Hat and Mustache", coins: 10 },
+  "7274": { name: "LIVE Star", coins: 10 }, "5900": { name: "Panda", coins: 5 },
+  "6532": { name: "Hand Hearts", coins: 100 }, "5917": { name: "Love You", coins: 25 },
+  "7934": { name: "Corgi", coins: 30 }, "6027": { name: "Sunglasses", coins: 50 },
+  "6432": { name: "Birthday Cake", coins: 50 }, "5928": { name: "Concert", coins: 100 },
+  "7316": { name: "Cap", coins: 99 }, "7095": { name: "Family", coins: 100 },
+  "5919": { name: "Heart Me", coins: 100 }, "6784": { name: "Garland", coins: 100 },
+  "6334": { name: "Glowing Jellyfish", coins: 100 }, "7103": { name: "Gift Box", coins: 100 },
+  "7510": { name: "Cheer You Up", coins: 199 }, "6346": { name: "Hands Up", coins: 100 },
+  "6349": { name: "Confetti", coins: 100 }, "6088": { name: "Paper Crane", coins: 99 },
+  "6425": { name: "Lock and Key", coins: 199 }, "7086": { name: "Butterfly", coins: 200 },
+  "7305": { name: "Star", coins: 99 }, "7046": { name: "Hands Heart", coins: 100 },
+  "6431": { name: "VIP Entrance", coins: 200 }, "11046": { name: "Gem Gun", coins: 500 },
+  "6537": { name: "Travel with You", coins: 500 }, "7521": { name: "Lucky Airdrop Box", coins: 500 },
+  "7100": { name: "Money Gun", coins: 500 }, "6535": { name: "Galaxy", coins: 1000 },
+  "6539": { name: "Whale Diving", coins: 1000 }, "6523": { name: "Rocket", coins: 1000 },
+  "6525": { name: "Sports Car", coins: 1000 }, "7089": { name: "Sunset Speedway", coins: 1000 },
+  "6208": { name: "Fireworks", coins: 1088 }, "6533": { name: "Private Jet", coins: 2000 },
+  "6581": { name: "Interstellar", coins: 2000 }, "6271": { name: "Golden Party", coins: 3000 },
+  "6340": { name: "Yacht", coins: 3000 }, "7381": { name: "Lucky Airdrop", coins: 3000 },
+  "6534": { name: "Rose Carriage", coins: 5000 }, "7382": { name: "Meteor Shower", coins: 5000 },
+  "6547": { name: "Dragon", coins: 5000 }, "13651": { name: "Castle Fantasy", coins: 5000 },
+  "7383": { name: "Love Bomb", coins: 5000 }, "5760": { name: "TikTok Universe", coins: 34999 },
+  "7087": { name: "Adam's Dream", coins: 10000 }, "6584": { name: "Leon and Lion", coins: 10000 },
+  "6536": { name: "Rosa Nebula", coins: 15000 }, "7384": { name: "Elephant on Stage", coins: 20000 },
+  "6541": { name: "Level Ship", coins: 21000 }, "7385": { name: "Orca Leap", coins: 25000 },
+  "6542": { name: "Falcon", coins: 29999 }, "6543": { name: "Gorilla", coins: 29999 },
+  "6544": { name: "Lion", coins: 29999 }, "7097": { name: "Lion", coins: 29999 },
+};
+
+function lookupGift(giftId: string | number): { name: string; coins: number } | null {
+  return GIFT_COINS[String(giftId)] ?? null;
+}
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret, x-webhook-signature, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
@@ -194,7 +237,12 @@ async function upsertViewerPoints(
 
   switch (eventType) {
     case "gift": {
-      const coinValue = Number(eventData.diamondCount || eventData.coinValue || eventData.coin_value || 1);
+      const giftId = String(eventData.giftId || eventData.gift_id || "0");
+      const staticGift = lookupGift(giftId);
+      const baseCoinValue = staticGift?.coins
+        ?? Number(eventData.diamondCount || eventData.diamond_count || eventData.coinValue || eventData.coin_value || 1);
+      const repeatCount = Number(eventData.repeatCount || eventData.repeat_count || 1);
+      const coinValue = baseCoinValue * repeatCount;
       coinsInc = coinValue;
       giftsInc = 1;
       if (pointsConfig?.points_per_coin_enabled) {
@@ -763,13 +811,18 @@ function parseEulerAlert(body: Record<string, any>): { tiktok_username: string; 
 
   if (dynamicProps.giftName || dynamicProps.gift_name || dynamicProps.giftId || dynamicProps.gift_id) {
     eventType = "gift";
-    data.gift_name = dynamicProps.giftName || dynamicProps.gift_name || "Gift";
-    data.gift_id = dynamicProps.giftId || dynamicProps.gift_id || "";
-    data.diamond_count = Number(dynamicProps.diamondCount || dynamicProps.diamond_count || dynamicProps.diamonds || 0);
+    const giftId = String(dynamicProps.giftId || dynamicProps.gift_id || "");
+    const staticGift = lookupGift(giftId);
+    data.gift_name = dynamicProps.giftName || dynamicProps.gift_name || staticGift?.name || "Gift";
+    data.gift_id = giftId;
+    // Use static map for accurate coin values, fall back to raw payload
+    const rawDiamonds = Number(dynamicProps.diamondCount || dynamicProps.diamond_count || dynamicProps.diamonds || 0);
+    data.diamond_count = staticGift?.coins ?? rawDiamonds;
     data.repeat_count = Number(dynamicProps.repeatCount || dynamicProps.repeat_count || 1);
     data.total_diamonds = Number(data.diamond_count) * Number(data.repeat_count);
     data.repeat_end = dynamicProps.repeatEnd ?? dynamicProps.repeat_end ?? true;
     data.coin_value = data.diamond_count;
+    data.category = staticGift?.category ?? "unknown";
   } else if (dynamicProps.likeCount !== undefined || dynamicProps.like_count !== undefined || dynamicProps.totalLikeCount !== undefined) {
     eventType = "like";
     data.like_count = Number(dynamicProps.likeCount || dynamicProps.like_count || 1);

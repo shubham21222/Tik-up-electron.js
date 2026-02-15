@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
     const adminClient = createClient(supabaseUrl, serviceKey);
     const { data: profile } = await adminClient
       .from("profiles")
-      .select("tiktok_username, tiktok_connected")
+      .select("tiktok_username, tiktok_connected, tiktok_connected_at")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -51,11 +51,13 @@ Deno.serve(async (req) => {
     }
 
     const uniqueId = profile.tiktok_username;
+    // Use connection timestamp to scope gift counting to the current session only
+    const connectedAt = (profile as Record<string, unknown>).tiktok_connected_at as string | null;
 
     // Fetch WebSocket stats and DB coins in parallel (skip diamond map - often 401)
     const [wsStats, dbCoins] = await Promise.all([
       fetchLiveStats(uniqueId, apiKey),
-      fetchAccumulatedCoins(adminClient, user.id),
+      fetchAccumulatedCoins(adminClient, user.id, connectedAt),
     ]);
 
     const stats = { ...wsStats } as Record<string, unknown>;
@@ -84,16 +86,19 @@ Deno.serve(async (req) => {
 /** Query events_log for gift events and sum coin values */
 async function fetchAccumulatedCoins(
   adminClient: ReturnType<typeof createClient>,
-  userId: string
+  userId: string,
+  connectedAt: string | null
 ): Promise<number> {
   try {
-    const twelveHoursAgo = new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+    // Only count gifts since the user connected this TikTok username (current session)
+    const since = connectedAt || new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+    console.log(`Counting gifts since: ${since}`);
     const { data: giftEvents, error } = await adminClient
       .from("events_log")
       .select("payload")
       .eq("user_id", userId)
       .eq("event_type", "gift")
-      .gte("created_at", twelveHoursAgo);
+      .gte("created_at", since);
 
     if (error || !giftEvents) return 0;
 

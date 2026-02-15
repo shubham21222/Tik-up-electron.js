@@ -238,9 +238,10 @@ async function upsertViewerPoints(
   switch (eventType) {
     case "gift": {
       const giftId = String(eventData.giftId || eventData.gift_id || "0");
+      // IMPORTANT: Trust bridge-provided coin values first — the static map has wrong ID mappings
+      const bridgeCoinValue = Number(eventData.coinValue || eventData.coin_value || eventData.diamondCount || eventData.diamond_count || 0);
       const staticGift = lookupGift(giftId);
-      const baseCoinValue = staticGift?.coins
-        ?? Number(eventData.diamondCount || eventData.diamond_count || eventData.coinValue || eventData.coin_value || 1);
+      const baseCoinValue = bridgeCoinValue > 0 ? bridgeCoinValue : (staticGift?.coins ?? 1);
       const repeatCount = Number(eventData.repeatCount || eventData.repeat_count || 1);
       const coinValue = baseCoinValue * repeatCount;
       coinsInc = coinValue;
@@ -375,9 +376,10 @@ async function trackSessionGift(
   if (!session) return; // No active session — skip session tracking
 
   const giftId = String(eventData.giftId || eventData.gift_id || "0");
+  // IMPORTANT: Trust bridge-provided coin values first — the static map has wrong ID mappings
+  const bridgeDiamonds = Number(eventData.coinValue || eventData.coin_value || eventData.diamondCount || eventData.diamond_count || 0);
   const staticGift = lookupGift(giftId);
-  const baseDiamonds = staticGift?.coins
-    ?? Number(eventData.diamondCount || eventData.diamond_count || eventData.coinValue || eventData.coin_value || 1);
+  const baseDiamonds = bridgeDiamonds > 0 ? bridgeDiamonds : (staticGift?.coins ?? 1);
   const repeatCount = Number(eventData.repeatCount || eventData.repeat_count || 1);
   const totalDiamonds = baseDiamonds * repeatCount;
   const giftName = (eventData.giftName || eventData.gift_name || staticGift?.name || "Gift") as string;

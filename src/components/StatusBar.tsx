@@ -1,12 +1,13 @@
 import { Wifi, WifiOff, Clock, Radio } from "lucide-react";
-import { useState, useEffect } from "react";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
+import { useTikTokLive } from "@/hooks/use-tiktok-live";
 import { cn } from "@/lib/utils";
 
 const StatusBar = () => {
-  const [time, setTime] = useState("00:00");
-  const [connected, setConnected] = useState(false);
   const { collapsed } = useSidebarState();
+  const { status, stats, connect, disconnect, error } = useTikTokLive();
+  const connected = status === "connected";
+  const connecting = status === "connecting";
 
   return (
     <div className={cn(
@@ -27,7 +28,7 @@ const StatusBar = () => {
         </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Radio size={12} />
-          <span>0 Viewers</span>
+          <span>{stats.viewerCount.toLocaleString()} Viewers</span>
         </div>
       </div>
 
@@ -43,22 +44,22 @@ const StatusBar = () => {
       {/* Right side */}
       <div className="flex items-center gap-4">
         <button
-          onClick={() => setConnected(!connected)}
+          onClick={() => connected ? disconnect() : connect()}
+          disabled={connecting}
           className={`px-3 py-1 rounded text-xs font-semibold transition-colors ${
             connected
               ? "bg-destructive/20 text-destructive hover:bg-destructive/30"
+              : connecting
+              ? "bg-muted text-muted-foreground cursor-wait"
               : "bg-primary/20 text-primary hover:bg-primary/30"
           }`}
         >
-          {connected ? "Disconnect" : "Connect to TikTok LIVE"}
+          {connecting ? "Connecting..." : connected ? "Disconnect" : "Connect to TikTok LIVE"}
         </button>
 
-        <div className="flex items-center gap-4 text-xs text-muted-foreground border-l border-border pl-4">
-          <div className="flex items-center gap-1.5">
-            <Clock size={12} />
-            <span className="font-mono">{time}</span>
-          </div>
-        </div>
+        {error && (
+          <span className="text-xs text-destructive truncate max-w-[200px]">{error}</span>
+        )}
       </div>
     </div>
   );

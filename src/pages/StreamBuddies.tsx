@@ -28,7 +28,7 @@ const THEMES: Record<string, {
   tiers: Record<string, { char: string; sprite?: string; glow: string; aura: string }>;
 }> = {
   vinyl: {
-    label: "Vinyl Toys", emoji: "🎨", desc: "3D chibi vinyl-toy collectibles",
+    label: "TikUp Cats", emoji: "🐱", desc: "TikUp-branded chibi cat squad",
     tiers: {
       common:    { char: "🧑", sprite: SPRITE_PATHS.common, glow: "none", aura: "" },
       rare:      { char: "🧝", sprite: SPRITE_PATHS.rare, glow: "0 0 12px rgba(80,160,255,0.5)", aura: "rgba(80,160,255,0.15)" },

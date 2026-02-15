@@ -8,49 +8,50 @@ const corsHeaders = {
 
 function parseRankingsFromHtml(html: string): any[] {
   const ranks: any[] = [];
+  const seen = new Set<string>();
 
-  // Match the "Last day" archive section items
-  // Pattern: <a href="...tiknode.com/profile/USERNAME" class="main-premium-list-item">
-  //   rank, avatar img, nickname, dollar amount
-  const itemRegex = /<a\s+href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)"\s+class="main-premium-list-item">\s*<div class="main-premium-list-item-info">\s*<div class="main-premium-list-rank[^"]*">(\d+)\.<\/div>\s*<div class="main-premium-list-avatar">\s*<img\s+src="([^"]*)"[^>]*>\s*<\/div>\s*<div class="main-premium-list-username">\s*([\s\S]*?)\s*<\/div>\s*<\/div>\s*<div class="main-premium-list-item-amount">\s*\$([\d,]+)\s*<\/div>/g;
+  // Match all list items with profile links, avatars, nicknames, and dollar amounts
+  const itemRegex = /href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)"[^>]*class="main-premium-list-item"[\s\S]*?<div class="main-premium-list-rank[^"]*">(\d+)\.<\/div>[\s\S]*?<img\s+src="([^"]*)"[^>]*>[\s\S]*?<div class="main-premium-list-username">\s*([\s\S]*?)\s*<\/div>[\s\S]*?<div class="main-premium-list-item-amount">\s*\$([\d,]+)/g;
 
   let match;
   while ((match = itemRegex.exec(html)) !== null) {
-    const [, uniqueId, rankStr, avatar, nickname, dollars] = match;
+    const [, uniqueId, , avatar, nickname, dollars] = match;
+    const uid = uniqueId.trim();
+    if (seen.has(uid)) continue;
+    seen.add(uid);
     const dollarsNum = parseInt(dollars.replace(/,/g, ""), 10);
-    const estimatedDiamonds = dollarsNum * 200; // ~$0.005 per diamond
+    const estimatedDiamonds = dollarsNum * 200;
     ranks.push({
-      rank: parseInt(rankStr, 10),
-      unique_id: uniqueId.trim(),
+      rank: ranks.length + 1,
+      unique_id: uid,
       avatar: avatar.trim(),
       nickname: nickname.trim(),
-      dollars: dollars.replace(/,/g, ""),
       diamonds: estimatedDiamonds,
       diamonds_description: `${estimatedDiamonds.toLocaleString()} 💎`,
     });
+    if (ranks.length >= 20) break;
   }
 
-  // If regex didn't match (HTML structure varies), try a simpler approach
+  // Fallback: simpler pattern
   if (ranks.length === 0) {
-    // Fallback: find all list items in the archive section
-    const archiveSection = html.split("main-premium-archive-list")[1] || "";
     const simpleItemRegex = /href="https:\/\/www\.tiknode\.com\/profile\/([^"]+)"[\s\S]*?<img\s+src="([^"]*)"[^>]*alt="([^"]*)"[\s\S]*?class="main-premium-list-item-amount">\s*\$([\d,]+)/g;
-    
     let simpleMatch;
-    let rank = 1;
-    while ((simpleMatch = simpleItemRegex.exec(archiveSection)) !== null) {
+    while ((simpleMatch = simpleItemRegex.exec(html)) !== null) {
       const [, uniqueId, avatar, nickname, dollars] = simpleMatch;
+      const uid = uniqueId.trim();
+      if (seen.has(uid)) continue;
+      seen.add(uid);
       const dollarsNum = parseInt(dollars.replace(/,/g, ""), 10);
       const estimatedDiamonds = dollarsNum * 200;
       ranks.push({
-        rank: rank++,
-        unique_id: uniqueId.trim(),
+        rank: ranks.length + 1,
+        unique_id: uid,
         avatar: avatar.trim(),
         nickname: nickname.trim(),
-        dollars: dollars.replace(/,/g, ""),
         diamonds: estimatedDiamonds,
         diamonds_description: `${estimatedDiamonds.toLocaleString()} 💎`,
       });
+      if (ranks.length >= 20) break;
     }
   }
 
@@ -63,7 +64,6 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth: get user from token
     const authHeader = req.headers.get("authorization") || "";
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -79,7 +79,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Parse query params
     const url = new URL(req.url);
     const region = url.searchParams.get("region") || "gb";
 
@@ -105,11 +104,11 @@ Deno.serve(async (req) => {
     const html = await response.text();
     const ranks = parseRankingsFromHtml(html);
 
-    console.log(`Parsed ${ranks.length} rankings from tiknode`);
+    console.log(`Parsed ${ranks.length} rankings from tiknode for region ${region}`);
 
     return new Response(
       JSON.stringify({
-        ranks: ranks.slice(0, 20),
+        ranks,
         region: region.toUpperCase(),
         source: "tiknode",
       }),

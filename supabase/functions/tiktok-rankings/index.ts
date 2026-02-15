@@ -12,11 +12,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const cookieHeader = Deno.env.get("TIKTOK_COOKIE_HEADER");
     const apiKey = Deno.env.get("TIKTOK_DATA_API_KEY");
-    if (!cookieHeader) {
+    if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: "TikTok cookie header not configured" }),
+        JSON.stringify({ error: "TikTok API key not configured" }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -42,13 +41,15 @@ Deno.serve(async (req) => {
     const region = url.searchParams.get("region") || "GB";
     const rankType = url.searchParams.get("rank_type") || "DAILY_RANK";
 
-    const apiUrl = `https://tiktok.eulerstream.com/webcast/rankings?region=${encodeURIComponent(region)}&rank_type=${encodeURIComponent(rankType)}${apiKey ? `&apiKey=${encodeURIComponent(apiKey)}` : ""}`;
+    const apiUrl = `https://tiktok.eulerstream.com/webcast/rankings?region=${encodeURIComponent(region)}&rank_type=${encodeURIComponent(rankType)}&apiKey=${encodeURIComponent(apiKey)}`;
 
-    const response = await fetch(apiUrl, {
-      headers: {
-        "x-cookie-header": cookieHeader,
-      },
-    });
+    const cookieHeader = Deno.env.get("TIKTOK_COOKIE_HEADER");
+    const headers: Record<string, string> = {};
+    if (cookieHeader) {
+      headers["x-cookie-header"] = cookieHeader;
+    }
+
+    const response = await fetch(apiUrl, { headers });
 
     if (!response.ok) {
       const text = await response.text();

@@ -73,7 +73,7 @@ const GiftAlertRenderer = () => {
       })
       .on("broadcast", { event: "test_alert" }, () => {
         setAlerts(prev => [...prev, {
-          id: Date.now(), user: "TestUser", gift: "Rose", emoji: "🌹", value: 1
+          id: Date.now(), user: "Tikup_user", gift: "Rose", emoji: "🌹", value: 1
         }]);
       })
       .subscribe(status => setConnected(status === "SUBSCRIBED"));

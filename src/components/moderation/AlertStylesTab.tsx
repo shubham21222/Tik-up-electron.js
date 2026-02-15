@@ -2,6 +2,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Sparkles, Lock, Volume2, Copy, Check, Play, Pause } from "lucide-react";
 import AnimationPreview from "@/components/actions/AnimationPreview";
+import { getOverlayBaseUrl } from "@/lib/overlay-url";
+import { copyToClipboard } from "@/lib/clipboard";
 
 const alertStyles = [
   { id: "tikup_signature", name: "TikUp Signature", emoji: "✨", pro: false, desc: "Animated brand pop with glow burst", color: "160 100% 45%" },
@@ -20,7 +22,7 @@ const AlertStylesTab = () => {
   const [copied, setCopied] = useState(false);
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(`https://tikup.xyz/overlay/gift_alert/demo?style=${selected.id}`);
+    copyToClipboard(`${getOverlayBaseUrl()}/overlay/gift_alert/demo?style=${selected.id}`, "Style URL copied!");
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };

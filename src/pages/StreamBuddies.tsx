@@ -14,19 +14,26 @@ import { copyToClipboard } from "@/lib/clipboard";
 import ProGate from "@/components/ProGate";
 
 /* ═══════════════════════════════════════════════════════════
-   THEMES — each has unique emoji-based avatars per tier
+   SPRITE PATHS — generated pixel-art avatars per tier
    ═══════════════════════════════════════════════════════════ */
+const SPRITE_PATHS: Record<string, string> = {
+  common: "/buddies/common-sprite.png",
+  rare: "/buddies/rare-sprite.png",
+  epic: "/buddies/epic-sprite.png",
+  legendary: "/buddies/legendary-sprite.png",
+};
+
 const THEMES: Record<string, {
   label: string; emoji: string; desc: string;
-  tiers: Record<string, { char: string; glow: string; aura: string }>;
+  tiers: Record<string, { char: string; sprite?: string; glow: string; aura: string }>;
 }> = {
   pixel: {
     label: "Pixel Heroes", emoji: "⚔️", desc: "Classic retro pixel-art warriors",
     tiers: {
-      common:    { char: "🧑", glow: "none", aura: "" },
-      rare:      { char: "🧝", glow: "0 0 12px rgba(80,160,255,0.5)", aura: "rgba(80,160,255,0.15)" },
-      epic:      { char: "🧙", glow: "0 0 18px rgba(160,80,255,0.6)", aura: "rgba(160,80,255,0.15)" },
-      legendary: { char: "🦸", glow: "0 0 28px rgba(255,200,50,0.7), 0 0 56px rgba(255,200,50,0.2)", aura: "rgba(255,200,50,0.12)" },
+      common:    { char: "🧑", sprite: SPRITE_PATHS.common, glow: "none", aura: "" },
+      rare:      { char: "🧝", sprite: SPRITE_PATHS.rare, glow: "0 0 12px rgba(80,160,255,0.5)", aura: "rgba(80,160,255,0.15)" },
+      epic:      { char: "🧙", sprite: SPRITE_PATHS.epic, glow: "0 0 18px rgba(160,80,255,0.6)", aura: "rgba(160,80,255,0.15)" },
+      legendary: { char: "🦸", sprite: SPRITE_PATHS.legendary, glow: "0 0 28px rgba(255,200,50,0.7), 0 0 56px rgba(255,200,50,0.2)", aura: "rgba(255,200,50,0.12)" },
     },
   },
   chibi: {
@@ -335,20 +342,32 @@ const LivePreview = ({ settings }: { settings: Record<string, any> }) => {
               )}
             </AnimatePresence>
 
-            {/* Avatar character — zero background, pure emoji/character */}
+            {/* Avatar character — sprite image or emoji fallback */}
             <div
               style={{
                 width: displaySize, height: displaySize,
                 display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: displaySize * 0.7,
                 filter: tierData.glow !== "none" ? `drop-shadow(${tierData.glow})` : undefined,
                 transform: `scaleX(${b.direction}) ${isWalking ? `rotate(${Math.sin(b.bobPhase * 4) * 8}deg)` : ""}`,
                 transition: "transform 0.1s ease",
-                lineHeight: 1,
                 userSelect: "none",
               }}
             >
-              {tierData.char}
+              {tierData.sprite ? (
+                <img
+                  src={tierData.sprite}
+                  alt={b.tier}
+                  style={{
+                    width: displaySize, height: displaySize,
+                    objectFit: "contain",
+                    imageRendering: "auto",
+                    pointerEvents: "none",
+                  }}
+                  draggable={false}
+                />
+              ) : (
+                <span style={{ fontSize: displaySize * 0.7, lineHeight: 1 }}>{tierData.char}</span>
+              )}
             </div>
 
             {/* Username + coins */}
@@ -497,12 +516,19 @@ const StreamBuddiesPage = () => {
                         </div>
                       )}
                       <motion.div
-                        className="text-4xl mx-auto mb-2 relative z-10"
-                        style={{ filter: td.glow !== "none" ? `drop-shadow(${td.glow})` : undefined }}
+                        className="mx-auto mb-2 relative z-10 flex items-center justify-center"
+                        style={{
+                          width: 56, height: 56,
+                          filter: td.glow !== "none" ? `drop-shadow(${td.glow})` : undefined,
+                        }}
                         animate={{ y: [0, -5, 0] }}
                         transition={{ duration: 2.5, repeat: Infinity, delay: i * 0.35 }}
                       >
-                        {td.char}
+                        {td.sprite ? (
+                          <img src={td.sprite} alt={tier} style={{ width: 56, height: 56, objectFit: "contain" }} draggable={false} />
+                        ) : (
+                          <span className="text-4xl">{td.char}</span>
+                        )}
                       </motion.div>
                       <p className="text-xs font-bold relative z-10" style={{ color: `hsl(${meta.color})` }}>
                         {tier.charAt(0).toUpperCase() + tier.slice(1)}

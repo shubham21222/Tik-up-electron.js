@@ -203,15 +203,15 @@ const overlayData: Record<string, OverlayItem[]> = {
   ],
 };
 
-const tabs = Object.keys(overlayData);
-const lockedTabs = new Set(["Alert Overlays", "Widgets", "Interactive", "Quick Setup", "Browser Sources"]);
+const categoryTabs = ["All", ...OVERLAY_CATEGORIES.map(c => c.label)];
+const allItems = overlayData["Overlays"];
 
 const Overlays = () => {
-  const [activeTab, setActiveTab] = useState(tabs[0]);
+  const [activeTab, setActiveTab] = useState(categoryTabs[0]);
   const [fullscreenOverlay, setFullscreenOverlay] = useState<string | null>(null);
-  const items = overlayData[activeTab as keyof typeof overlayData];
   const FullscreenComponent = fullscreenOverlay ? overlayPreviews[fullscreenOverlay] : null;
-  const isLocked = lockedTabs.has(activeTab);
+  const activeCat = OVERLAY_CATEGORIES.find(c => c.label === activeTab);
+  const filteredItems = activeCat ? allItems.filter(o => o.category === activeCat.id) : allItems;
 
   return (
     <AppLayout>
@@ -247,125 +247,70 @@ const Overlays = () => {
           </Link>
         </motion.div>
 
-        <TabNav tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        <TabNav tabs={categoryTabs} activeTab={activeTab} onTabChange={setActiveTab} />
 
-        {isLocked ? (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center py-24">
-            <div className="w-16 h-16 rounded-2xl mx-auto mb-5 flex items-center justify-center" style={{ background: "hsl(280 100% 65% / 0.08)", border: "1px solid hsl(280 100% 65% / 0.15)" }}>
-              <Lock size={28} style={{ color: "hsl(280 100% 75%)" }} />
-            </div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold mb-4" style={{ background: "hsl(280 100% 65% / 0.12)", color: "hsl(280 100% 75%)" }}>
-              <Lock size={10} /> Coming Soon
-            </div>
-            <h2 className="text-xl font-heading font-bold text-foreground mb-2">{activeTab}</h2>
-            <p className="text-sm text-muted-foreground text-center max-w-sm">This section is currently under development. Stay tuned for updates!</p>
-          </motion.div>
-        ) : (
-        <>
-        <motion.div
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex items-start gap-3 p-4 rounded-xl mb-6"
-          style={glassInnerStyle}
-        >
-          <Info size={16} className="text-primary mt-0.5 flex-shrink-0" />
-          <div className="text-sm text-muted-foreground leading-relaxed">
-            {activeTab === "Overlays"
-              ? <p>Live preview of your <span className="text-primary font-medium">Overlay Widgets</span>. Click expand to see them fullscreen. Each overlay is a browser source URL for OBS.</p>
-              : activeTab === "Browser Sources"
-              ? <p>Copy these URLs and add them as <span className="text-primary font-medium">Browser Sources</span> in OBS Studio or Streamlabs.</p>
-              : <p>Browse all available <span className="text-primary font-medium">{activeTab}</span> for your TikTok LIVE stream.</p>}
-          </div>
-        </motion.div>
-
-        {/* Live Preview Grid for main Overlays tab — grouped by category */}
-        {activeTab === "Overlays" && (
-          <div className="space-y-10">
-            {OVERLAY_CATEGORIES.map((cat) => {
-              const catItems = items.filter(o => o.category === cat.id && overlayPreviews[o.title]);
-              if (catItems.length === 0) return null;
-              return (
-                <div key={cat.id}>
-                  {/* Section header */}
-                  <motion.div
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    className="mb-4"
-                  >
-                    <h2 className="text-lg font-heading font-bold text-foreground">{cat.label}</h2>
-                    <p className="text-xs text-muted-foreground">{cat.description}</p>
-                  </motion.div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    {catItems.map((overlay, i) => {
-                      const PreviewComponent = overlayPreviews[overlay.title];
-                      return (
-                        <motion.div
-                          key={overlay.title}
-                          initial={{ opacity: 0, y: 16 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.06, duration: 0.4 }}
-                          whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                          className="group rounded-2xl p-[1px] cursor-default"
-                          style={glassGradient}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {filteredItems.filter(o => overlayPreviews[o.title]).map((overlay, i) => {
+            const PreviewComponent = overlayPreviews[overlay.title];
+            return (
+              <motion.div
+                key={overlay.title}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.4 }}
+                whileHover={{ y: -4, transition: { duration: 0.25 } }}
+                className="group rounded-2xl p-[1px] cursor-default"
+                style={glassGradient}
+              >
+                <div className="rounded-2xl overflow-hidden transition-shadow duration-300 group-hover:shadow-[0_0_40px_hsl(160_100%_45%/0.08)]" style={glassInnerStyle}>
+                  <div className="relative h-[280px] overflow-hidden">
+                    <div className="absolute inset-0 opacity-[0.03]"
+                      style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+                    <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Loading...</div>}>
+                      <PreviewComponent />
+                    </Suspense>
+                    <button
+                      onClick={() => setFullscreenOverlay(overlay.title)}
+                      className="absolute top-3 right-3 p-2 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 text-white/40 hover:text-white/80 opacity-0 group-hover:opacity-100 transition-all duration-200"
+                    >
+                      <Maximize2 size={14} />
+                    </button>
+                    {overlay.pro && (
+                      <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-secondary/15 backdrop-blur-sm px-2 py-1 rounded-lg border border-secondary/20">
+                        <Crown size={9} /> PRO
+                      </span>
+                    )}
+                  </div>
+                  <div className="px-4 py-3 border-t border-white/[0.05]">
+                    <div className="flex items-center justify-between mb-1">
+                      <h3 className="text-sm font-heading font-semibold text-foreground">{overlay.title}</h3>
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> Live
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{overlay.description}</p>
+                    {overlay.route && (
+                      <div className="flex items-center gap-2 mt-3">
+                        <Link to={overlay.route} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
+                          <Settings size={11} /> Configure
+                        </Link>
+                        <button
+                          onClick={() => {
+                            const url = `${getOverlayBaseUrl()}/overlay/${overlay.route?.replace("/", "")}`;
+                            copyToClipboard(url, "Overlay URL copied!");
+                          }}
+                          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
                         >
-                          <div className="rounded-2xl overflow-hidden transition-shadow duration-300 group-hover:shadow-[0_0_40px_hsl(160_100%_45%/0.08)]" style={glassInnerStyle}>
-                            <div className="relative h-[280px] overflow-hidden">
-                              <div className="absolute inset-0 opacity-[0.03]"
-                                style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-                              <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Loading...</div>}>
-                                <PreviewComponent />
-                              </Suspense>
-                              <button
-                                onClick={() => setFullscreenOverlay(overlay.title)}
-                                className="absolute top-3 right-3 p-2 rounded-lg bg-black/50 backdrop-blur-sm border border-white/10 text-white/40 hover:text-white/80 opacity-0 group-hover:opacity-100 transition-all duration-200"
-                              >
-                                <Maximize2 size={14} />
-                              </button>
-                              {overlay.pro && (
-                                <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-secondary/15 backdrop-blur-sm px-2 py-1 rounded-lg border border-secondary/20">
-                                  <Crown size={9} /> PRO
-                                </span>
-                              )}
-                            </div>
-                            <div className="px-4 py-3 border-t border-white/[0.05]">
-                              <div className="flex items-center justify-between mb-1">
-                                <h3 className="text-sm font-heading font-semibold text-foreground">{overlay.title}</h3>
-                                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary font-medium flex items-center gap-1">
-                                  <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> Live
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-muted-foreground">{overlay.description}</p>
-                              {overlay.route && (
-                                <div className="flex items-center gap-2 mt-3">
-                                  <Link to={overlay.route} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
-                                    <Settings size={11} /> Configure
-                                  </Link>
-                                  <button
-                                    onClick={() => {
-                                      const url = `${getOverlayBaseUrl()}/overlay/${overlay.route?.replace("/", "")}`;
-                                      copyToClipboard(url, "Overlay URL copied!");
-                                    }}
-                                    className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
-                                  >
-                                    <Copy size={11} /> Copy URL
-                                  </button>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        </motion.div>
-                      );
-                    })}
+                          <Copy size={11} /> Copy URL
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-        )}
-        </>
-        )}
+              </motion.div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Fullscreen overlay modal */}

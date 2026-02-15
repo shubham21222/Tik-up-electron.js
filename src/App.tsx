@@ -102,6 +102,8 @@ import AgencyDashboard from "./pages/AgencyDashboard";
 import AgencyCreate from "./pages/AgencyCreate";
 import AgencyDetail from "./pages/AgencyDetail";
 import EnterpriseDashboard from "./pages/EnterpriseDashboard";
+import StreamBuddies from "./pages/StreamBuddies";
+import StreamBuddiesRenderer from "./pages/renderers/StreamBuddiesRenderer";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +148,7 @@ const App = () => (
           <Route path="/overlay/progress-race/:publicToken" element={<ProgressRaceRenderer />} />
           <Route path="/overlay/video-cam-frame/:publicToken" element={<VideoCamFrameRenderer />} />
           <Route path="/overlay/video-label-bar/:publicToken" element={<VideoLabelBarRenderer />} />
+          <Route path="/overlay/stream-buddies/:publicToken" element={<StreamBuddiesRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
           <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 
@@ -215,6 +218,7 @@ const App = () => (
                 <Route path="/agencies" element={<AgencyDashboard />} />
                 <Route path="/agency/new" element={<AgencyCreate />} />
                 <Route path="/agency/:id" element={<AgencyDetail />} />
+                <Route path="/stream-buddies" element={<StreamBuddies />} />
                 <Route path="/enterprise" element={<EnterpriseDashboard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

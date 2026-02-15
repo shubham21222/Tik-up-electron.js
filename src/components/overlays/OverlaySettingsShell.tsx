@@ -2,13 +2,14 @@ import { ReactNode, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Copy, ExternalLink, RotateCcw, Trash2, Play, ChevronDown, Info,
-  Eye, EyeOff, Settings, Sparkles
+  Eye, EyeOff, Settings, Sparkles, Lock
 } from "lucide-react";
 import { toast } from "sonner";
 import ProBadge from "./ProBadge";
 import type { OverlayWidget } from "@/hooks/use-overlay-widgets";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
 import { copyToClipboard } from "@/lib/clipboard";
+import { useSubscription } from "@/hooks/use-subscription";
 
 interface OverlaySettingsShellProps {
   widget: OverlayWidget;
@@ -27,9 +28,14 @@ const OverlaySettingsShell = ({
 }: OverlaySettingsShellProps) => {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showOBS, setShowOBS] = useState(false);
+  const { isPro } = useSubscription();
   const overlayUrl = `${getOverlayBaseUrl()}/overlay/${widget.widget_type.replace("_", "-")}/${widget.public_token}`;
 
   const copyUrl = () => {
+    if (!isPro) {
+      toast.error("Upgrade to Pro to copy overlay URLs");
+      return;
+    }
     copyToClipboard(overlayUrl, "Overlay URL copied!");
   };
 
@@ -90,14 +96,27 @@ const OverlaySettingsShell = ({
 
         {/* URL Bar */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 px-4 md:px-5 py-3 border-b border-white/[0.04] bg-white/[0.01]">
-          <div className="flex-1 text-[11px] text-muted-foreground font-mono truncate min-w-0">{overlayUrl}</div>
+          <div className="flex-1 text-[11px] text-muted-foreground font-mono truncate min-w-0">
+            {isPro ? overlayUrl : (
+              <span className="flex items-center gap-1.5 select-none">
+                <Lock size={10} className="shrink-0" style={{ color: "hsl(280 100% 65%)" }} />
+                <span className="blur-[5px] pointer-events-none">https://tikup.xyz/overlay/••••••/••••-••••-••••</span>
+              </span>
+            )}
+          </div>
           <button onClick={copyUrl} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
-            style={{ background: "hsl(280 100% 65% / 0.1)", color: "hsl(280 100% 70%)" }}>
-            <Copy size={11} /> Copy URL
+            style={{
+              background: isPro ? "hsl(280 100% 65% / 0.1)" : "hsl(0 0% 50% / 0.08)",
+              color: isPro ? "hsl(280 100% 70%)" : "hsl(0 0% 50%)",
+              cursor: isPro ? "pointer" : "not-allowed",
+            }}>
+            {isPro ? <Copy size={11} /> : <Lock size={11} />} {isPro ? "Copy URL" : "Pro Only"}
           </button>
-          <button onClick={() => window.open(overlayUrl, "_blank")} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
-            <ExternalLink size={13} />
-          </button>
+          {isPro && (
+            <button onClick={() => window.open(overlayUrl, "_blank")} className="p-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors">
+              <ExternalLink size={13} />
+            </button>
+          )}
         </div>
 
         {/* OBS Instructions */}

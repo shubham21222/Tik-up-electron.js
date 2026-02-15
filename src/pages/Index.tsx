@@ -1,5 +1,5 @@
 import AppLayout from "@/components/AppLayout";
-import { motion, useMotionValue, useTransform, animate } from "framer-motion";
+import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   Eye, Heart, Share2, UserPlus, Radio,
@@ -7,10 +7,11 @@ import {
   Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight,
   Wifi, WifiOff, Loader2, AlertCircle, CheckCircle2, Settings,
   Clock, Gem, RefreshCw, Trophy, Medal, HelpCircle, DollarSign,
-  Users
+  Users, MessageSquare
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { useTikTokLive } from "@/hooks/use-tiktok-live";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import FeatureGuideModal, { type GuideStep } from "@/components/FeatureGuideModal";
@@ -60,7 +61,36 @@ const formatCompact = (n: number) => {
   return n.toLocaleString();
 };
 
-const recentEvents = [
+const eventIconMap: Record<string, { icon: typeof Gift; color: string }> = {
+  gift:   { icon: Gift, color: "280 100% 65%" },
+  like:   { icon: Heart, color: "350 90% 55%" },
+  follow: { icon: UserPlus, color: "160 100% 45%" },
+  share:  { icon: Share2, color: "200 100% 55%" },
+  chat:   { icon: MessageSquare, color: "45 100% 55%" },
+  join:   { icon: Users, color: "120 70% 45%" },
+};
+
+const formatTimeAgo = (ts: number) => {
+  const diff = Math.floor((Date.now() - ts) / 1000);
+  if (diff < 5) return "just now";
+  if (diff < 60) return `${diff}s ago`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+  return `${Math.floor(diff / 3600)}h ago`;
+};
+
+const getEventAction = (type: string, data: Record<string, unknown>) => {
+  switch (type) {
+    case "gift": return `sent ${data.giftName || "a gift"}${(data.repeatCount as number) > 1 ? ` x${data.repeatCount}` : ""}`;
+    case "like": return "liked the stream";
+    case "follow": return "just followed";
+    case "share": return "shared the stream";
+    case "chat": return String(data.message || "commented");
+    case "join": return "joined the stream";
+    default: return type;
+  }
+};
+
+const staticEvents = [
   { icon: Gift, user: "StreamFan42", action: "sent a Rose", time: "1s ago", color: "350 90% 55%" },
   { icon: UserPlus, user: "NightOwl", action: "just followed", time: "2s ago", color: "160 100% 45%" },
   { icon: Heart, user: "GiftKing", action: "liked the stream", time: "3s ago", color: "350 90% 55%" },
@@ -122,6 +152,7 @@ const GlassCard = ({ children, className = "", style = {}, ...rest }: React.HTML
 
 const Index = () => {
   const { user } = useAuth();
+  const tikTokLive = useTikTokLive();
   const [isLive, setIsLive] = useState(false);
   const [tiktokUsername, setTiktokUsername] = useState("");
   const [inputUsername, setInputUsername] = useState("");
@@ -256,8 +287,16 @@ const Index = () => {
     toast.success(`Connected to @${clean}`);
   }, [inputUsername, user]);
 
+  // Auto-connect WebSocket when TikTok account is linked
+  useEffect(() => {
+    if (connectionStatus === "connected" && tikTokLive.status === "disconnected") {
+      tikTokLive.connect();
+    }
+  }, [connectionStatus]);
+
   const handleDisconnect = async () => {
     if (!user) return;
+    tikTokLive.disconnect();
     await supabase.from("profiles").update({ tiktok_connected: false } as any).eq("user_id", user.id);
     setConnectionStatus("disconnected");
     setTiktokUsername("");
@@ -362,37 +401,44 @@ const Index = () => {
     },
   ];
 
+  // Merge stats: prefer WebSocket real-time data when connected, fallback to edge function polling
+  const wsConnected = tikTokLive.status === "connected";
+  const mergedViewers = wsConnected ? tikTokLive.stats.viewerCount : (liveStats?.viewer_count ?? 0);
+  const mergedLikes = wsConnected ? tikTokLive.stats.likeCount : (liveStats?.like_count ?? 0);
+  const mergedFollowers = wsConnected ? tikTokLive.stats.followerCount : (liveStats?.follower_count ?? 0);
+  const mergedDiamonds = wsConnected ? tikTokLive.stats.diamondCount : (liveStats?.diamond_count ?? 0);
+
   /* ── Stat card data ── */
   const statCards = [
     {
       label: "Viewers",
-      value: liveStats?.viewer_count ?? 0,
+      value: mergedViewers,
       icon: Eye,
-      change: "+12%",
+      change: wsConnected ? "⚡ Live" : "+12%",
       changeColor: "hsl(160 100% 45%)",
       accentColor: "160 100% 45%",
     },
     {
       label: "Likes",
-      value: liveStats?.like_count ?? 0,
+      value: mergedLikes,
       icon: Heart,
-      change: "+8.4%",
+      change: wsConnected ? "⚡ Live" : "+8.4%",
       changeColor: "hsl(350 90% 55%)",
       accentColor: "350 90% 55%",
     },
     {
       label: "Followers",
-      value: liveStats?.follower_count ?? 0,
+      value: mergedFollowers,
       icon: Users,
-      change: "+15%",
+      change: wsConnected ? "⚡ Live" : "+15%",
       changeColor: "hsl(45 100% 55%)",
       accentColor: "200 100% 55%",
     },
     {
       label: "Revenue",
-      value: liveStats?.diamond_count ?? 0,
+      value: mergedDiamonds,
       icon: DollarSign,
-      change: "+5.2%",
+      change: wsConnected ? "⚡ Live" : "+5.2%",
       changeColor: "hsl(45 100% 55%)",
       accentColor: "45 100% 55%",
       prefix: "$",
@@ -657,31 +703,76 @@ const Index = () => {
                 <Activity size={14} className="text-primary" />
                 <h2 className="text-sm font-heading font-bold text-foreground">Recent Activity</h2>
               </div>
-              <span className="text-[10px] text-muted-foreground">Live Feed</span>
+              {wsConnected ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="relative">
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-primary absolute inset-0 animate-ping" />
+                  </div>
+                  <span className="text-[10px] text-primary font-semibold">Live</span>
+                </div>
+              ) : (
+                <span className="text-[10px] text-muted-foreground">Demo</span>
+              )}
             </div>
             <div className="space-y-0.5">
-              {recentEvents.map((event, i) => {
-                const Icon = event.icon;
-                return (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + i * 0.04 }}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
-                  >
-                    <div className="w-7 h-7 rounded-full flex items-center justify-center"
-                      style={{ background: `hsl(${event.color} / 0.1)` }}>
-                      <Icon size={12} style={{ color: `hsl(${event.color})` }} />
-                    </div>
-                    <p className="text-[13px] text-foreground flex-1">
-                      <span className="font-semibold">{event.user}</span>{" "}
-                      <span className="text-muted-foreground">{event.action}</span>
-                    </p>
-                    <span className="text-[11px] text-muted-foreground/50">{event.time}</span>
-                  </motion.div>
-                );
-              })}
+              {wsConnected && tikTokLive.events.length > 0 ? (
+                <AnimatePresence initial={false}>
+                  {tikTokLive.events.slice(0, 15).map((event, i) => {
+                    const cfg = eventIconMap[event.type] || { icon: Activity, color: "0 0% 50%" };
+                    const Icon = cfg.icon;
+                    const username = String(event.data.username || "Unknown");
+                    const action = getEventAction(event.type, event.data);
+                    return (
+                      <motion.div
+                        key={`${event.type}-${event.timestamp}-${i}`}
+                        initial={{ opacity: 0, x: -12, height: 0 }}
+                        animate={{ opacity: 1, x: 0, height: "auto" }}
+                        exit={{ opacity: 0, x: 12, height: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
+                      >
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center"
+                          style={{ background: `hsl(${cfg.color} / 0.1)` }}>
+                          <Icon size={12} style={{ color: `hsl(${cfg.color})` }} />
+                        </div>
+                        <p className="text-[13px] text-foreground flex-1 truncate">
+                          <span className="font-semibold">{username}</span>{" "}
+                          <span className="text-muted-foreground">{action}</span>
+                        </p>
+                        <span className="text-[11px] text-muted-foreground/50">{formatTimeAgo(event.timestamp)}</span>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              ) : wsConnected ? (
+                <div className="text-center py-6 text-muted-foreground text-xs">
+                  Waiting for stream events…
+                </div>
+              ) : (
+                staticEvents.map((event, i) => {
+                  const Icon = event.icon;
+                  return (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, x: -8 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: 0.3 + i * 0.04 }}
+                      className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
+                    >
+                      <div className="w-7 h-7 rounded-full flex items-center justify-center"
+                        style={{ background: `hsl(${event.color} / 0.1)` }}>
+                        <Icon size={12} style={{ color: `hsl(${event.color})` }} />
+                      </div>
+                      <p className="text-[13px] text-foreground flex-1">
+                        <span className="font-semibold">{event.user}</span>{" "}
+                        <span className="text-muted-foreground">{event.action}</span>
+                      </p>
+                      <span className="text-[11px] text-muted-foreground/50">{event.time}</span>
+                    </motion.div>
+                  );
+                })
+              )}
             </div>
           </GlassCard>
         </motion.div>

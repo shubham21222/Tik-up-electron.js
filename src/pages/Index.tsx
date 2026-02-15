@@ -41,6 +41,7 @@ interface RankEntry {
   nickname: string;
   unique_id: string;
   avatar: string;
+  dollars?: string;
 }
 
 const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
@@ -867,7 +868,7 @@ const Index = () => {
               <div className="flex items-center gap-2">
                 <Trophy size={14} className="text-secondary" />
                 <h2 className="text-sm font-heading font-bold text-foreground">TikTok LIVE Rankings</h2>
-                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Daily · GB</span>
+                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Last Day · GB</span>
               </div>
               <button onClick={fetchRankings} disabled={rankingsLoading}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
@@ -910,9 +911,9 @@ const Index = () => {
                         <p className="text-[10px] text-muted-foreground truncate">@{entry.unique_id}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <Gem size={11} style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }} />
+                        <DollarSign size={11} style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }} />
                         <span className="text-[11px] font-bold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
-                          {entry.diamonds?.toLocaleString() || "0"}
+                          {entry.dollars ? `${Number(entry.dollars).toLocaleString()}` : entry.diamonds?.toLocaleString() || "0"}
                         </span>
                       </div>
                     </div>

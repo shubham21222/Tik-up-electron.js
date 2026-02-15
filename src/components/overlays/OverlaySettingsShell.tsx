@@ -29,7 +29,7 @@ const OverlaySettingsShell = ({
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showOBS, setShowOBS] = useState(false);
   const { isPro } = useSubscription();
-  const overlayUrl = `${getOverlayBaseUrl()}/overlay/${widget.widget_type.replace("_", "-")}/${widget.public_token}`;
+  const overlayUrl = `${getOverlayBaseUrl()}/overlay/${widget.widget_type.replace(/_/g, "-")}/${widget.public_token}`;
 
   const copyUrl = () => {
     if (!isPro) {

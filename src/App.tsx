@@ -161,7 +161,7 @@ const App = () => (
                 <Route path="/follow-alerts" element={<FollowAlertOverlay />} />
                 <Route path="/share-alerts" element={<ShareAlertOverlay />} />
                 <Route path="/like-counter" element={<LikeCounterOverlay />} />
-                {/* /follower-goal removed — covered by /goal-overlays */}
+                <Route path="/follower-goal" element={<FollowerGoalOverlay />} />
                 <Route path="/viewer-count" element={<ViewerCountOverlay />} />
                 <Route path="/leaderboard" element={<LeaderboardOverlay />} />
                 <Route path="/stream-timer" element={<StreamTimerOverlay />} />

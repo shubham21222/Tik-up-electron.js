@@ -952,6 +952,51 @@ export type Database = {
           },
         ]
       }
+      song_requests: {
+        Row: {
+          coins_spent: number
+          created_at: string
+          id: string
+          is_priority: boolean
+          played_at: string | null
+          requester_username: string
+          status: string
+          track_artist: string
+          track_image_url: string | null
+          track_name: string
+          track_uri: string
+          user_id: string
+        }
+        Insert: {
+          coins_spent?: number
+          created_at?: string
+          id?: string
+          is_priority?: boolean
+          played_at?: string | null
+          requester_username?: string
+          status?: string
+          track_artist: string
+          track_image_url?: string | null
+          track_name: string
+          track_uri: string
+          user_id: string
+        }
+        Update: {
+          coins_spent?: number
+          created_at?: string
+          id?: string
+          is_priority?: boolean
+          played_at?: string | null
+          requester_username?: string
+          status?: string
+          track_artist?: string
+          track_image_url?: string | null
+          track_name?: string
+          track_uri?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       sound_alerts: {
         Row: {
           cooldown: number
@@ -991,6 +1036,108 @@ export type Database = {
           updated_at?: string
           user_id?: string
           volume?: number
+        }
+        Relationships: []
+      }
+      spotify_connections: {
+        Row: {
+          access_token: string
+          created_at: string
+          id: string
+          is_active: boolean
+          refresh_token: string
+          spotify_display_name: string | null
+          spotify_email: string | null
+          spotify_product: string | null
+          token_expires_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_token: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          refresh_token: string
+          spotify_display_name?: string | null
+          spotify_email?: string | null
+          spotify_product?: string | null
+          token_expires_at: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_token?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          refresh_token?: string
+          spotify_display_name?: string | null
+          spotify_email?: string | null
+          spotify_product?: string | null
+          token_expires_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      spotify_music_config: {
+        Row: {
+          allow_explicit: boolean
+          blacklisted_artists: Json
+          chat_command: string
+          chat_command_enabled: boolean
+          created_at: string
+          id: string
+          is_enabled: boolean
+          pause_threshold: number
+          priority_play_threshold: number
+          priority_queue_enabled: boolean
+          queue_limit_per_user: number
+          queue_threshold: number
+          skip_cooldown: number
+          skip_threshold: number
+          updated_at: string
+          user_id: string
+          volume_boost_threshold: number
+        }
+        Insert: {
+          allow_explicit?: boolean
+          blacklisted_artists?: Json
+          chat_command?: string
+          chat_command_enabled?: boolean
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          pause_threshold?: number
+          priority_play_threshold?: number
+          priority_queue_enabled?: boolean
+          queue_limit_per_user?: number
+          queue_threshold?: number
+          skip_cooldown?: number
+          skip_threshold?: number
+          updated_at?: string
+          user_id: string
+          volume_boost_threshold?: number
+        }
+        Update: {
+          allow_explicit?: boolean
+          blacklisted_artists?: Json
+          chat_command?: string
+          chat_command_enabled?: boolean
+          created_at?: string
+          id?: string
+          is_enabled?: boolean
+          pause_threshold?: number
+          priority_play_threshold?: number
+          priority_queue_enabled?: boolean
+          queue_limit_per_user?: number
+          queue_threshold?: number
+          skip_cooldown?: number
+          skip_threshold?: number
+          updated_at?: string
+          user_id?: string
+          volume_boost_threshold?: number
         }
         Relationships: []
       }

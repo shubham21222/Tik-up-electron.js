@@ -39,6 +39,10 @@ const VideoLabelBarPreview = lazy(() => import("@/components/overlays/previews/V
 const CoinJarPreview = lazy(() => import("@/components/overlays/previews/CoinJarPreview"));
 const SpinWheelPreview = lazy(() => import("@/components/overlays/previews/SpinWheelPreview"));
 const GiftActionsPreview = lazy(() => import("@/components/overlays/previews/GiftActionsPreview"));
+const BattleRoyalePreview = lazy(() => import("@/components/overlays/previews/BattleRoyalePreview"));
+const SlotMachinePreview = lazy(() => import("@/components/overlays/previews/SlotMachinePreview"));
+const VoteBattlePreview = lazy(() => import("@/components/overlays/previews/VoteBattlePreview"));
+const ProgressRacePreview = lazy(() => import("@/components/overlays/previews/ProgressRacePreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -70,6 +74,10 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Coin Jar": CoinJarPreview,
   "Spin Wheel": SpinWheelPreview,
   "Gift Actions Slider": GiftActionsPreview,
+  "Battle Royale": BattleRoyalePreview,
+  "Slot Machine": SlotMachinePreview,
+  "Vote Battle": VoteBattlePreview,
+  "Progress Race": ProgressRacePreview,
 };
 
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -115,6 +123,10 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Coin Jar", description: "Watch the jar fill with gifts as viewers interact. A fun, visual way to track your gift goal in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/coin-jar", tags: ["Gift", "Goal", "Interactive"] },
     { title: "Spin Wheel", description: "Viewers trigger spins with gifts. Land on custom dares, prizes, or actions. Fully animated with winner reveal.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/spin-wheel", tags: ["Interactive", "Gift", "Game"] },
     { title: "Gift Actions Slider", description: "Scrolling carousel showing which gifts trigger which actions. Easy to edit text & emoji.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-actions", tags: ["Interactive", "Gift", "Carousel"] },
+    { title: "Battle Royale", description: "Viewers enter by gifting — avatars fight on screen, last one standing wins a shoutout.", hasPreview: true, color: "350 80% 55%", pro: true, route: "/battle-royale", tags: ["Interactive", "Game", "Gift"] },
+    { title: "Slot Machine", description: "Gift-triggered 3-reel slot machine with customizable jackpot rewards and win effects.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/slot-machine", tags: ["Interactive", "Game", "Gift"] },
+    { title: "Vote Battle", description: "Two-sided animated vote bar. Viewers power their team with gifts — visual tug-of-war.", hasPreview: true, color: "200 80% 55%", pro: true, route: "/vote-battle", tags: ["Interactive", "Vote", "Gift"] },
+    { title: "Progress Race", description: "Multiple teams race to the finish line powered by gifts and likes in real-time.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/progress-race", tags: ["Interactive", "Race", "Gift"] },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },

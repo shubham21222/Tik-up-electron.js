@@ -261,10 +261,29 @@ Deno.serve(async (req) => {
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const body = await req.json();
-    const { tiktok_username, events } = body as {
-      tiktok_username: string;
-      events: TikTokEvent[];
-    };
+
+    // ── Detect EulerStream native alert webhook format ──
+    // Format: { code, message, alert: { account_id, alert_creator_username, ... }, creator: { unique_id, ... } }
+    let tiktok_username: string;
+    let events: TikTokEvent[];
+
+    if (body.alert && body.creator) {
+      // EulerStream native alert webhook payload
+      const parsed = parseEulerAlert(body);
+      if (!parsed) {
+        return new Response(JSON.stringify({ error: "Could not parse EulerStream alert" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      tiktok_username = parsed.tiktok_username;
+      events = parsed.events;
+      console.log(`📡 EulerStream alert received for @${tiktok_username}: ${events.map(e => e.type).join(", ")}`);
+    } else {
+      // Bridge format: { tiktok_username, events: [...] }
+      tiktok_username = body.tiktok_username;
+      events = body.events;
+    }
 
     if (!tiktok_username || !events?.length) {
       return new Response(JSON.stringify({ error: "Missing tiktok_username or events" }), {
@@ -602,4 +621,98 @@ function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
   }
 
   return null;
+}
+
+/**
+ * Parse EulerStream native alert webhook payload into our internal format.
+ * Payload: { code, message, alert: { account_id, alert_creator_username, alert_creator_nickname,
+ *            alert_creator_avatar_url, read_only, created_at, id, ...dynamicProps }, 
+ *            creator: { unique_id, last_nickname, last_avatar_url, room_id, state, state_label },
+ *            ...dynamicProps }
+ *
+ * Dynamic properties on the alert/root contain event-specific data like:
+ *   gift events:  giftName, giftId, diamondCount, repeatCount, repeatEnd
+ *   like events:  likeCount, totalLikeCount
+ *   chat events:  comment
+ *   share events: (no extra data)
+ *   follow/subscribe events: (no extra data)
+ *   viewer events: viewerCount
+ */
+function parseEulerAlert(body: Record<string, any>): { tiktok_username: string; events: TikTokEvent[] } | null {
+  const alert = body.alert;
+  const creator = body.creator;
+
+  if (!creator?.unique_id) return null;
+
+  const tiktok_username = creator.unique_id;
+  const viewerUsername = alert?.alert_creator_username || alert?.alert_creator_nickname || "unknown";
+  const avatarUrl = alert?.alert_creator_avatar_url || null;
+
+  // Merge dynamic properties from alert and root body (excluding known meta fields)
+  const metaKeys = new Set(["code", "message", "alert", "creator"]);
+  const alertMetaKeys = new Set([
+    "account_id", "alert_creator_id", "read_only", "alert_creator_nickname",
+    "alert_creator_avatar_url", "alert_creator_username", "created_at", "id",
+  ]);
+
+  const dynamicProps: Record<string, any> = {};
+  // Collect root-level dynamic properties
+  for (const [k, v] of Object.entries(body)) {
+    if (!metaKeys.has(k)) dynamicProps[k] = v;
+  }
+  // Collect alert-level dynamic properties
+  if (alert) {
+    for (const [k, v] of Object.entries(alert)) {
+      if (!alertMetaKeys.has(k)) dynamicProps[k] = v;
+    }
+  }
+
+  // Detect event type from dynamic properties
+  let eventType: TikTokEvent["type"];
+  const data: Record<string, unknown> = { avatar: avatarUrl };
+
+  if (dynamicProps.giftName || dynamicProps.gift_name || dynamicProps.giftId || dynamicProps.gift_id) {
+    eventType = "gift";
+    data.gift_name = dynamicProps.giftName || dynamicProps.gift_name || "Gift";
+    data.gift_id = dynamicProps.giftId || dynamicProps.gift_id || "";
+    data.diamond_count = Number(dynamicProps.diamondCount || dynamicProps.diamond_count || dynamicProps.diamonds || 0);
+    data.repeat_count = Number(dynamicProps.repeatCount || dynamicProps.repeat_count || 1);
+    data.total_diamonds = Number(data.diamond_count) * Number(data.repeat_count);
+    data.repeat_end = dynamicProps.repeatEnd ?? dynamicProps.repeat_end ?? true;
+    data.coin_value = data.diamond_count;
+  } else if (dynamicProps.likeCount !== undefined || dynamicProps.like_count !== undefined || dynamicProps.totalLikeCount !== undefined) {
+    eventType = "like";
+    data.like_count = Number(dynamicProps.likeCount || dynamicProps.like_count || 1);
+    data.total_likes = Number(dynamicProps.totalLikeCount || dynamicProps.total_like_count || data.like_count);
+    data.count = data.like_count;
+  } else if (dynamicProps.comment !== undefined || dynamicProps.message !== undefined) {
+    eventType = "chat";
+    data.message = dynamicProps.comment || dynamicProps.message || "";
+  } else if (dynamicProps.viewerCount !== undefined || dynamicProps.viewer_count !== undefined) {
+    eventType = "viewer_count";
+    data.viewer_count = Number(dynamicProps.viewerCount || dynamicProps.viewer_count || 0);
+  } else if (dynamicProps.event_type === "subscribe" || dynamicProps.subscribed !== undefined) {
+    eventType = "subscribe";
+  } else if (dynamicProps.event_type === "share" || dynamicProps.shared !== undefined) {
+    eventType = "share";
+  } else if (dynamicProps.event_type === "follow" || dynamicProps.followed !== undefined) {
+    eventType = "follow";
+  } else if (dynamicProps.event_type) {
+    // Fallback: use explicit event_type if provided
+    eventType = dynamicProps.event_type as TikTokEvent["type"];
+  } else {
+    // Default to follow if creator state indicates a new follower, otherwise gift
+    if (creator.state_label === "follow" || creator.state_label === "followed") {
+      eventType = "follow";
+    } else {
+      // Cannot determine event type
+      console.warn("Could not determine event type from EulerStream alert:", JSON.stringify(dynamicProps));
+      return null;
+    }
+  }
+
+  return {
+    tiktok_username,
+    events: [{ type: eventType, username: viewerUsername, data }],
+  };
 }

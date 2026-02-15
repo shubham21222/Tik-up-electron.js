@@ -84,6 +84,8 @@ import CoinJarOverlay from "./pages/CoinJarOverlay";
 import CoinJarRenderer from "./pages/renderers/CoinJarRenderer";
 import SpinWheelOverlay from "./pages/SpinWheelOverlay";
 import SpinWheelRenderer from "./pages/renderers/SpinWheelRenderer";
+import GiftActionsOverlay from "./pages/GiftActionsOverlay";
+import GiftActionsRenderer from "./pages/renderers/GiftActionsRenderer";
 
 const queryClient = new QueryClient();
 
@@ -121,6 +123,7 @@ const App = () => (
           <Route path="/overlay/event-feed/:publicToken" element={<EventFeedRenderer />} />
           <Route path="/overlay/coin-jar/:publicToken" element={<CoinJarRenderer />} />
           <Route path="/overlay/spin-wheel/:publicToken" element={<SpinWheelRenderer />} />
+          <Route path="/overlay/gift-actions/:publicToken" element={<GiftActionsRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
           <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 
@@ -180,6 +183,7 @@ const App = () => (
                 <Route path="/backgrounds" element={<BackgroundsPage />} />
                 <Route path="/coin-jar" element={<CoinJarOverlay />} />
                 <Route path="/spin-wheel" element={<SpinWheelOverlay />} />
+                <Route path="/gift-actions" element={<GiftActionsOverlay />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

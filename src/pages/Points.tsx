@@ -4,9 +4,9 @@ import { motion } from "framer-motion";
 import { useState, useMemo } from "react";
 import {
   Trophy, Crown, Search, ArrowUpDown, ArrowUp, ArrowDown,
-  Users, Coins, Heart, MessageCircle, Gift, RotateCcw, Medal
+  Users, Coins, MessageCircle, Gift, RotateCcw, Medal
 } from "lucide-react";
-import { useViewerPoints } from "@/hooks/use-viewer-points";
+import { useLeaderboard, useResetAllPoints } from "@/hooks/use-points-api";
 import { useAuth } from "@/hooks/use-auth";
 import { Link } from "react-router-dom";
 import { toast } from "sonner";
@@ -38,12 +38,13 @@ const Points = () => {
   const [sortBy, setSortBy] = useState<SortField>("total_points");
   const [sortAsc, setSortAsc] = useState(false);
   const [search, setSearch] = useState("");
-  const { viewers, isLoading, resetAllPoints } = useViewerPoints(sortBy, sortAsc);
+  const { data: viewers = [], isLoading } = useLeaderboard(sortBy);
+  const resetAllPoints = useResetAllPoints();
 
   const filtered = useMemo(() => {
     if (!search.trim()) return viewers;
     const q = search.toLowerCase();
-    return viewers.filter(v => v.viewer_username.toLowerCase().includes(q));
+    return viewers.filter(v => v.username.toLowerCase().includes(q));
   }, [viewers, search]);
 
   const handleSort = (field: SortField) => {
@@ -103,9 +104,9 @@ const Points = () => {
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
           {[
             { label: "Total Viewers", value: viewers.length, icon: Users, color: "200 100% 55%" },
-            { label: "Total Points", value: viewers.reduce((s, v) => s + Number(v.total_points), 0), icon: Coins, color: "45 100% 55%" },
-            { label: "Total Gifts", value: viewers.reduce((s, v) => s + v.total_gifts_sent, 0), icon: Gift, color: "280 100% 65%" },
-            { label: "Total Messages", value: viewers.reduce((s, v) => s + v.total_messages, 0), icon: MessageCircle, color: "160 100% 45%" },
+            { label: "Total Points", value: viewers.reduce((s, v) => s + v.points_total, 0), icon: Coins, color: "45 100% 55%" },
+            { label: "Total Gifts", value: viewers.reduce((s, v) => s + v.gifts, 0), icon: Gift, color: "280 100% 65%" },
+            { label: "Total Messages", value: viewers.reduce((s, v) => s + v.messages, 0), icon: MessageCircle, color: "160 100% 45%" },
           ].map(stat => (
             <div key={stat.label} className="rounded-xl p-[1px]" style={glassGradient}>
               <div className="rounded-xl px-4 py-3" style={glassInnerStyle}>
@@ -185,7 +186,7 @@ const Points = () => {
                       const rankColor = rankColors[rank];
                       return (
                         <motion.tr
-                          key={viewer.id}
+                          key={viewer.username}
                           initial={{ opacity: 0, y: 6 }}
                           animate={{ opacity: 1, y: 0 }}
                           transition={{ delay: i * 0.02 }}
@@ -201,25 +202,25 @@ const Points = () => {
                                     {rank === 1 ? <Crown size={8} className="text-black" /> : <Medal size={8} className="text-black" />}
                                   </div>
                                 )}
-                                {viewer.viewer_avatar_url ? (
-                                  <img src={viewer.viewer_avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-white/10" />
+                                {viewer.avatar_url ? (
+                                  <img src={viewer.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover border border-white/10" />
                                 ) : (
                                   <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold border border-white/10"
                                     style={{
                                       background: rankColor ? `linear-gradient(135deg, hsl(${rankColor} / 0.3), hsl(${rankColor} / 0.1))` : "hsl(var(--muted) / 0.3)",
                                       color: rankColor ? `hsl(${rankColor})` : "hsl(var(--muted-foreground))",
                                     }}>
-                                    {viewer.viewer_username.charAt(0).toUpperCase()}
+                                    {viewer.username.charAt(0).toUpperCase()}
                                   </div>
                                 )}
                               </div>
-                              <span className="font-medium text-foreground truncate">@{viewer.viewer_username}</span>
+                              <span className="font-medium text-foreground truncate">@{viewer.username}</span>
                             </div>
                           </td>
                           {/* Points */}
                           <td className="px-3 py-3">
                             <span className="font-heading font-bold" style={{ color: "hsl(45 100% 55%)" }}>
-                              {Number(viewer.total_points).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                              {viewer.points_total.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </span>
                           </td>
                           {/* Level */}
@@ -228,14 +229,14 @@ const Points = () => {
                           </td>
                           {/* Coins */}
                           <td className="px-3 py-3 text-muted-foreground">
-                            {Number(viewer.total_coins_sent).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {viewer.coins_sent.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                           </td>
                           {/* Gifts */}
-                          <td className="px-3 py-3 text-muted-foreground">{viewer.total_gifts_sent.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{viewer.gifts.toLocaleString()}</td>
                           {/* Likes */}
-                          <td className="px-3 py-3 text-muted-foreground">{viewer.total_likes.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{viewer.likes.toLocaleString()}</td>
                           {/* Messages */}
-                          <td className="px-3 py-3 text-muted-foreground">{viewer.total_messages.toLocaleString()}</td>
+                          <td className="px-3 py-3 text-muted-foreground">{viewer.messages.toLocaleString()}</td>
                           {/* First Activity */}
                           <td className="px-3 py-3 text-[11px] text-muted-foreground whitespace-nowrap">{formatDate(viewer.first_activity)}</td>
                           {/* Last Activity */}

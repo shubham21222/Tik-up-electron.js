@@ -1,7 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
 
-const gifters = ["GiftKing99", "StarGazer", "NightOwl", "MusicLover", "CoolViewer"];
+const gifters = ["Tikup_User", "Tikup_User", "Tikup_User", "Tikup_User", "Tikup_User"];
 const tiers = [
   { min: 1, label: "COMBO", color: "200 100% 55%" },
   { min: 5, label: "SUPER", color: "45 100% 55%" },

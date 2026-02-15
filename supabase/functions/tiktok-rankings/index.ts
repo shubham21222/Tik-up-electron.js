@@ -17,14 +17,16 @@ function parseRankingsFromHtml(html: string): any[] {
   let match;
   while ((match = itemRegex.exec(html)) !== null) {
     const [, uniqueId, rankStr, avatar, nickname, dollars] = match;
+    const dollarsNum = parseInt(dollars.replace(/,/g, ""), 10);
+    const estimatedDiamonds = dollarsNum * 200; // ~$0.005 per diamond
     ranks.push({
       rank: parseInt(rankStr, 10),
       unique_id: uniqueId.trim(),
       avatar: avatar.trim(),
       nickname: nickname.trim(),
       dollars: dollars.replace(/,/g, ""),
-      diamonds: 0,
-      diamonds_description: `$${dollars}`,
+      diamonds: estimatedDiamonds,
+      diamonds_description: `${estimatedDiamonds.toLocaleString()} 💎`,
     });
   }
 
@@ -38,14 +40,16 @@ function parseRankingsFromHtml(html: string): any[] {
     let rank = 1;
     while ((simpleMatch = simpleItemRegex.exec(archiveSection)) !== null) {
       const [, uniqueId, avatar, nickname, dollars] = simpleMatch;
+      const dollarsNum = parseInt(dollars.replace(/,/g, ""), 10);
+      const estimatedDiamonds = dollarsNum * 200;
       ranks.push({
         rank: rank++,
         unique_id: uniqueId.trim(),
         avatar: avatar.trim(),
         nickname: nickname.trim(),
         dollars: dollars.replace(/,/g, ""),
-        diamonds: 0,
-        diamonds_description: `$${dollars}`,
+        diamonds: estimatedDiamonds,
+        diamonds_description: `${estimatedDiamonds.toLocaleString()} 💎`,
       });
     }
   }

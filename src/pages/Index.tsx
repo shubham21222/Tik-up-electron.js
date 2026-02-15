@@ -882,8 +882,8 @@ const Index = () => {
             ) : rankings.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground text-sm">No ranking data</div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {rankings.slice(0, 8).map((entry, i) => {
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-2">
+                {rankings.slice(0, 20).map((entry, i) => {
                   const medalEmojis = ["🥇", "🥈", "🥉"];
                   const isTop3 = i < 3;
                   const rankColors = ["45 100% 55%", "0 0% 65%", "25 70% 45%"];
@@ -911,9 +911,9 @@ const Index = () => {
                         <p className="text-[10px] text-muted-foreground truncate">@{entry.unique_id}</p>
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <DollarSign size={11} style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }} />
+                        <Gem size={11} style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }} />
                         <span className="text-[11px] font-bold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
-                          {entry.dollars ? `${Number(entry.dollars).toLocaleString()}` : entry.diamonds?.toLocaleString() || "0"}
+                          {entry.diamonds?.toLocaleString() || "0"}
                         </span>
                       </div>
                     </div>

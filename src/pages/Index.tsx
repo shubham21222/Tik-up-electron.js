@@ -715,69 +715,7 @@ const Index = () => {
           })}
         </div>
 
-        {/* ─── ENGAGEMENT CHART ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-          className="mb-6"
-        >
-          <GlassCard className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Activity size={14} className="text-primary" />
-                <h2 className="text-sm font-heading font-bold text-foreground">Stream Activity</h2>
-                {wsConnected && (
-                  <span className="text-[10px] text-muted-foreground ml-1">Last 2 hours · 5 min intervals</span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(350 90% 55%)" }} /> Likes
-                </span>
-                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(160 100% 45%)" }} /> Chats
-                </span>
-                <span className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
-                  <span className="w-2 h-2 rounded-sm" style={{ background: "hsl(280 100% 65%)" }} /> Gifts
-                </span>
-              </div>
-            </div>
-            {hasChartData ? (
-              <div className="h-[200px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData} barGap={1}>
-                    <XAxis
-                      dataKey="time"
-                      axisLine={false}
-                      tickLine={false}
-                      tick={{ fill: "hsl(0 0% 35%)", fontSize: 10 }}
-                      interval={3}
-                    />
-                    <YAxis hide />
-                    <Tooltip
-                      contentStyle={{
-                        background: "hsl(210 15% 8%)",
-                        border: "1px solid hsl(0 0% 15%)",
-                        borderRadius: "10px",
-                        fontSize: 11,
-                        color: "hsl(0 0% 88%)",
-                      }}
-                      cursor={{ fill: "hsl(0 0% 100% / 0.03)" }}
-                    />
-                    <Bar dataKey="likes" name="Likes" radius={[3, 3, 0, 0]} maxBarSize={14} fill="hsl(350 90% 55%)" fillOpacity={0.8} />
-                    <Bar dataKey="chats" name="Chats" radius={[3, 3, 0, 0]} maxBarSize={14} fill="hsl(160 100% 45%)" fillOpacity={0.7} />
-                    <Bar dataKey="gifts" name="Gifts" radius={[3, 3, 0, 0]} maxBarSize={14} fill="hsl(280 100% 65%)" fillOpacity={0.8} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            ) : (
-              <div className="h-[200px] flex items-center justify-center text-muted-foreground text-sm">
-                {wsConnected ? "Collecting stream data… chart will appear as events come in" : "Connect to TikTok LIVE to see real-time stream activity"}
-              </div>
-            )}
-          </GlassCard>
-        </motion.div>
+
 
         {/* ─── STREAM FEATURES ─── */}
         <DashboardFeatures />

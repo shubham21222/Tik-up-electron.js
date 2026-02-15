@@ -2,8 +2,33 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-webhook-secret, x-webhook-signature, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+/** Validate EulerStream webhook HMAC SHA256 signature */
+async function validateWebhookSignature(rawBody: string, signature: string | null): Promise<boolean> {
+  const secret = Deno.env.get("EULER_ALERT_WEB_KEY");
+  if (!secret || !signature) return false;
+
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, encoder.encode(rawBody));
+  const expectedHex = Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, "0")).join("");
+
+  // Constant-time comparison
+  if (expectedHex.length !== signature.length) return false;
+  let diff = 0;
+  for (let i = 0; i < expectedHex.length; i++) {
+    diff |= expectedHex.charCodeAt(i) ^ signature.charCodeAt(i);
+  }
+  return diff === 0;
+}
 
 interface TikTokEvent {
   type: "gift" | "like" | "follow" | "share" | "chat" | "viewer_count" | "subscribe";
@@ -260,15 +285,80 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    const body = await req.json();
+    // Read raw body for signature validation
+    const rawBody = await req.text();
+    const body = JSON.parse(rawBody);
+    const webhookSignature = req.headers.get("x-webhook-signature");
 
     // ── Detect EulerStream native alert webhook format ──
-    // Format: { code, message, alert: { account_id, alert_creator_username, ... }, creator: { unique_id, ... } }
     let tiktok_username: string;
     let events: TikTokEvent[];
 
     if (body.alert && body.creator) {
-      // EulerStream native alert webhook payload
+      // Validate HMAC signature if present
+      if (webhookSignature) {
+        const valid = await validateWebhookSignature(rawBody, webhookSignature);
+        if (!valid) {
+          console.error("❌ Invalid webhook signature");
+          return new Response(JSON.stringify({ error: "Invalid signature" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.log("✅ Webhook signature validated");
+      }
+
+      // Check if this is a "creator went live" alert (state changes)
+      const creator = body.creator;
+      const isLiveAlert = creator.state === 2 || creator.state_label === "live" || creator.state_label === "LIVE";
+      const isOfflineAlert = creator.state === 0 || creator.state_label === "offline";
+
+      if (isLiveAlert || isOfflineAlert) {
+        const creatorUsername = creator.unique_id;
+        if (creatorUsername) {
+          // Look up creator's user_id
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("user_id")
+            .eq("tiktok_username", creatorUsername)
+            .eq("tiktok_connected", true)
+            .maybeSingle();
+
+          if (profile) {
+            const statusEvent = isLiveAlert ? "creator_live" : "creator_offline";
+            console.log(`📡 ${statusEvent} for @${creatorUsername}`);
+
+            // Broadcast live status to dashboard
+            await broadcast(`dashboard_${profile.user_id}`, statusEvent, {
+              username: creatorUsername,
+              room_id: creator.room_id,
+              state: creator.state,
+              state_label: creator.state_label,
+              nickname: creator.last_nickname || body.alert?.alert_creator_nickname,
+              avatar_url: creator.last_avatar_url || body.alert?.alert_creator_avatar_url,
+              timestamp: new Date().toISOString(),
+            });
+
+            // Log the live status event
+            await supabase.from("events_log").insert({
+              user_id: profile.user_id,
+              event_type: statusEvent,
+              payload: {
+                username: creatorUsername,
+                room_id: creator.room_id,
+                state: creator.state,
+              },
+            });
+          }
+
+          return new Response(JSON.stringify({ success: true, type: isLiveAlert ? "live" : "offline" }), {
+            status: 200,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+      }
+
+      // Otherwise parse as event alert
       const parsed = parseEulerAlert(body);
       if (!parsed) {
         return new Response(JSON.stringify({ error: "Could not parse EulerStream alert" }), {

@@ -896,6 +896,48 @@ export type Database = {
           },
         ]
       }
+      sound_alerts: {
+        Row: {
+          cooldown: number
+          created_at: string
+          gift_id: string | null
+          id: string
+          is_enabled: boolean
+          sound_name: string
+          sound_url: string
+          trigger_type: string
+          updated_at: string
+          user_id: string
+          volume: number
+        }
+        Insert: {
+          cooldown?: number
+          created_at?: string
+          gift_id?: string | null
+          id?: string
+          is_enabled?: boolean
+          sound_name?: string
+          sound_url?: string
+          trigger_type?: string
+          updated_at?: string
+          user_id: string
+          volume?: number
+        }
+        Update: {
+          cooldown?: number
+          created_at?: string
+          gift_id?: string | null
+          id?: string
+          is_enabled?: boolean
+          sound_name?: string
+          sound_url?: string
+          trigger_type?: string
+          updated_at?: string
+          user_id?: string
+          volume?: number
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string

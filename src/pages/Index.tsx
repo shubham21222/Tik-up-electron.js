@@ -19,6 +19,7 @@ import tikupLogo from "@/assets/tikup_logo.png";
 import DashboardModeration from "@/components/dashboard/DashboardModeration";
 import DashboardFeatures from "@/components/dashboard/DashboardFeatures";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { useGiftCatalog, type TikTokGift } from "@/hooks/use-gift-catalog";
 
 interface LiveStats {
   is_live: boolean;
@@ -92,12 +93,12 @@ const getEventAction = (type: string, data: Record<string, unknown>) => {
 };
 
 const staticEvents = [
-  { icon: Gift, user: "StreamFan42", action: "sent a Rose 🌹", time: "1s ago", color: "280 100% 65%", coins: 1 },
-  { icon: Gift, user: "GiftKing", action: "sent a Lion 🦁", time: "3s ago", color: "280 100% 65%", coins: 500 },
-  { icon: Gift, user: "TikTokPro", action: "sent 5 Stars ⭐", time: "8s ago", color: "45 100% 55%", coins: 250 },
-  { icon: Gift, user: "MusicLover", action: "sent a Universe 🌌", time: "15s ago", color: "280 100% 65%", coins: 10000 },
-  { icon: Gift, user: "CoolViewer", action: "sent a Crown 👑", time: "22s ago", color: "280 100% 65%", coins: 2000 },
-  { icon: Gift, user: "NightOwl", action: "sent a Rose 🌹", time: "30s ago", color: "280 100% 65%", coins: 1 },
+  { icon: Gift, user: "StreamFan42", action: "sent", giftName: "Rose", time: "1s ago", color: "280 100% 65%", coins: 1 },
+  { icon: Gift, user: "GiftKing", action: "sent", giftName: "Lion", time: "3s ago", color: "280 100% 65%", coins: 500 },
+  { icon: Gift, user: "TikTokPro", action: "sent", giftName: "Star", time: "8s ago", color: "45 100% 55%", coins: 250 },
+  { icon: Gift, user: "MusicLover", action: "sent", giftName: "TikTok Universe", time: "15s ago", color: "280 100% 65%", coins: 10000 },
+  { icon: Gift, user: "CoolViewer", action: "sent", giftName: "Rose Carriage", time: "22s ago", color: "280 100% 65%", coins: 5000 },
+  { icon: Gift, user: "NightOwl", action: "sent", giftName: "Rose", time: "30s ago", color: "280 100% 65%", coins: 1 },
 ];
 
 const updates = [
@@ -171,6 +172,19 @@ const GlassCard = ({ children, className = "", style = {}, ...rest }: React.HTML
 const Index = () => {
   const { user } = useAuth();
   const tikTokLive = useTikTokLiveGlobal();
+  const { gifts: giftCatalog } = useGiftCatalog();
+
+  // Build a lookup map: gift_id → image_url and name → image_url
+  const giftImageMap = useMemo(() => {
+    const map: Record<string, string> = {};
+    for (const g of giftCatalog) {
+      if (g.image_url) {
+        map[g.gift_id] = g.image_url;
+        map[g.name.toLowerCase()] = g.image_url;
+      }
+    }
+    return map;
+  }, [giftCatalog]);
   const [isLive, setIsLive] = useState(false);
   const [tiktokUsername, setTiktokUsername] = useState("");
   const [inputUsername, setInputUsername] = useState("");
@@ -802,9 +816,11 @@ const Index = () => {
                     .map((event, i) => {
                     const username = String(event.data.username || "Unknown");
                     const giftName = String(event.data.giftName || "a gift");
+                    const giftId = String(event.data.giftId || event.data.gift_id || "");
                     const repeatCount = (event.data.repeatCount as number) || 1;
                     const coinValue = (event.data.diamondCount as number) || (event.data.coinValue as number) || 0;
                     const avatarUrl = String(event.data.profilePictureUrl || event.data.avatar_url || event.data.avatar || "");
+                    const giftImageUrl = giftImageMap[giftId] || giftImageMap[giftName.toLowerCase()] || "";
                     return (
                       <motion.div
                         key={`gift-${event.timestamp}-${i}`}
@@ -814,18 +830,20 @@ const Index = () => {
                         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
                         className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.03)] transition-colors group/gift"
                       >
-                        {/* Avatar / Gift icon with glow */}
+                        {/* Gift image with user avatar overlay */}
                         <div className="relative flex-shrink-0">
-                          <div className="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden"
+                          <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
                             style={{ background: "hsl(280 100% 65% / 0.1)", border: "1px solid hsl(280 100% 65% / 0.15)" }}>
-                            {avatarUrl ? (
-                              <img src={avatarUrl} alt="" className="w-full h-full object-cover rounded-full" />
+                            {giftImageUrl ? (
+                              <img src={giftImageUrl} alt={giftName} className="w-7 h-7 object-contain" />
                             ) : (
-                              <Gift size={14} style={{ color: "hsl(280 100% 65%)" }} />
+                              <Gift size={16} style={{ color: "hsl(280 100% 65%)" }} />
                             )}
                           </div>
-                          {/* Pulse ring on hover */}
-                          <div className="absolute inset-0 rounded-full border border-[hsl(280_100%_65%/0.2)] opacity-0 group-hover/gift:opacity-100 group-hover/gift:animate-ping transition-opacity" />
+                          {/* User avatar mini overlay */}
+                          {avatarUrl && (
+                            <img src={avatarUrl} alt="" className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border border-background object-cover" />
+                          )}
                         </div>
 
                         {/* Content */}
@@ -858,7 +876,9 @@ const Index = () => {
                   Waiting for gifts…
                 </div>
               ) : (
-                staticEvents.map((event, i) => (
+                staticEvents.map((event, i) => {
+                  const staticGiftImg = giftImageMap[event.giftName.toLowerCase()] || "";
+                  return (
                   <motion.div
                     key={i}
                     initial={{ opacity: 0, x: -8 }}
@@ -867,14 +887,19 @@ const Index = () => {
                     className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.03)] transition-colors group/gift"
                   >
                     <div className="relative flex-shrink-0">
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                      <div className="w-9 h-9 rounded-full flex items-center justify-center"
                         style={{ background: `hsl(${event.color} / 0.1)`, border: `1px solid hsl(${event.color} / 0.15)` }}>
-                        <Gift size={14} style={{ color: `hsl(${event.color})` }} />
+                        {staticGiftImg ? (
+                          <img src={staticGiftImg} alt={event.giftName} className="w-7 h-7 object-contain" />
+                        ) : (
+                          <Gift size={16} style={{ color: `hsl(${event.color})` }} />
+                        )}
                       </div>
                     </div>
                     <p className="text-[13px] text-foreground flex-1 truncate">
                       <span className="font-semibold">{event.user}</span>{" "}
-                      <span className="text-muted-foreground">{event.action}</span>
+                      <span className="text-muted-foreground">sent</span>{" "}
+                      <span className="font-medium" style={{ color: "hsl(280 100% 70%)" }}>{event.giftName}</span>
                     </p>
                     {event.coins && (
                       <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0"
@@ -884,7 +909,8 @@ const Index = () => {
                     )}
                     <span className="text-[11px] text-muted-foreground/40 flex-shrink-0">{event.time}</span>
                   </motion.div>
-                ))
+                  );
+                })
               )}
             </div>
           </GlassCard>

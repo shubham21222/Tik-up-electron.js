@@ -428,7 +428,7 @@ Deno.serve(async (req) => {
         }
 
         for (const widget of widgets) {
-          const channelName = `${widget.widget_type}-${widget.public_token}`;
+          const channelName = `${widgetChannelName(widget.widget_type)}-${widget.public_token}`;
           const broadcastEvent = mapEventToOverlay(event, widget.widget_type);
           if (broadcastEvent) {
             const enrichedPayload = { ...broadcastEvent.payload, ...triggerOverrides };
@@ -521,37 +521,85 @@ Deno.serve(async (req) => {
   }
 });
 
+/** Map DB widget_type to the channel prefix the renderer actually listens on */
+function widgetChannelName(widgetType: string): string {
+  const map: Record<string, string> = {
+    gift_alert: "gift-alert",
+    chat_box: "chat-box",
+    like_alert: "like-alert",
+    follow_alert: "follow_alert",
+    share_alert: "share-alert",
+    like_counter: "like-counter",
+    follower_goal: "follower-goal",
+    viewer_count: "viewer-count",
+    leaderboard: "leaderboard",
+    stream_timer: "stream-timer",
+    custom_text: "custom-text",
+    tts: "tts",
+    gift_combo: "gift_combo",
+    ticker: "ticker",
+    event_feed: "event_feed",
+    coin_jar: "coin-jar",
+    spin_wheel: "spin-wheel",
+    battle_royale: "battle",
+    slot_machine: "slots",
+    vote_battle: "vote",
+    progress_race: "race",
+    gift_firework: "gift-firework",
+    animated_bg: "animated-bg",
+    sound_reactive: "sound-reactive",
+    social_rotator: "social-rotator",
+    promo_overlay: "promo",
+    stream_border: "stream-border",
+    webcam_frame: "webcam-frame",
+  };
+  return map[widgetType] || widgetType;
+}
+
 function mapEventToOverlay(event: TikTokEvent, widgetType: string) {
-  const payloadWithUser = { ...event.data, user: event.username };
+  const payloadWithUser = { ...event.data, user: event.username, username: event.username };
+
+  // Event Feed & Ticker get ALL event types
+  if (widgetType === "event_feed") {
+    return { event: "feed_event", payload: { ...payloadWithUser, event_type: event.type } };
+  }
+  if (widgetType === "ticker") {
+    return { event: "ticker_event", payload: { ...payloadWithUser, event_type: event.type } };
+  }
+
   switch (event.type) {
     case "gift":
-      if (widgetType === "gift_alert") return { event: "new_alert", payload: payloadWithUser };
+      if (widgetType === "gift_alert") return { event: "gift_alert", payload: payloadWithUser };
       if (widgetType === "gift_combo") return { event: "combo_update", payload: payloadWithUser };
+      if (widgetType === "gift_firework") return { event: "gift_firework", payload: payloadWithUser };
+      if (widgetType === "coin_jar") return { event: "gift", payload: payloadWithUser };
+      if (widgetType === "spin_wheel") return { event: "gift", payload: payloadWithUser };
+      if (widgetType === "battle_royale") return { event: "gift", payload: payloadWithUser };
+      if (widgetType === "slot_machine") return { event: "gift", payload: payloadWithUser };
+      if (widgetType === "vote_battle") return { event: "gift", payload: payloadWithUser };
+      if (widgetType === "progress_race") return { event: "gift", payload: payloadWithUser };
       break;
     case "like":
-      if (widgetType === "like_alert" || widgetType === "like_counter")
-        return { event: "like_update", payload: payloadWithUser };
+      if (widgetType === "like_alert") return { event: "like_alert", payload: payloadWithUser };
+      if (widgetType === "like_counter") return { event: "like_update", payload: payloadWithUser };
       break;
     case "follow":
-      if (widgetType === "follow_alert" || widgetType === "follower_goal")
-        return { event: widgetType === "follow_alert" ? "new_alert" : "follower_update", payload: payloadWithUser };
-      if (widgetType === "ticker") return { event: "ticker_event", payload: { ...payloadWithUser, event_type: "follow" } };
+      if (widgetType === "follow_alert") return { event: "new_alert", payload: payloadWithUser };
+      if (widgetType === "follower_goal") return { event: "follower_update", payload: payloadWithUser };
       break;
     case "share":
-      if (widgetType === "share_alert") return { event: "new_alert", payload: payloadWithUser };
-      if (widgetType === "ticker") return { event: "ticker_event", payload: { ...payloadWithUser, event_type: "share" } };
+      if (widgetType === "share_alert") return { event: "share_alert", payload: payloadWithUser };
       break;
     case "chat":
-      if (widgetType === "chat_box") return { event: "new_message", payload: payloadWithUser };
+      if (widgetType === "chat_box") return { event: "chat_message", payload: payloadWithUser };
       break;
     case "viewer_count":
       if (widgetType === "viewer_count") return { event: "viewer_update", payload: payloadWithUser };
       break;
+    case "subscribe":
+      if (widgetType === "follow_alert") return { event: "new_alert", payload: { ...payloadWithUser, event_subtype: "subscribe" } };
+      break;
   }
-  // Event Feed gets ALL event types
-  if (widgetType === "event_feed") {
-    return { event: "feed_event", payload: { ...payloadWithUser, event_type: event.type } };
-  }
-  if (widgetType === "ticker") return { event: "ticker_event", payload: { ...payloadWithUser, event_type: event.type } };
+
   return null;
 }

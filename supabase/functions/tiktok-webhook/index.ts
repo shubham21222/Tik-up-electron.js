@@ -753,47 +753,154 @@ Deno.serve(async (req) => {
         });
       }
 
-      // ── TTS triggering with moderation ──
+      // ── TTS triggering with full filtering pipeline ──
       if (ttsSettings?.enabled && event.type === "chat") {
         const message = (event.data.message as string) || "";
         const minChars = ttsSettings.min_chars || 3;
         const maxLength = ttsSettings.max_length || 200;
+        const maxQueueLength = ttsSettings.max_queue_length || 10;
+        const cooldownSecs = ttsSettings.cooldown_seconds || 0;
+        const commentType = ttsSettings.comment_type || "any";
+        const commentCommand = ttsSettings.comment_command || "!tts";
+        const triggerMode = ttsSettings.trigger_mode || "all_chat";
+        const allowedUsers = (ttsSettings.allowed_users || {}) as Record<string, any>;
+        const specialUsers = (ttsSettings.special_users || []) as Array<Record<string, any>>;
+        const filterLetterSpam = ttsSettings.filter_letter_spam ?? true;
+        const filterMentions = ttsSettings.filter_mentions ?? false;
+        const filterCommands = ttsSettings.filter_commands ?? false;
+        const chargePoints = ttsSettings.charge_points ?? false;
+        const costPerMessage = ttsSettings.cost_per_message || 5;
+        const messageTemplate = ttsSettings.message_template || "{comment}";
 
-        if (message.length >= minChars) {
+        let ttsSkipReason = "";
+
+        // ── 1) Comment type / command filtering ──
+        if (!ttsSkipReason) {
+          if (commentType === "slash_command" && !message.startsWith("/")) {
+            ttsSkipReason = "not_slash_command";
+          } else if (commentType === "dot_prefix" && !message.startsWith(".")) {
+            ttsSkipReason = "not_dot_prefix";
+          } else if (commentType === "command" && !message.toLowerCase().startsWith(commentCommand.toLowerCase())) {
+            ttsSkipReason = "not_matching_command";
+          } else if (commentType === "exclamation" && !message.startsWith("!")) {
+            ttsSkipReason = "not_exclamation";
+          }
+        }
+
+        // Strip the command prefix from the actual TTS text
+        let ttsText = message;
+        if (!ttsSkipReason) {
+          if (commentType === "slash_command") ttsText = message.slice(1).trim();
+          else if (commentType === "dot_prefix") ttsText = message.slice(1).trim();
+          else if (commentType === "exclamation") ttsText = message.slice(1).trim();
+          else if (commentType === "command") ttsText = message.slice(commentCommand.length).trim();
+        }
+
+        // ── 2) Min length check (after prefix stripping) ──
+        if (!ttsSkipReason && ttsText.length < minChars) {
+          ttsSkipReason = "too_short";
+        }
+
+        // ── 3) Allowed user types filtering ──
+        if (!ttsSkipReason && !allowedUsers.all_users) {
+          // Check if user is in the explicit allow list
+          const allowList: string[] = allowedUsers.allowed_list || [];
+          const isInAllowList = allowList.some(
+            (u: string) => u.toLowerCase() === event.username.toLowerCase()
+          );
+
+          // Check if user is a special user
+          const isSpecialUser = specialUsers.some(
+            (su: any) => su.username?.toLowerCase() === event.username.toLowerCase() && su.allowed
+          );
+
+          // For top_gifters, check viewer_points leaderboard
+          let isTopGifter = false;
+          if (allowedUsers.top_gifters) {
+            const topCount = allowedUsers.top_gifters_count || 3;
+            const { data: topViewers } = await supabase
+              .from("viewer_points")
+              .select("viewer_username")
+              .eq("creator_id", userId)
+              .order("total_coins_sent", { ascending: false })
+              .limit(topCount);
+            isTopGifter = (topViewers || []).some(
+              (v: any) => v.viewer_username.toLowerCase() === event.username.toLowerCase()
+            );
+          }
+
+          // Note: follower/subscriber/moderator status not available from TikTok event data
+          // We pass them through if those flags are set (best-effort)
+          const hasAccess = isInAllowList || isSpecialUser || isTopGifter
+            || allowedUsers.followers  // Can't verify from webhook — permissive
+            || allowedUsers.subscribers
+            || allowedUsers.moderators
+            || allowedUsers.team_members;
+
+          if (!hasAccess) {
+            ttsSkipReason = "user_not_allowed";
+          }
+        }
+
+        // ── 4) Spam filters ──
+        if (!ttsSkipReason && filterLetterSpam) {
+          // Detect repeated characters (e.g. "aaaaaaa" or "hahahahaha")
+          if (/(.)\1{5,}/i.test(ttsText) || /(.{2,4})\1{3,}/i.test(ttsText)) {
+            ttsSkipReason = "letter_spam";
+          }
+        }
+
+        if (!ttsSkipReason && filterMentions) {
+          // Remove @mentions from the text
+          ttsText = ttsText.replace(/@\w+/g, "").trim();
+          if (ttsText.length < minChars) ttsSkipReason = "only_mentions";
+        }
+
+        if (!ttsSkipReason && filterCommands) {
+          // Skip messages that look like bot commands (!/. prefix)
+          if (/^[!/.]\w+/.test(ttsText) && commentType === "any") {
+            ttsSkipReason = "looks_like_command";
+          }
+        }
+
+        // ── 5) User cooldown enforcement ──
+        if (!ttsSkipReason && cooldownSecs > 0) {
+          const cooldownSince = new Date(Date.now() - cooldownSecs * 1000).toISOString();
+          const { count } = await supabase
+            .from("tts_queue")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .eq("username", event.username)
+            .gte("created_at", cooldownSince);
+          if ((count || 0) > 0) {
+            ttsSkipReason = "user_cooldown";
+          }
+        }
+
+        // ── 6) Max queue length enforcement ──
+        if (!ttsSkipReason) {
+          const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+          const { count } = await supabase
+            .from("tts_queue")
+            .select("id", { count: "exact", head: true })
+            .eq("user_id", userId)
+            .eq("status", "completed")
+            .gte("created_at", fiveMinAgo);
+          if ((count || 0) >= maxQueueLength) {
+            ttsSkipReason = "queue_full";
+          }
+        }
+
+        // ── 7) TTS-specific moderation ──
+        if (!ttsSkipReason) {
           const ttsModResult = moderateMessage(
-            message, event.username,
+            ttsText, event.username,
             bannedWords || [], bannedUsers || [],
             modConfig, "tts"
           );
 
-          if (!ttsModResult.blocked) {
-            const textForTts = ttsModResult.filteredMessage || message;
-            const truncated = textForTts.slice(0, maxLength);
-            const ttsWidgets = widgets?.filter(w => w.widget_type === "tts") || [];
-
-            for (const ttsWidget of ttsWidgets) {
-              await supabase.from("tts_queue").insert({
-                user_id: userId,
-                overlay_token: ttsWidget.public_token,
-                text_content: truncated,
-                username: event.username,
-                voice_id: ttsSettings.voice_id || "default",
-                status: "completed",
-                processed_at: new Date().toISOString(),
-              });
-
-              await broadcast(`tts-${ttsWidget.public_token}`, "play_tts", {
-                username: event.username,
-                text: truncated,
-                volume: ttsSettings.volume || 80,
-                speed: ttsSettings.speed || 50,
-                pitch: ttsSettings.pitch || 50,
-                interrupt: ttsSettings.interrupt_mode || false,
-              });
-
-              ttsTriggered++;
-            }
-          } else {
+          if (ttsModResult.blocked) {
+            ttsSkipReason = "moderation_blocked";
             if (!chatModResult.blocked && ttsModResult.reason !== chatModResult.reason) {
               await supabase.from("moderation_log").insert({
                 user_id: userId,
@@ -804,6 +911,87 @@ Deno.serve(async (req) => {
                 triggered_word: ttsModResult.triggeredWord || null,
               });
             }
+          } else if (ttsModResult.filteredMessage) {
+            ttsText = ttsModResult.filteredMessage;
+          }
+        }
+
+        // ── 8) Charge points if enabled ──
+        if (!ttsSkipReason && chargePoints && costPerMessage > 0) {
+          const { data: viewerPts } = await supabase
+            .from("viewer_points")
+            .select("id, total_points")
+            .eq("creator_id", userId)
+            .eq("viewer_username", event.username)
+            .maybeSingle();
+          if (!viewerPts || viewerPts.total_points < costPerMessage) {
+            ttsSkipReason = "insufficient_points";
+          } else {
+            await supabase.from("viewer_points").update({
+              total_points: viewerPts.total_points - costPerMessage,
+            }).eq("id", viewerPts.id);
+          }
+        }
+
+        // ── 9) If all checks pass, generate and broadcast TTS ──
+        if (!ttsSkipReason) {
+          const truncated = ttsText.slice(0, maxLength);
+
+          // Apply message template
+          const templatedText = messageTemplate
+            .replace("{comment}", truncated)
+            .replace("{username}", event.username)
+            .replace("{user}", event.username);
+
+          // Determine voice: special user override → random → default
+          let voiceId = ttsSettings.voice_id || "JBFqnCBsd6RMkjVDRZzb";
+          let speed = ttsSettings.speed || 50;
+          let pitch = ttsSettings.pitch || 50;
+
+          const specialUser = specialUsers.find(
+            (su: any) => su.username?.toLowerCase() === event.username.toLowerCase() && su.allowed
+          );
+          if (specialUser) {
+            if (specialUser.voice_id) voiceId = specialUser.voice_id;
+            if (specialUser.speed) speed = specialUser.speed;
+            if (specialUser.pitch) pitch = specialUser.pitch;
+          } else if (ttsSettings.random_voice) {
+            // Pick a random voice from a preset list
+            const randomVoices = [
+              "JBFqnCBsd6RMkjVDRZzb", "EXAVITQu4vr4xnSDxMaL", "CwhRBWXzGAHq8TQ4Fs17",
+              "FGY2WhTYpPnrIDTdsKH5", "IKne3meq5aSn9XLyUdCD", "TX3LPaxmHKxFdv7VOQHJ",
+              "pFZP5JQG7iQjIQuC4Bku", "onwK4e9ZLuTAKqWW03F9", "nPczCjzI2devNBz1zQrb",
+              "cgSgspJ2msm6clMCkdW9",
+            ];
+            voiceId = randomVoices[Math.floor(Math.random() * randomVoices.length)];
+          }
+
+          const ttsWidgets = widgets?.filter(w => w.widget_type === "tts") || [];
+
+          for (const ttsWidget of ttsWidgets) {
+            // Log to queue
+            await supabase.from("tts_queue").insert({
+              user_id: userId,
+              overlay_token: ttsWidget.public_token,
+              text_content: templatedText,
+              username: event.username,
+              voice_id: voiceId,
+              status: "pending",
+            });
+
+            // Broadcast to overlay with voice settings for ElevenLabs playback
+            await broadcast(`tts-${ttsWidget.public_token}`, "play_tts", {
+              username: event.username,
+              text: templatedText,
+              voice_id: voiceId,
+              volume: ttsSettings.volume || 80,
+              speed,
+              pitch,
+              interrupt: ttsSettings.interrupt_mode || false,
+              voice_provider: ttsSettings.voice_provider || "browser",
+            });
+
+            ttsTriggered++;
           }
         }
       }

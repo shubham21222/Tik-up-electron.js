@@ -14,21 +14,21 @@ import { copyToClipboard } from "@/lib/clipboard";
 import ProGate from "@/components/ProGate";
 
 /* ═══════════════════════════════════════════════════════════
-   SPRITE PATHS — generated pixel-art avatars per tier
+   SPRITE PATHS — 3D chibi vinyl-toy avatars per tier
    ═══════════════════════════════════════════════════════════ */
 const SPRITE_PATHS: Record<string, string> = {
-  common: "/buddies/common-sprite.png",
-  rare: "/buddies/rare-sprite.png",
-  epic: "/buddies/epic-sprite.png",
-  legendary: "/buddies/legendary-sprite.png",
+  common: "/buddies/common.png",
+  rare: "/buddies/rare.png",
+  epic: "/buddies/epic.png",
+  legendary: "/buddies/legendary.png",
 };
 
 const THEMES: Record<string, {
   label: string; emoji: string; desc: string;
   tiers: Record<string, { char: string; sprite?: string; glow: string; aura: string }>;
 }> = {
-  pixel: {
-    label: "Pixel Heroes", emoji: "⚔️", desc: "Classic retro pixel-art warriors",
+  vinyl: {
+    label: "Vinyl Toys", emoji: "🎨", desc: "3D chibi vinyl-toy collectibles",
     tiers: {
       common:    { char: "🧑", sprite: SPRITE_PATHS.common, glow: "none", aura: "" },
       rare:      { char: "🧝", sprite: SPRITE_PATHS.rare, glow: "0 0 12px rgba(80,160,255,0.5)", aura: "rgba(80,160,255,0.15)" },
@@ -111,7 +111,7 @@ const LivePreview = ({ settings }: { settings: Record<string, any> }) => {
   const showChat = settings.show_chat_bubbles !== false;
   const showNames = settings.show_usernames !== false;
   const maxAvatars = settings.max_avatars ?? 15;
-  const theme = THEMES[settings.theme || "pixel"] || THEMES.pixel;
+  const theme = THEMES[settings.theme || "vinyl"] || THEMES.vinyl;
 
   const DEMO_DATA = useMemo(() => [
     { id: "king", username: "TopGifter", tier: "legendary" as Tier, coins: 12500 },
@@ -436,7 +436,7 @@ const StreamBuddiesPage = () => {
   };
 
   const settings = widget?.settings || {};
-  const currentTheme = THEMES[settings.theme || "pixel"] || THEMES.pixel;
+  const currentTheme = THEMES[settings.theme || "vinyl"] || THEMES.vinyl;
 
   const updateSetting = (key: string, value: any) => {
     if (!widget) return;
@@ -585,7 +585,7 @@ const StreamBuddiesPage = () => {
                     <label className="text-xs font-semibold text-foreground/70 mb-2 block">Avatar Theme</label>
                     <div className="grid grid-cols-2 gap-2">
                       {Object.entries(THEMES).map(([id, t]) => {
-                        const active = (settings.theme || "pixel") === id;
+                        const active = (settings.theme || "vinyl") === id;
                         return (
                           <button
                             key={id}
@@ -600,10 +600,15 @@ const StreamBuddiesPage = () => {
                               <span className="text-lg">{t.emoji}</span>
                               <span className="text-xs font-bold text-foreground">{t.label}</span>
                             </div>
-                            <div className="flex gap-1.5 mt-1">
-                              {TIER_KEYS.map(tier => (
-                                <span key={tier} className="text-sm">{t.tiers[tier].char}</span>
-                              ))}
+                            <div className="flex gap-1.5 mt-1 items-center">
+                              {TIER_KEYS.map(tier => {
+                                const td = t.tiers[tier];
+                                return td.sprite ? (
+                                  <img key={tier} src={td.sprite} alt={tier} style={{ width: 20, height: 20, objectFit: "contain" }} draggable={false} />
+                                ) : (
+                                  <span key={tier} className="text-sm">{td.char}</span>
+                                );
+                              })}
                             </div>
                             <p className="text-[10px] text-muted-foreground mt-1">{t.desc}</p>
                           </button>

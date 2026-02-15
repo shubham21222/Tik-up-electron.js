@@ -1,8 +1,9 @@
 import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin, useAdminUsers, useAdminAnalytics, useAdminLogs } from "@/hooks/use-admin";
+import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown } from "lucide-react";
+import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown, Gauge, AlertTriangle } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +26,7 @@ const Admin = () => {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useIsAdmin();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses">("analytics");
+  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses" | "ratelimits">("analytics");
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -42,6 +43,7 @@ const Admin = () => {
     { id: "users" as const, label: "Users", icon: Users },
     { id: "logs" as const, label: "System Logs", icon: ScrollText },
     { id: "licenses" as const, label: "Licenses", icon: CreditCard },
+    { id: "ratelimits" as const, label: "API Limits", icon: Gauge },
   ];
 
   return (
@@ -71,6 +73,7 @@ const Admin = () => {
         {tab === "users" && <UsersTab />}
         {tab === "logs" && <LogsTab />}
         {tab === "licenses" && <LicensesTab />}
+        {tab === "ratelimits" && <RateLimitsTab />}
       </div>
     </AppLayout>
   );
@@ -248,6 +251,109 @@ const LicensesTab = () => {
           </tbody>
         </table>
       </div>
+    </div>
+  );
+};
+const LimitBar = ({ label, used, max, color }: { label: string; used: number; max: number; color: string }) => {
+  const pct = max > 0 ? ((max - used) / max) * 100 : 0;
+  const remaining = used;
+  const isLow = max > 0 && remaining / max < 0.15;
+  return (
+    <div className="space-y-1.5">
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-muted-foreground">{label}</span>
+        <span className={`font-mono font-medium ${isLow ? "text-red-400" : "text-foreground"}`}>
+          {remaining.toLocaleString()} / {max.toLocaleString()}
+          {isLow && <AlertTriangle size={10} className="inline ml-1 text-red-400" />}
+        </span>
+      </div>
+      <div className="h-2 rounded-full bg-muted/20 overflow-hidden">
+        <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }}
+          className="h-full rounded-full" style={{ background: `hsl(${color})` }} />
+      </div>
+    </div>
+  );
+};
+
+const RateLimitsTab = () => {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchLimits = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/euler-rate-limits`,
+        { headers: { Authorization: `Bearer ${session?.access_token}` } }
+      );
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Failed to fetch");
+      setData(json);
+    } catch (e: any) {
+      setError(e.message);
+    }
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchLimits(); }, []);
+
+  if (loading) return <div className="animate-pulse text-muted-foreground">Fetching rate limits...</div>;
+  if (error) return <div className="text-red-400 text-sm">Error: {error}</div>;
+  if (!data) return null;
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-muted-foreground">EulerStream API Usage</span>
+        <button onClick={fetchLimits} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          <RefreshCw size={12} /> Refresh
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {data.minute && (
+          <div className="rounded-2xl border border-white/[0.06] p-5 bg-muted/5 space-y-3">
+            <h3 className="text-sm font-medium text-foreground">Per Minute</h3>
+            <LimitBar label="Remaining" used={data.minute.remaining} max={data.minute.max} color="180 100% 50%" />
+            {data.minute.reset_at && (
+              <p className="text-[10px] text-muted-foreground">Resets: {new Date(data.minute.reset_at).toLocaleTimeString()}</p>
+            )}
+          </div>
+        )}
+        {data.hour && (
+          <div className="rounded-2xl border border-white/[0.06] p-5 bg-muted/5 space-y-3">
+            <h3 className="text-sm font-medium text-foreground">Per Hour</h3>
+            <LimitBar label="Remaining" used={data.hour.remaining} max={data.hour.max} color="210 100% 55%" />
+            {data.hour.reset_at && (
+              <p className="text-[10px] text-muted-foreground">Resets: {new Date(data.hour.reset_at).toLocaleTimeString()}</p>
+            )}
+          </div>
+        )}
+        {data.day && (
+          <div className="rounded-2xl border border-white/[0.06] p-5 bg-muted/5 space-y-3">
+            <h3 className="text-sm font-medium text-foreground">Per Day</h3>
+            <LimitBar label="Remaining" used={data.day.remaining} max={data.day.max} color="280 100% 65%" />
+            {data.day.reset_at && (
+              <p className="text-[10px] text-muted-foreground">Resets: {new Date(data.day.reset_at).toLocaleTimeString()}</p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {data.load_shedding && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-4">
+          <div className="flex items-center gap-2 mb-1">
+            <AlertTriangle size={14} className="text-amber-400" />
+            <span className="text-sm font-medium text-amber-300">Load Shedding</span>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Threshold: {data.load_shedding.at} | Drop chance: {(data.load_shedding.chance * 100).toFixed(0)}%
+          </p>
+        </div>
+      )}
     </div>
   );
 };

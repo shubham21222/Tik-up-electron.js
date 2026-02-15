@@ -80,6 +80,8 @@ import VideoCamFrameOverlay from "./pages/VideoCamFrameOverlay";
 import VideoLabelBarOverlay from "./pages/VideoLabelBarOverlay";
 import NotFound from "./pages/NotFound";
 import BackgroundsPage from "./pages/BackgroundsPage";
+import CoinJarOverlay from "./pages/CoinJarOverlay";
+import CoinJarRenderer from "./pages/renderers/CoinJarRenderer";
 
 const queryClient = new QueryClient();
 
@@ -115,6 +117,7 @@ const App = () => (
           <Route path="/overlay/stream-border/:publicToken" element={<StreamBorderRenderer />} />
           <Route path="/overlay/webcam-frame/:publicToken" element={<WebcamFrameRenderer />} />
           <Route path="/overlay/event-feed/:publicToken" element={<EventFeedRenderer />} />
+          <Route path="/overlay/coin-jar/:publicToken" element={<CoinJarRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
           <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 
@@ -172,6 +175,7 @@ const App = () => (
                 <Route path="/video-cam-frame" element={<VideoCamFrameOverlay />} />
                 <Route path="/video-label-bar" element={<VideoLabelBarOverlay />} />
                 <Route path="/backgrounds" element={<BackgroundsPage />} />
+                <Route path="/coin-jar" element={<CoinJarOverlay />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </AuthProvider>

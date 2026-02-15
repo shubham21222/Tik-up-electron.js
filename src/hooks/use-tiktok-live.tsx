@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef, useEffect } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 export type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error" | "not_live";
@@ -101,13 +102,22 @@ export function useTikTokLive() {
     }
     // Flush remaining events before disconnecting
     flushEventBatch();
+
+    // Show session summary if we were connected and had activity
+    if (wsRef.current && (stats.giftCoins > 0 || stats.likeCount > 0 || stats.followerCount > 0)) {
+      toast("📊 Session Summary", {
+        description: `🪙 ${stats.giftCoins.toLocaleString()} coins · 💎 ${stats.diamondCount.toLocaleString()} diamonds · ❤️ ${stats.likeCount.toLocaleString()} likes · 👥 ${stats.followerCount.toLocaleString()} followers · 🔄 ${stats.shareCount.toLocaleString()} shares`,
+        duration: 8000,
+      });
+    }
+
     if (wsRef.current) {
       wsRef.current.close(1000);
       wsRef.current = null;
     }
     setStatus("disconnected");
     setError(null);
-  }, [flushEventBatch]);
+  }, [flushEventBatch, stats]);
 
   const connect = useCallback(async () => {
     disconnect();

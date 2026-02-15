@@ -350,6 +350,118 @@ async function upsertViewerPoints(
   }
 }
 
+/**
+ * ═══════════════════════════════════════════════════════════════════════
+ * Session-Scoped Diamond Tracking
+ * ═══════════════════════════════════════════════════════════════════════
+ * Logs each gift to the active live session and updates per-user totals.
+ * Broadcasts real-time "gift_received" events for live dashboard updates.
+ * Session totals reset automatically when a new session starts.
+ */
+async function trackSessionGift(
+  supabase: any,
+  userId: string,
+  username: string,
+  eventData: Record<string, unknown>,
+) {
+  // Only track gift events in active sessions
+  const { data: session } = await supabase
+    .from("live_sessions")
+    .select("id, total_diamonds, total_gifts, unique_gifters")
+    .eq("user_id", userId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (!session) return; // No active session — skip session tracking
+
+  const giftId = String(eventData.giftId || eventData.gift_id || "0");
+  const staticGift = lookupGift(giftId);
+  const baseDiamonds = staticGift?.coins
+    ?? Number(eventData.diamondCount || eventData.diamond_count || eventData.coinValue || eventData.coin_value || 1);
+  const repeatCount = Number(eventData.repeatCount || eventData.repeat_count || 1);
+  const totalDiamonds = baseDiamonds * repeatCount;
+  const giftName = (eventData.giftName || eventData.gift_name || staticGift?.name || "Gift") as string;
+  const avatarUrl = (eventData.profilePictureUrl || eventData.avatar_url || eventData.avatar || null) as string | null;
+
+  // 1) Insert individual gift record
+  await supabase.from("session_gifts").insert({
+    session_id: session.id,
+    user_id: userId,
+    sender_username: username,
+    sender_avatar_url: avatarUrl,
+    gift_name: giftName,
+    gift_id: giftId,
+    diamond_value: baseDiamonds,
+    repeat_count: repeatCount,
+    total_diamonds: totalDiamonds,
+  });
+
+  // 2) Upsert per-user session totals
+  const { data: existing } = await supabase
+    .from("session_user_totals")
+    .select("id, total_diamonds, total_gifts")
+    .eq("session_id", session.id)
+    .eq("sender_username", username)
+    .maybeSingle();
+
+  let isNewGifter = false;
+  if (existing) {
+    await supabase.from("session_user_totals").update({
+      total_diamonds: Number(existing.total_diamonds) + totalDiamonds,
+      total_gifts: existing.total_gifts + 1,
+      sender_avatar_url: avatarUrl || undefined,
+      last_gift_at: new Date().toISOString(),
+    }).eq("id", existing.id);
+  } else {
+    isNewGifter = true;
+    await supabase.from("session_user_totals").insert({
+      session_id: session.id,
+      user_id: userId,
+      sender_username: username,
+      sender_avatar_url: avatarUrl,
+      total_diamonds: totalDiamonds,
+      total_gifts: 1,
+    });
+  }
+
+  // 3) Update session totals
+  const newSessionTotal = Number(session.total_diamonds) + totalDiamonds;
+  await supabase.from("live_sessions").update({
+    total_diamonds: newSessionTotal,
+    total_gifts: session.total_gifts + 1,
+    unique_gifters: session.unique_gifters + (isNewGifter ? 1 : 0),
+  }).eq("id", session.id);
+
+  // 4) Broadcast real-time update to frontend
+  const broadcastUrl = `${Deno.env.get("SUPABASE_URL")!}/realtime/v1/api/broadcast`;
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  await fetch(broadcastUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      apikey: serviceKey,
+      Authorization: `Bearer ${serviceKey}`,
+    },
+    body: JSON.stringify({
+      messages: [{
+        topic: `session_gifts_${userId}`,
+        event: "gift_received",
+        payload: {
+          type: "gift_received",
+          sender: username,
+          sender_avatar: avatarUrl,
+          gift_name: giftName,
+          gift_id: giftId,
+          diamonds: totalDiamonds,
+          session_total: newSessionTotal,
+          session_gifts_count: session.total_gifts + 1,
+          unique_gifters: session.unique_gifters + (isNewGifter ? 1 : 0),
+        },
+      }],
+    }),
+  });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -572,6 +684,15 @@ Deno.serve(async (req) => {
         pointsUpdated++;
       } catch (e) {
         console.error("Failed to upsert viewer points:", e);
+      }
+
+      // ── SESSION DIAMONDS: Track gift in active live session ──
+      if (event.type === "gift") {
+        try {
+          await trackSessionGift(supabase, userId, event.username, event.data);
+        } catch (e) {
+          console.error("Failed to track session gift:", e);
+        }
       }
 
       // Log the event

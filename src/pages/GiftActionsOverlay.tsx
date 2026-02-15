@@ -5,6 +5,9 @@ import { Sparkles, Plus, Trash2, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
 import { useGiftCatalog } from "@/hooks/use-gift-catalog";
+import { useSubscription } from "@/hooks/use-subscription";
+import { Crown } from "lucide-react";
+import { Link } from "react-router-dom";
 import OverlaySettingsShell from "@/components/overlays/OverlaySettingsShell";
 import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
@@ -93,6 +96,7 @@ const GiftActionsOverlay = () => {
   const { user } = useAuth();
   const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("gift_actions");
   const { gifts: catalogGifts } = useGiftCatalog();
+  const { isPro } = useSubscription();
 
   const handleCreate = async () => { await createWidget("gift_actions", `Gift Actions ${widgets.length + 1}`); };
   const updateSetting = useCallback((id: string, cur: Record<string, any>, key: string, val: any) => {
@@ -191,13 +195,25 @@ const GiftActionsOverlay = () => {
                         </button>
                       )}
                     </div>
-                    <SettingRow label="Auto Scroll"><SettingToggle checked={s.auto_scroll} onChange={v => set("auto_scroll", v)} /></SettingRow>
-                    <SettingRow label="Scroll Speed"><SettingSlider value={s.scroll_speed} onChange={v => set("scroll_speed", v)} min={10} max={80} suffix="px/s" /></SettingRow>
-                    <SettingRow label="Icon Size"><SettingSlider value={s.icon_size} onChange={v => set("icon_size", v)} min={32} max={128} suffix="px" /></SettingRow>
-                    <SettingRow label="Label Size"><SettingSlider value={s.label_size} onChange={v => set("label_size", v)} min={10} max={32} suffix="px" /></SettingRow>
-                    <SettingRow label="Show Labels"><SettingToggle checked={s.show_labels} onChange={v => set("show_labels", v)} /></SettingRow>
-                    <SettingRow label="Label Style"><SettingSelect value={s.label_style} onChange={v => set("label_style", v)} options={[
-                      { value: "bold", label: "Bold" }, { value: "outline", label: "Outline" }, { value: "glow", label: "Glow" }]} /></SettingRow>
+                    {/* Pro-gated customization */}
+                    <div className="relative">
+                      {!isPro && (
+                        <div className="absolute inset-0 z-10 rounded-xl bg-background/60 backdrop-blur-[2px] flex flex-col items-center justify-center gap-2">
+                          <Crown size={18} className="text-primary" />
+                          <p className="text-[11px] font-semibold text-foreground">Pro Feature</p>
+                          <Link to="/pro" className="text-[10px] font-medium text-primary hover:text-primary/80 underline underline-offset-2">Upgrade to customize</Link>
+                        </div>
+                      )}
+                      <div className={`space-y-4 ${!isPro ? "pointer-events-none select-none opacity-40" : ""}`}>
+                        <SettingRow label="Auto Scroll"><SettingToggle checked={s.auto_scroll} onChange={v => set("auto_scroll", v)} /></SettingRow>
+                        <SettingRow label="Scroll Speed"><SettingSlider value={s.scroll_speed} onChange={v => set("scroll_speed", v)} min={10} max={80} suffix="px/s" /></SettingRow>
+                        <SettingRow label="Icon Size"><SettingSlider value={s.icon_size} onChange={v => set("icon_size", v)} min={32} max={128} suffix="px" /></SettingRow>
+                        <SettingRow label="Label Size"><SettingSlider value={s.label_size} onChange={v => set("label_size", v)} min={10} max={32} suffix="px" /></SettingRow>
+                        <SettingRow label="Show Labels"><SettingToggle checked={s.show_labels} onChange={v => set("show_labels", v)} /></SettingRow>
+                        <SettingRow label="Label Style"><SettingSelect value={s.label_style} onChange={v => set("label_style", v)} options={[
+                          { value: "bold", label: "Bold" }, { value: "outline", label: "Outline" }, { value: "glow", label: "Glow" }]} /></SettingRow>
+                      </div>
+                    </div>
                   </div>}
                   advancedSlot={<div className="space-y-4">
                     <SettingRow label="Spacing"><SettingSlider value={s.spacing} onChange={v => set("spacing", v)} min={8} max={64} suffix="px" /></SettingRow>

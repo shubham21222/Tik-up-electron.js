@@ -41,6 +41,9 @@ export function useTikTokLive() {
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const giftMapRef = useRef<GiftMap>({});
+  const eventBatchRef = useRef<Array<{ type: string; username: string; data: Record<string, unknown> }>>([]);
+  const batchTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const tiktokUsernameRef = useRef<string>("");
 
   const addEvent = useCallback((type: string, data: Record<string, unknown>) => {
     setEvents(prev => {
@@ -49,18 +52,62 @@ export function useTikTokLive() {
     });
   }, []);
 
+  /** Queue an event for batched webhook processing (points, moderation, automation) */
+  const queueWebhookEvent = useCallback((type: string, username: string, data: Record<string, unknown>) => {
+    eventBatchRef.current.push({ type, username, data });
+
+    // Flush batch every 3 seconds
+    if (!batchTimerRef.current) {
+      batchTimerRef.current = setTimeout(() => flushEventBatch(), 3000);
+    }
+  }, []);
+
+  /** Flush batched events to tiktok-webhook for points upsert, moderation, etc. */
+  const flushEventBatch = useCallback(async () => {
+    batchTimerRef.current = null;
+    const batch = eventBatchRef.current.splice(0);
+    if (batch.length === 0 || !tiktokUsernameRef.current) return;
+
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+
+      const webhookUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tiktok-webhook`;
+      await fetch(webhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${session.access_token}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({
+          tiktok_username: tiktokUsernameRef.current,
+          events: batch,
+        }),
+      });
+    } catch (e) {
+      console.error("Failed to flush event batch to webhook:", e);
+    }
+  }, []);
+
   const disconnect = useCallback(() => {
     if (reconnectTimerRef.current) {
       clearTimeout(reconnectTimerRef.current);
       reconnectTimerRef.current = null;
     }
+    if (batchTimerRef.current) {
+      clearTimeout(batchTimerRef.current);
+      batchTimerRef.current = null;
+    }
+    // Flush remaining events before disconnecting
+    flushEventBatch();
     if (wsRef.current) {
       wsRef.current.close(1000);
       wsRef.current = null;
     }
     setStatus("disconnected");
     setError(null);
-  }, []);
+  }, [flushEventBatch]);
 
   const connect = useCallback(async () => {
     disconnect();
@@ -85,6 +132,7 @@ export function useTikTokLive() {
       }
 
       const { wsUrl, uniqueId } = res.data as { wsUrl: string; uniqueId: string; mode: string };
+      tiktokUsernameRef.current = uniqueId;
 
       if (!wsUrl) {
         setStatus("error");
@@ -173,14 +221,15 @@ export function useTikTokLive() {
             if (msgType === "WebcastLikeMessage") {
               const total = Number(data.totalLikeCount || data.likeCount || 0);
               if (total > 0) setStats(prev => ({ ...prev, likeCount: total }));
-              addEvent("like", {
+              const likePayload = {
                 username: data.uniqueId || data.user?.uniqueId || "unknown",
                 likeCount: data.likeCount || 1,
                 avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
-              });
+              };
+              addEvent("like", likePayload);
+              queueWebhookEvent("like", likePayload.username as string, likePayload);
             }
 
-            // Gift events
             // Gift events — enrich with gift map
             if (msgType === "WebcastGiftMessage") {
               const giftId = String(data.giftId || data.gift_id || "");
@@ -208,47 +257,42 @@ export function useTikTokLive() {
               };
 
               addEvent("gift", giftPayload);
-
-              // Persist gift to events_log for reliable tracking
-              supabase.auth.getSession().then(({ data: sessionData }) => {
-                if (sessionData?.session?.user?.id) {
-                  supabase.from("events_log").insert({
-                    user_id: sessionData.session.user.id,
-                    event_type: "gift",
-                    payload: giftPayload,
-                  }).then(({ error: insertErr }) => {
-                    if (insertErr) console.error("Failed to persist gift:", insertErr);
-                  });
-                }
-              });
+              queueWebhookEvent("gift", giftPayload.username as string, giftPayload);
             }
 
             // Follow & Social events
             if (msgType === "WebcastMemberMessage") {
               // Member join — also counts as a follow on TikTok LIVE
               setStats(prev => ({ ...prev, followerCount: prev.followerCount + 1 }));
-              addEvent("follow", {
+              const followPayload = {
                 username: data.uniqueId || data.user?.uniqueId || "unknown",
                 avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
-              });
+              };
+              addEvent("follow", followPayload);
+              queueWebhookEvent("follow", followPayload.username as string, followPayload);
             }
 
             if (msgType === "WebcastSocialMessage") {
               setStats(prev => ({ ...prev, shareCount: prev.shareCount + 1 }));
-              addEvent("share", {
+              const sharePayload = {
                 username: data.uniqueId || data.user?.uniqueId || "unknown",
                 avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
-              });
+              };
+              addEvent("share", sharePayload);
+              queueWebhookEvent("share", sharePayload.username as string, sharePayload);
             }
 
             // Chat events
             if (msgType === "WebcastChatMessage") {
-              addEvent("chat", {
+              const chatPayload = {
                 username: data.uniqueId || data.user?.uniqueId || "unknown",
                 message: data.comment || data.content || "",
                 avatar: data.profilePictureUrl || data.user?.profilePictureUrl,
-              });
+              };
+              addEvent("chat", chatPayload);
+              queueWebhookEvent("chat", chatPayload.username as string, chatPayload);
             }
+
 
             // Generic viewer count fallback
             if (data.viewerCount !== undefined && stats.viewerCount === 0) {
@@ -328,7 +372,7 @@ export function useTikTokLive() {
       setStatus("error");
       setError(msg);
     }
-  }, [disconnect, addEvent]);
+  }, [disconnect, addEvent, queueWebhookEvent]);
 
   // Load historical gift coins from events_log on mount
   const loadHistoricalGifts = useCallback(async () => {
@@ -380,9 +424,12 @@ export function useTikTokLive() {
   useEffect(() => {
     return () => {
       if (reconnectTimerRef.current) clearTimeout(reconnectTimerRef.current);
+      if (batchTimerRef.current) clearTimeout(batchTimerRef.current);
+      // Flush remaining events
+      flushEventBatch();
       if (wsRef.current) wsRef.current.close(1000);
     };
-  }, []);
+  }, [flushEventBatch]);
 
   return {
     status,

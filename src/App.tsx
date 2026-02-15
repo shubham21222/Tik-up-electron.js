@@ -95,6 +95,8 @@ import VoteBattleOverlay from "./pages/VoteBattleOverlay";
 import VoteBattleRenderer from "./pages/renderers/VoteBattleRenderer";
 import ProgressRaceOverlay from "./pages/ProgressRaceOverlay";
 import ProgressRaceRenderer from "./pages/renderers/ProgressRaceRenderer";
+import VideoCamFrameRenderer from "./pages/renderers/VideoCamFrameRenderer";
+import VideoLabelBarRenderer from "./pages/renderers/VideoLabelBarRenderer";
 import AgencyDashboard from "./pages/AgencyDashboard";
 import AgencyCreate from "./pages/AgencyCreate";
 import AgencyDetail from "./pages/AgencyDetail";
@@ -141,6 +143,8 @@ const App = () => (
           <Route path="/overlay/slot-machine/:publicToken" element={<SlotMachineRenderer />} />
           <Route path="/overlay/vote-battle/:publicToken" element={<VoteBattleRenderer />} />
           <Route path="/overlay/progress-race/:publicToken" element={<ProgressRaceRenderer />} />
+          <Route path="/overlay/video-cam-frame/:publicToken" element={<VideoCamFrameRenderer />} />
+          <Route path="/overlay/video-label-bar/:publicToken" element={<VideoLabelBarRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
           <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 

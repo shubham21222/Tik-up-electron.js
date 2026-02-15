@@ -1,6 +1,33 @@
 import AppLayout from "@/components/AppLayout";
+import EnterpriseGate from "@/components/EnterpriseGate";
 import { motion } from "framer-motion";
-import { Lock, BarChart3 } from "lucide-react";
+import { BarChart3, Users, Wifi, Activity } from "lucide-react";
+
+const PlaceholderContent = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {[
+        { label: "Total Agencies", value: "24", icon: BarChart3 },
+        { label: "Active Users", value: "1,280", icon: Users },
+        { label: "WS Connections", value: "47", icon: Wifi },
+        { label: "Events / min", value: "1,240", icon: Activity },
+      ].map((card) => (
+        <div key={card.label} className="rounded-2xl border border-border/40 p-5" style={{ background: "rgba(20,25,35,0.55)" }}>
+          <div className="flex items-center gap-3 mb-3">
+            <card.icon size={20} className="text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">{card.label}</span>
+          </div>
+          <p className="text-2xl font-bold text-foreground">{card.value}</p>
+        </div>
+      ))}
+    </div>
+    <div className="rounded-2xl border border-border/40 p-6 h-64" style={{ background: "rgba(20,25,35,0.55)" }} />
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="rounded-2xl border border-border/40 p-6 h-48" style={{ background: "rgba(20,25,35,0.55)" }} />
+      <div className="rounded-2xl border border-border/40 p-6 h-48" style={{ background: "rgba(20,25,35,0.55)" }} />
+    </div>
+  </div>
+);
 
 const EnterpriseDashboard = () => (
   <AppLayout>
@@ -10,21 +37,9 @@ const EnterpriseDashboard = () => (
         <p className="text-muted-foreground text-sm">Enterprise-grade monitoring, KPIs, and real-time system health.</p>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15, duration: 0.5 }}
-        className="flex flex-col items-center justify-center py-24 rounded-2xl border border-border/40"
-        style={{ background: "rgba(20,25,35,0.55)", backdropFilter: "blur(20px)" }}
-      >
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background: "hsl(160 100% 45% / 0.08)", border: "1px solid hsl(160 100% 45% / 0.15)" }}>
-          <Lock size={28} style={{ color: "hsl(160 100% 45%)" }} />
-        </div>
-        <h2 className="text-xl font-heading font-bold text-foreground mb-2">Coming Soon</h2>
-        <p className="text-muted-foreground text-sm text-center max-w-md leading-relaxed">
-          The Enterprise Command Center with real-time KPIs, system health monitoring, WebSocket metrics, and agency analytics is on the way. Stay tuned!
-        </p>
-      </motion.div>
+      <EnterpriseGate feature="Command Center">
+        <PlaceholderContent />
+      </EnterpriseGate>
     </div>
   </AppLayout>
 );

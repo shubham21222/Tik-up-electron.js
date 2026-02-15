@@ -1,6 +1,32 @@
 import AppLayout from "@/components/AppLayout";
+import EnterpriseGate from "@/components/EnterpriseGate";
 import { motion } from "framer-motion";
-import { Lock, Building2 } from "lucide-react";
+import { Building2, Plus, Users, Layers } from "lucide-react";
+
+const PlaceholderContent = () => (
+  <div className="space-y-6">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {[
+        { label: "Total Agencies", value: "12", icon: Building2 },
+        { label: "Team Members", value: "48", icon: Users },
+        { label: "Active Overlays", value: "156", icon: Layers },
+      ].map((card) => (
+        <div key={card.label} className="rounded-2xl border border-border/40 p-5" style={{ background: "rgba(20,25,35,0.55)" }}>
+          <div className="flex items-center gap-3 mb-3">
+            <card.icon size={20} className="text-muted-foreground" />
+            <span className="text-xs text-muted-foreground">{card.label}</span>
+          </div>
+          <p className="text-2xl font-bold text-foreground">{card.value}</p>
+        </div>
+      ))}
+    </div>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      {Array.from({ length: 6 }).map((_, i) => (
+        <div key={i} className="rounded-2xl border border-border/40 p-5 h-40" style={{ background: "rgba(20,25,35,0.55)" }} />
+      ))}
+    </div>
+  </div>
+);
 
 const AgencyDashboard = () => (
   <AppLayout>
@@ -10,21 +36,9 @@ const AgencyDashboard = () => (
         <p className="text-muted-foreground text-sm">Manage agencies, teams, and whitelabel configurations.</p>
       </motion.div>
 
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.15, duration: 0.5 }}
-        className="flex flex-col items-center justify-center py-24 rounded-2xl border border-border/40"
-        style={{ background: "rgba(20,25,35,0.55)", backdropFilter: "blur(20px)" }}
-      >
-        <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-5" style={{ background: "hsl(160 100% 45% / 0.08)", border: "1px solid hsl(160 100% 45% / 0.15)" }}>
-          <Lock size={28} style={{ color: "hsl(160 100% 45%)" }} />
-        </div>
-        <h2 className="text-xl font-heading font-bold text-foreground mb-2">Coming Soon</h2>
-        <p className="text-muted-foreground text-sm text-center max-w-md leading-relaxed">
-          The Agency Hub for managing multiple agency accounts, team members, whitelabel branding, and client workspaces is on the way. Stay tuned!
-        </p>
-      </motion.div>
+      <EnterpriseGate feature="Agency Hub">
+        <PlaceholderContent />
+      </EnterpriseGate>
     </div>
   </AppLayout>
 );

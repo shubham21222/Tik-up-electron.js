@@ -46,6 +46,7 @@ const TTSRenderer = () => {
   const [speaking, setSpeaking] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const processingRef = useRef(false);
+  const recentMsgHashes = useRef<Set<string>>(new Set());
 
   // Subscribe to TTS broadcast channel
   useEffect(() => {
@@ -65,6 +66,12 @@ const TTSRenderer = () => {
           voiceId: payload.payload.voice_id,
           voiceProvider: payload.payload.voice_provider || "browser",
         };
+
+        // Deduplicate: skip if we've seen this exact message recently
+        const hash = `${msg.username}:${msg.text}`;
+        if (recentMsgHashes.current.has(hash)) return;
+        recentMsgHashes.current.add(hash);
+        setTimeout(() => recentMsgHashes.current.delete(hash), 15000);
 
         if (msg.interrupt) {
           // Cancel any current playback

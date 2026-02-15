@@ -79,9 +79,33 @@ const GoalOverlayRenderer = () => {
     fetchGoal();
   }, [publicToken]);
 
-  // Realtime subscription
+  // Realtime subscription + polling fallback
   useEffect(() => {
     if (!publicToken) return;
+
+    // Polling fallback: refetch goal every 5 seconds for reliability
+    const pollGoal = async () => {
+      const { data } = await supabase
+        .from("goals" as any)
+        .select("*")
+        .eq("public_token", publicToken)
+        .single();
+      if (data) {
+        const g = data as unknown as GoalData;
+        setGoal(prev => {
+          if (!prev || g.current_value !== prev.current_value || g.target_value !== prev.target_value) {
+            if (prev && g.current_value >= g.target_value && prevValue.current < g.target_value) {
+              setShowComplete(true);
+              setTimeout(() => setShowComplete(false), 5000);
+            }
+            prevValue.current = g.current_value;
+            return g;
+          }
+          return prev;
+        });
+      }
+    };
+    const pollInterval = setInterval(pollGoal, 5000);
 
     const channel = supabase
       .channel(`goal-${publicToken}`)
@@ -122,6 +146,7 @@ const GoalOverlayRenderer = () => {
       .subscribe();
 
     return () => {
+      clearInterval(pollInterval);
       supabase.removeChannel(channel);
       supabase.removeChannel(dbChannel);
     };

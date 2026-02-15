@@ -688,12 +688,95 @@ Deno.serve(async (req) => {
         console.error("Failed to upsert viewer points:", e);
       }
 
+      // ── GOAL UPDATES for non-gift events (likes, follows, shares) ──
+      if (["like", "follow", "share"].includes(event.type)) {
+        try {
+          const { data: activeGoals } = await supabase
+            .from("goals")
+            .select("id, goal_type, current_value, target_value, public_token, on_complete_action")
+            .eq("user_id", userId)
+            .eq("is_active", true);
+
+          if (activeGoals && activeGoals.length > 0) {
+            for (const goal of activeGoals) {
+              let increment = 0;
+              if (goal.goal_type === "likes" && event.type === "like") {
+                increment = Number(event.data.likeCount || event.data.like_count || event.data.count || 1);
+              } else if (goal.goal_type === "followers" && event.type === "follow") {
+                increment = 1;
+              } else if (goal.goal_type === "shares" && event.type === "share") {
+                increment = 1;
+              }
+
+              if (increment > 0) {
+                const newValue = Math.min(Number(goal.current_value) + increment, goal.target_value * 2);
+                await supabase.from("goals").update({ current_value: newValue }).eq("id", goal.id);
+                await broadcast(`goal-${goal.public_token}`, "goal_update", {
+                  current_value: newValue,
+                  target_value: goal.target_value,
+                });
+                if (newValue >= goal.target_value && Number(goal.current_value) < goal.target_value) {
+                  await broadcast(`goal-${goal.public_token}`, "goal_complete", {});
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Failed to update goals for non-gift event:", e);
+        }
+      }
+
       // ── SESSION DIAMONDS: Track gift in active live session ──
       if (event.type === "gift") {
         try {
           await trackSessionGift(supabase, userId, event.username, event.data);
         } catch (e) {
           console.error("Failed to track session gift:", e);
+        }
+
+        // ── GOAL UPDATES: Increment active gift/coin goals ──
+        try {
+          const giftId = String(event.data.giftId || event.data.gift_id || "0");
+          const bridgeCoinValue = Number(event.data.coinValue || event.data.coin_value || event.data.diamondCount || event.data.diamond_count || 0);
+          const staticGift = lookupGift(giftId);
+          const baseCoinValue = bridgeCoinValue > 0 ? bridgeCoinValue : (staticGift?.coins ?? 1);
+          const repeatCount = Number(event.data.repeatCount || event.data.repeat_count || 1);
+          const coinValue = baseCoinValue * repeatCount;
+
+          const { data: activeGoals } = await supabase
+            .from("goals")
+            .select("id, goal_type, current_value, target_value, public_token, on_complete_action")
+            .eq("user_id", userId)
+            .eq("is_active", true);
+
+          if (activeGoals && activeGoals.length > 0) {
+            for (const goal of activeGoals) {
+              let increment = 0;
+              if (goal.goal_type === "coins" || goal.goal_type === "diamonds") {
+                increment = coinValue;
+              } else if (goal.goal_type === "gifts") {
+                increment = 1;
+              }
+
+              if (increment > 0) {
+                const newValue = Math.min(Number(goal.current_value) + increment, goal.target_value * 2);
+                await supabase.from("goals").update({ current_value: newValue }).eq("id", goal.id);
+
+                // Broadcast goal update to the overlay
+                await broadcast(`goal-${goal.public_token}`, "goal_update", {
+                  current_value: newValue,
+                  target_value: goal.target_value,
+                });
+
+                // Check for completion
+                if (newValue >= goal.target_value && Number(goal.current_value) < goal.target_value) {
+                  await broadcast(`goal-${goal.public_token}`, "goal_complete", {});
+                }
+              }
+            }
+          }
+        } catch (e) {
+          console.error("Failed to update goals:", e);
         }
       }
 

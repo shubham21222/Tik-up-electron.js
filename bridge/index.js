@@ -10,6 +10,7 @@ const WEBHOOK_URL =
   process.env.WEBHOOK_URL ||
   `${SUPABASE_URL}/functions/v1/tiktok-webhook`;
 const EULER_API_KEY = process.env.TIKTOK_DATA_API_KEY;
+const EULER_ACCOUNT_ID = process.env.EULER_ACCOUNT_ID;
 const POLL_INTERVAL_MS = Number(process.env.POLL_INTERVAL_MS) || 30_000;
 
 if (!SUPABASE_SERVICE_KEY) {
@@ -51,6 +52,75 @@ async function fetchDiamondMap() {
   }
 }
 
+// ── EulerStream Alerts: auto-create alerts for "creator went live" ──
+// Maps tiktok_username → { alertId, targetId }
+const alertRegistry = new Map();
+
+async function ensureCreatorAlert(username, connection) {
+  if (!EULER_ACCOUNT_ID || alertRegistry.has(username)) return;
+
+  try {
+    // Use the bundled SDK from tiktok-live-connector via connection.signer
+    const signer = connection.signer;
+    if (!signer || !signer.alertsApi) {
+      console.log(`  ⚠️ [${username}] signer.alertsApi not available, skipping alert creation`);
+      return;
+    }
+
+    // Create alert for this creator
+    const alertRes = await signer.alertsApi.createAlert(
+      EULER_ACCOUNT_ID,
+      { unique_id: username.trim() },
+      { params: { read_only: true } }
+    );
+
+    const alertId = alertRes?.alert?.id;
+    if (!alertId) {
+      console.log(`  ⚠️ [${username}] Alert creation returned no ID`);
+      return;
+    }
+
+    // Create webhook target pointing to our tiktok-webhook
+    const targetRes = await signer.alertTargetsApi.createAlertTarget(
+      EULER_ACCOUNT_ID,
+      alertId,
+      {
+        url: WEBHOOK_URL,
+        metadata: { source: "tikup-bridge", username },
+      }
+    );
+
+    const targetId = targetRes?.target?.id;
+    alertRegistry.set(username, { alertId, targetId });
+    console.log(`  🔔 [${username}] EulerStream alert #${alertId} created with webhook target`);
+  } catch (err) {
+    // Alert may already exist (409) — that's fine
+    if (err.message?.includes("409") || err.message?.includes("already exists")) {
+      console.log(`  🔔 [${username}] Alert already exists`);
+      alertRegistry.set(username, { alertId: "existing", targetId: "existing" });
+    } else {
+      console.error(`  ⚠️ [${username}] Failed to create alert:`, err.message);
+    }
+  }
+}
+
+async function cleanupCreatorAlert(username) {
+  if (!EULER_ACCOUNT_ID) return;
+  const entry = alertRegistry.get(username);
+  if (!entry || entry.alertId === "existing") {
+    alertRegistry.delete(username);
+    return;
+  }
+
+  try {
+    // We'd need a signer instance to delete — skip cleanup for now
+    // Alerts persist and auto-fire, which is fine
+    alertRegistry.delete(username);
+  } catch (err) {
+    console.error(`  ⚠️ [${username}] Failed to cleanup alert:`, err.message);
+  }
+}
+
 // ── Active connections map: tiktok_username → { connection, buffer, timer }
 const connections = new Map();
 
@@ -86,7 +156,6 @@ function createUserConnection(username) {
   tiktok.on(WebcastEvent.GIFT, (data) => {
     const giftName = (data.giftName || "").toLowerCase();
     const repeatCount = data.repeatCount || 1;
-    // Look up diamond value from our map, fall back to data.diamondCount
     const diamondValue = diamondMap[giftName] || data.diamondCount || 0;
     const totalDiamonds = diamondValue * repeatCount;
 
@@ -95,8 +164,8 @@ function createUserConnection(username) {
       gift_name: data.giftName,
       gift_id: data.giftId,
       repeat_count: repeatCount,
-      diamond_count: diamondValue, // per-unit diamond value
-      total_diamonds: totalDiamonds, // total for this event
+      diamond_count: diamondValue,
+      total_diamonds: totalDiamonds,
       repeat_end: data.repeatEnd,
       avatar: data.profilePictureUrl,
     });
@@ -163,11 +232,15 @@ function createUserConnection(username) {
     .connect()
     .then((roomState) => {
       console.log(`🟢 Connected to @${username} — Room ${roomState.roomId}, ${roomState.viewerCount} viewers`);
+      // Create EulerStream alert for instant live detection
+      ensureCreatorAlert(username, tiktok);
     })
     .catch((err) => {
       console.error(`❌ [${username}] Connection failed: ${err.message}`);
       if (err.message.includes("not found") || err.message.includes("offline")) {
         console.log(`   ↳ @${username} is not currently LIVE — will retry on next poll`);
+        // Still create alert so we get notified when they go live
+        ensureCreatorAlert(username, tiktok);
       }
       connections.delete(username);
     });
@@ -231,12 +304,13 @@ async function pollUsernames() {
         console.log(`🔌 [${username}] User disconnected — closing`);
         const state = connections.get(username);
         state.connection.disconnect();
+        cleanupCreatorAlert(username);
         connections.delete(username);
       }
     }
 
     console.log(
-      `📊 Active: ${connections.size} connection(s) | Tracked: ${activeUsernames.size} username(s)`
+      `📊 Active: ${connections.size} connection(s) | Tracked: ${activeUsernames.size} username(s) | Alerts: ${alertRegistry.size}`
     );
   } catch (err) {
     console.error("❌ Poll error:", err.message);
@@ -245,9 +319,10 @@ async function pollUsernames() {
 
 // ── Startup ────────────────────────────────────────────────────
 async function main() {
-  console.log(`\n🚀 TikUp Bridge v2.1`);
+  console.log(`\n🚀 TikUp Bridge v2.2`);
   console.log(`   EulerStream API key: ${EULER_API_KEY.slice(0, 8)}...`);
   console.log(`   Webhook: ${WEBHOOK_URL}`);
+  console.log(`   EulerStream Alerts: ${EULER_ACCOUNT_ID ? "ENABLED" : "DISABLED (set EULER_ACCOUNT_ID to enable)"}`);
   console.log(`   Polling every ${POLL_INTERVAL_MS / 1000}s for new users\n`);
 
   // Load diamond values before connecting

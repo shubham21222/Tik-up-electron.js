@@ -113,7 +113,7 @@ export function useTikTokLive() {
                 ...prev,
                 roomId: String(ri.id || prev.roomId),
                 title: ri.title || prev.title,
-                viewerCount: Number(ri.totalViewers || ri.viewerCount || ri.currentViewers || prev.viewerCount) || 0,
+                viewerCount: Number(ri.currentViewers || ri.viewerCount || prev.viewerCount) || 0,
                 likeCount: Number(ri.likeCount || ri.totalLikes || prev.likeCount) || 0,
                 shareCount: Number(ri.shareCount || ri.totalShares || prev.shareCount) || 0,
                 followerCount: Number(ri.followerCount || prev.followerCount) || 0,
@@ -121,9 +121,9 @@ export function useTikTokLive() {
 
               if (ri.liveRoomStats) {
                 const s = ri.liveRoomStats;
+                // Don't use totalUser for viewer count — it's cumulative, not current
                 setStats(prev => ({
                   ...prev,
-                  viewerCount: Number(s.totalUser) || prev.viewerCount,
                   likeCount: Number(s.likeCount) || prev.likeCount,
                   shareCount: Number(s.shareCount) || prev.shareCount,
                 }));
@@ -134,11 +134,9 @@ export function useTikTokLive() {
               setStatus("connected");
             }
 
-            // Viewer count updates
+            // Room user sequence — confirms we're live but viewer count is often inflated
             if (msgType === "WebcastRoomUserSeqMessage") {
               setStatus("connected");
-              const count = Number(data.viewerCount || data.total || 0);
-              if (count > 0) setStats(prev => ({ ...prev, viewerCount: count }));
             }
 
             // Like updates

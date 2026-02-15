@@ -22,8 +22,17 @@ export const TikTokLiveProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+const fallbackValue: TikTokLiveContextValue = {
+  status: "disconnected",
+  stats: { viewerCount: 0, likeCount: 0, followerCount: 0, diamondCount: 0, shareCount: 0, giftCoins: 0, title: "", roomId: "" },
+  events: [],
+  error: null,
+  connect: async () => {},
+  disconnect: () => {},
+};
+
 export const useTikTokLiveGlobal = (): TikTokLiveContextValue => {
   const ctx = useContext(TikTokLiveContext);
-  if (!ctx) throw new Error("useTikTokLiveGlobal must be used within TikTokLiveProvider");
+  if (!ctx) return fallbackValue;
   return ctx;
 };

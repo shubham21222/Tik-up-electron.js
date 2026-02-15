@@ -106,19 +106,17 @@ async function fetchAccumulatedCoins(
     for (const event of giftEvents) {
       const payload = event.payload as Record<string, unknown> | null;
       if (!payload) continue;
-      // Try multiple field names for coin value
-      const coins = Number(
-        payload.total_coins || payload.coinValue || payload.coin_value ||
-        payload.total_diamonds || 0
-      );
-      if (coins > 0) {
-        const repeatCount = Number(payload.repeat_count || payload.repeatCount || 1);
-        totalCoins += coins * repeatCount;
+      // total_coins is already pre-calculated (coinValue × repeatCount) in the webhook
+      const totalCoinsField = Number(payload.total_coins || 0);
+      if (totalCoinsField > 0) {
+        totalCoins += totalCoinsField;
       } else {
-        // Fallback: diamond_count × repeat_count
-        const diamondCount = Number(payload.diamond_count || payload.diamondCount || 0);
-        const repeatCount = Number(payload.repeat_count || payload.repeatCount || 1);
-        totalCoins += diamondCount * repeatCount;
+        // Fallback: use coinValue or diamondCount directly (NOT multiplied by repeatCount again)
+        const coins = Number(
+          payload.coinValue || payload.coin_value ||
+          payload.diamondCount || payload.diamond_count || 0
+        );
+        totalCoins += coins;
       }
     }
 

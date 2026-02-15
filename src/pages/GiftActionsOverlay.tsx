@@ -156,7 +156,7 @@ const GiftActionsOverlay = () => {
                 <OverlaySettingsShell key={widget.id} widget={widget}
                   onDelete={() => deleteWidget(widget.id)} onReset={() => updateSettings(widget.id, defaultGiftActionsSettings)}
                   onToggleActive={() => toggleActive(widget.id)} onTest={() => {}}
-                  previewSlot={<div className="w-full h-full"><GiftActionsPreview items={items} /></div>}
+                  previewSlot={<div className="w-full h-full"><GiftActionsPreview items={items} icon_size={s.icon_size} label_size={s.label_size} show_labels={s.show_labels} label_style={s.label_style} auto_scroll={s.auto_scroll} scroll_speed={s.scroll_speed} spacing={s.spacing} /></div>}
                   settingsSlot={<div className="space-y-4">
                     {/* Items editor */}
                     <div>

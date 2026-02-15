@@ -159,3 +159,8 @@
     display: none;
   }
 }
+
+/* Force all page content wrappers to fill available width */
+main > div[class*="max-w-"] {
+  max-width: 100% !important;
+}

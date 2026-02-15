@@ -401,12 +401,17 @@ const Index = () => {
     },
   ];
 
-  // Merge stats: prefer WebSocket real-time data when connected, fallback to edge function polling
+  // Merge stats: use the higher of WS real-time or polling data (WS starts at 0, so take max)
   const wsConnected = tikTokLive.status === "connected";
-  const mergedViewers = wsConnected ? tikTokLive.stats.viewerCount : (liveStats?.viewer_count ?? 0);
-  const mergedLikes = wsConnected ? tikTokLive.stats.likeCount : (liveStats?.like_count ?? 0);
-  const mergedFollowers = wsConnected ? tikTokLive.stats.followerCount : (liveStats?.follower_count ?? 0);
-  const mergedGifts = wsConnected ? tikTokLive.stats.giftCount : (liveStats?.diamond_count ?? 0);
+  const pollingViewers = liveStats?.viewer_count ?? 0;
+  const pollingLikes = liveStats?.like_count ?? 0;
+  const pollingFollowers = liveStats?.follower_count ?? 0;
+  const pollingGifts = liveStats?.diamond_count ?? 0;
+
+  const mergedViewers = Math.max(tikTokLive.stats.viewerCount, pollingViewers);
+  const mergedLikes = Math.max(tikTokLive.stats.likeCount, pollingLikes);
+  const mergedFollowers = pollingFollowers + tikTokLive.stats.followerCount;
+  const mergedGifts = Math.max(tikTokLive.stats.giftCount, pollingGifts);
 
   /* ── Stat card data ── */
   const statCards = [

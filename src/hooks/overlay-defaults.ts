@@ -512,6 +512,27 @@ export const defaultCoinJarSettings = {
   custom_css: "",
 };
 
+// Spin Wheel
+export const defaultSpinWheelSettings = {
+  segments: [
+    { label: "10x Push-ups", color: "350 80% 50%" },
+    { label: "15x Planks", color: "45 100% 50%" },
+    { label: "Nothing!", color: "160 80% 40%" },
+    { label: "5x Squats", color: "200 80% 50%" },
+    { label: "Dance!", color: "280 70% 55%" },
+    { label: "Shoutout", color: "15 90% 50%" },
+  ],
+  spin_duration: 4,
+  auto_spin: false,
+  trigger_mode: "gift" as "gift" | "specific_gift" | "chat_command" | "manual",
+  show_winner: true,
+  winner_duration: 5,
+  glow_intensity: 50,
+  wheel_size: 400,
+  transparent_bg: true,
+  custom_css: "",
+};
+
 // Event Feed
 export const defaultEventFeedSettings = {
   eventTypes: ["followers", "gifts", "likes", "shares", "comments", "joins"] as string[],
@@ -551,5 +572,6 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   video_cam_frame: defaultVideoCamFrameSettings,
   video_label_bar: defaultVideoLabelBarSettings,
   coin_jar: defaultCoinJarSettings,
+  spin_wheel: defaultSpinWheelSettings,
   event_feed: defaultEventFeedSettings,
 };

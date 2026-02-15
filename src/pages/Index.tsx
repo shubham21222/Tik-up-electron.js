@@ -182,6 +182,7 @@ const Index = () => {
   const [rankingsLoading, setRankingsLoading] = useState(false);
   const [showConnectGuide, setShowConnectGuide] = useState(false);
   const prevStatsRef = useRef<{ viewers: number; likes: number; followers: number; gifts: number }>({ viewers: 0, likes: 0, followers: 0, gifts: 0 });
+  const peakStatsRef = useRef<{ likes: number; gifts: number; followers: number }>({ likes: 0, gifts: 0, followers: 0 });
   const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -426,9 +427,19 @@ const Index = () => {
   const pollingGifts = liveStats?.diamond_count ?? 0;
 
   const mergedViewers = Math.max(tikTokLive.stats.viewerCount, pollingViewers);
-  const mergedLikes = Math.max(tikTokLive.stats.likeCount, pollingLikes);
-  const mergedFollowers = pollingFollowers + tikTokLive.stats.followerCount;
-  const mergedGifts = Math.max(tikTokLive.stats.giftCoins, pollingGifts);
+
+  // Never let cumulative stats decrease — track highest seen value
+  const rawLikes = Math.max(tikTokLive.stats.likeCount, pollingLikes);
+  const rawGifts = Math.max(tikTokLive.stats.giftCoins, pollingGifts);
+  const rawFollowers = pollingFollowers + tikTokLive.stats.followerCount;
+
+  peakStatsRef.current.likes = Math.max(peakStatsRef.current.likes, rawLikes);
+  peakStatsRef.current.gifts = Math.max(peakStatsRef.current.gifts, rawGifts);
+  peakStatsRef.current.followers = Math.max(peakStatsRef.current.followers, rawFollowers);
+
+  const mergedLikes = peakStatsRef.current.likes;
+  const mergedGifts = peakStatsRef.current.gifts;
+  const mergedFollowers = peakStatsRef.current.followers;
 
   // Track previous stat values for % change calculation
   useEffect(() => {

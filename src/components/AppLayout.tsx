@@ -3,7 +3,10 @@ import AppSidebar from "./AppSidebar";
 import StatusBar from "./StatusBar";
 import QuickControls from "./QuickControls";
 import ProfileDropdown from "./ProfileDropdown";
-import { Search, Bell, HelpCircle, User, Menu } from "lucide-react";
+import { Search, User, Menu } from "lucide-react";
+import NotificationBell from "./NotificationBell";
+import TutorialsPanel from "./TutorialsPanel";
+import ProfileSwitcher from "./ProfileSwitcher";
 import { SidebarStateProvider, useSidebarState } from "@/hooks/use-sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -67,14 +70,9 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
           </div>
 
           <div className="flex items-center gap-2 md:gap-3">
-            <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-              <Bell size={18} />
-            </button>
-            {!isMobile && (
-              <button className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground">
-                <HelpCircle size={18} />
-              </button>
-            )}
+            {user && !isMobile && <ProfileSwitcher />}
+            <NotificationBell />
+            {!isMobile && <TutorialsPanel />}
             {user ? (
               <ProfileDropdown />
             ) : (

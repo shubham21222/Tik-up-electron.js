@@ -181,6 +181,7 @@ const Index = () => {
   const [streamDuration, setStreamDuration] = useState("");
   const [rankings, setRankings] = useState<RankEntry[]>([]);
   const [rankingsLoading, setRankingsLoading] = useState(false);
+  const [rankingsRegion, setRankingsRegion] = useState("gb");
   const [showConnectGuide, setShowConnectGuide] = useState(false);
   const prevStatsRef = useRef<{ viewers: number; likes: number; followers: number; gifts: number }>({ viewers: 0, likes: 0, followers: 0, gifts: 0 });
   const peakStatsRef = useRef<{ likes: number; gifts: number; followers: number }>({ likes: 0, gifts: 0, followers: 0 });
@@ -216,13 +217,14 @@ const Index = () => {
     }
   }, [user]);
 
-  const fetchRankings = useCallback(async () => {
+  const fetchRankings = useCallback(async (region?: string) => {
     if (!user) return;
+    const r = region || rankingsRegion;
     setRankingsLoading(true);
     try {
       const { data: { session } } = await supabase.auth.getSession();
       const res = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tiktok-rankings?region=GB&rank_type=DAILY_RANK`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tiktok-rankings?region=${encodeURIComponent(r)}`,
         {
           headers: {
             Authorization: `Bearer ${session?.access_token}`,
@@ -238,7 +240,7 @@ const Index = () => {
     } finally {
       setRankingsLoading(false);
     }
-  }, [user]);
+  }, [user, rankingsRegion]);
 
   useEffect(() => {
     if (connectionStatus === "connected" && user) {
@@ -868,12 +870,37 @@ const Index = () => {
               <div className="flex items-center gap-2">
                 <Trophy size={14} className="text-secondary" />
                 <h2 className="text-sm font-heading font-bold text-foreground">TikTok LIVE Rankings</h2>
-                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Last Day · GB</span>
+                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Last Day</span>
               </div>
-              <button onClick={fetchRankings} disabled={rankingsLoading}
-                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-                <RefreshCw size={12} className={rankingsLoading ? "animate-spin" : ""} />
-              </button>
+              <div className="flex items-center gap-2">
+                <select
+                  value={rankingsRegion}
+                  onChange={(e) => {
+                    setRankingsRegion(e.target.value);
+                    fetchRankings(e.target.value);
+                  }}
+                  className="text-[11px] px-2 py-1 rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:border-primary/30 transition-colors"
+                >
+                  <option value="gb" className="bg-background text-foreground">🇬🇧 GB</option>
+                  <option value="us" className="bg-background text-foreground">🇺🇸 US</option>
+                  <option value="de" className="bg-background text-foreground">🇩🇪 DE</option>
+                  <option value="fr" className="bg-background text-foreground">🇫🇷 FR</option>
+                  <option value="es" className="bg-background text-foreground">🇪🇸 ES</option>
+                  <option value="br" className="bg-background text-foreground">🇧🇷 BR</option>
+                  <option value="id" className="bg-background text-foreground">🇮🇩 ID</option>
+                  <option value="my" className="bg-background text-foreground">🇲🇾 MY</option>
+                  <option value="ph" className="bg-background text-foreground">🇵🇭 PH</option>
+                  <option value="vn" className="bg-background text-foreground">🇻🇳 VN</option>
+                  <option value="th" className="bg-background text-foreground">🇹🇭 TH</option>
+                  <option value="sa" className="bg-background text-foreground">🇸🇦 SA</option>
+                  <option value="tr" className="bg-background text-foreground">🇹🇷 TR</option>
+                  <option value="jp" className="bg-background text-foreground">🇯🇵 JP</option>
+                </select>
+                <button onClick={() => fetchRankings()} disabled={rankingsLoading}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
+                  <RefreshCw size={12} className={rankingsLoading ? "animate-spin" : ""} />
+                </button>
+              </div>
             </div>
             {rankingsLoading && rankings.length === 0 ? (
               <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">

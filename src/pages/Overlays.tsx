@@ -292,17 +292,8 @@ const Overlays = () => {
                     {overlay.route && (
                       <div className="flex items-center gap-2 mt-3">
                         <Link to={overlay.route} className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-primary/20 text-xs font-medium text-primary hover:bg-primary/5 transition-all duration-200 hover:-translate-y-0.5">
-                          <Settings size={11} /> Configure
+                          <Settings size={11} /> Configure & Copy URL
                         </Link>
-                        <button
-                          onClick={() => {
-                            const url = `${getOverlayBaseUrl()}/overlay/${overlay.route?.replace("/", "")}`;
-                            copyToClipboard(url, "Overlay URL copied!");
-                          }}
-                          className="flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-border/60 text-xs font-medium text-muted-foreground hover:text-foreground transition-all duration-200 hover:-translate-y-0.5"
-                        >
-                          <Copy size={11} /> Copy URL
-                        </button>
                       </div>
                     )}
                   </div>

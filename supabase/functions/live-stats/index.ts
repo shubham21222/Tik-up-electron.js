@@ -217,14 +217,14 @@ async function fetchLiveStats(
             if (ri.id) collected.room_id = String(ri.id);
             if (ri.title) collected.title = ri.title;
             if (ri.startTime) collected.start_time = Number(ri.startTime);
-            collected.viewer_count = Number(ri.totalViewers || ri.viewerCount || ri.currentViewers || collected.viewer_count) || 0;
+            collected.viewer_count = Number(ri.currentViewers || ri.viewerCount || collected.viewer_count) || 0;
             collected.like_count = Number(ri.likeCount || ri.totalLikes || collected.like_count) || 0;
             collected.share_count = Number(ri.shareCount || ri.totalShares || collected.share_count) || 0;
             collected.follower_count = Number(ri.followerCount || collected.follower_count) || 0;
 
             if (ri.liveRoomStats) {
               const s = ri.liveRoomStats;
-              if (s.totalUser) collected.viewer_count = Number(s.totalUser);
+              // Don't use totalUser for viewer count — it's cumulative, not current
               if (s.likeCount) collected.like_count = Number(s.likeCount);
               if (s.shareCount) collected.share_count = Number(s.shareCount);
             }
@@ -236,8 +236,8 @@ async function fetchLiveStats(
 
           if (msgType === "WebcastRoomUserSeqMessage") {
             collected.is_live = true;
-            if (data.viewerCount !== undefined) collected.viewer_count = Number(data.viewerCount);
-            if (data.total !== undefined) collected.viewer_count = Number(data.total);
+            // Skip viewer count from this message — it's often inflated vs TikTok's real count
+            // Rely on roomInfo.currentViewers instead
           }
 
           if (msgType === "WebcastLikeMessage") {
@@ -257,10 +257,7 @@ async function fetchLiveStats(
             console.log(`Gift captured: ${giftName} x${repeatCount}`);
           }
 
-          if (data.viewerCount !== undefined && collected.viewer_count === 0) {
-            collected.is_live = true;
-            collected.viewer_count = Number(data.viewerCount);
-          }
+          // Only use viewerCount from roomInfo messages, not other message types
         }
 
         if (collected.is_live && !resolveTimer) {

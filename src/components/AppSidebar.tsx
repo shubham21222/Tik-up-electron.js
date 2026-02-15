@@ -78,6 +78,7 @@ const sections: SidebarSection[] = [
     label: "Enterprise",
     emoji: "🏢",
     items: [
+      { id: "/enterprise", label: "Command Center", icon: BarChart3 },
       { id: "/agencies", label: "Agency Hub", icon: Building2 },
     ],
   },

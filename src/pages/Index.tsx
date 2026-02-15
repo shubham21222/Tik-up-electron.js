@@ -489,10 +489,10 @@ const Index = () => {
       label: "Gifts",
       value: mergedGifts,
       icon: Gift,
-      change: wsConnected ? (mergedGifts > 0 ? `🪙 ${mergedGifts} coins earned` : "⚡ Waiting for gifts") : "—",
+      change: wsConnected ? (mergedGifts > 0 ? `💎 ${formatCompact(mergedGifts)} diamonds earned` : "⚡ Waiting for gifts") : "—",
       changeColor: wsConnected ? "hsl(280 100% 65%)" : "hsl(0 0% 40%)",
       accentColor: "280 100% 65%",
-      prefix: "🪙 ",
+      prefix: "💎 ",
     },
   ];
 

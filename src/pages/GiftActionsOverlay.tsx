@@ -12,14 +12,17 @@ import SettingToggle from "@/components/overlays/settings/SettingToggle";
 import GiftActionsPreview from "@/components/overlays/previews/GiftActionsPreview";
 import ProGate from "@/components/ProGate";
 
-const EMOJI_OPTIONS = ["🏀","🌹","💜","🍩","⭐","🎁","🔥","💎","👑","🎵","🦋","🌈","❤️","💀","🐱","🎯","🏆","💰","🎮","🍕"];
+const GIFT_OPTIONS = [
+  "/gifts/rose.png", "/gifts/flame_heart.png", "/gifts/fluffy_heart.png", "/gifts/morning_bloom.png",
+  "/gifts/wink_wink.png", "/gifts/youre_awesome.png", "/gifts/blow_a_kiss.png", "/gifts/love_you_so_much.png",
+];
 
 const defaultGiftActionsSettings = {
   items: [
-    { emoji: "🏀", label: "Jump" },
-    { emoji: "🌹", label: "Dance" },
-    { emoji: "💜", label: "Emote" },
-    { emoji: "🍩", label: "Spin" },
+    { img: "/gifts/rose.png", label: "Jump" },
+    { img: "/gifts/flame_heart.png", label: "Dance" },
+    { img: "/gifts/fluffy_heart.png", label: "Emote" },
+    { img: "/gifts/morning_bloom.png", label: "Spin" },
   ],
   scroll_speed: 30,
   icon_size: 64,
@@ -82,7 +85,7 @@ const GiftActionsOverlay = () => {
               };
               const addItem = () => {
                 if (items.length >= 12) return;
-                set("items", [...items, { emoji: EMOJI_OPTIONS[items.length % EMOJI_OPTIONS.length], label: `Action ${items.length + 1}` }]);
+                set("items", [...items, { img: GIFT_OPTIONS[items.length % GIFT_OPTIONS.length], label: `Action ${items.length + 1}` }]);
               };
               const removeItem = (idx: number) => {
                 if (items.length <= 1) return;
@@ -100,15 +103,20 @@ const GiftActionsOverlay = () => {
                       <p className="text-[12px] font-medium text-foreground mb-2">Gift → Action Items</p>
                       <div className="space-y-2 max-h-[280px] overflow-y-auto pr-1">
                         {items.map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-2">
-                            {/* Emoji picker - simple select */}
-                            <select
-                              value={item.emoji}
-                              onChange={e => updateItem(idx, "emoji", e.target.value)}
-                              className="w-12 text-center text-lg bg-white/[0.02] border border-white/[0.08] rounded-lg py-1 text-foreground focus:outline-none focus:border-primary/30 cursor-pointer"
-                            >
-                              {EMOJI_OPTIONS.map(e => <option key={e} value={e}>{e}</option>)}
-                            </select>
+                      <div key={idx} className="flex items-center gap-2">
+                            {/* Gift image picker */}
+                            <div className="relative">
+                              <select
+                                value={item.img}
+                                onChange={e => updateItem(idx, "img", e.target.value)}
+                                className="w-12 h-9 bg-white/[0.02] border border-white/[0.08] rounded-lg text-foreground focus:outline-none focus:border-primary/30 cursor-pointer opacity-0 absolute inset-0 z-10"
+                              >
+                                {GIFT_OPTIONS.map(g => <option key={g} value={g}>{g.split("/").pop()?.replace(".png","")}</option>)}
+                              </select>
+                              <div className="w-12 h-9 flex items-center justify-center bg-white/[0.02] border border-white/[0.08] rounded-lg">
+                                <img src={item.img} alt="" className="w-7 h-7 object-contain" draggable={false} />
+                              </div>
+                            </div>
                             <input
                               value={item.label}
                               onChange={e => updateItem(idx, "label", e.target.value)}

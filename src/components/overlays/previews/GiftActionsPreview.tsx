@@ -1,12 +1,12 @@
 import { motion } from "framer-motion";
 
 const DEMO_ITEMS = [
-  { emoji: "🏀", label: "Jump" },
-  { emoji: "🌹", label: "Dance" },
-  { emoji: "💜", label: "Emote" },
-  { emoji: "🍩", label: "Spin" },
-  { emoji: "⭐", label: "Shoutout" },
-  { emoji: "🎁", label: "Surprise" },
+  { img: "/gifts/rose.png", label: "Jump" },
+  { img: "/gifts/flame_heart.png", label: "Dance" },
+  { img: "/gifts/fluffy_heart.png", label: "Emote" },
+  { img: "/gifts/morning_bloom.png", label: "Spin" },
+  { img: "/gifts/love_you_so_much.png", label: "Shoutout" },
+  { img: "/gifts/wink_wink.png", label: "Surprise" },
 ];
 
 const GiftActionsPreview = () => (
@@ -24,13 +24,15 @@ const GiftActionsPreview = () => (
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: i * 0.12 }}
         >
-          <motion.div
-            className="text-[36px] leading-none"
+          <motion.img
+            src={item.img}
+            alt={item.label}
+            className="w-[42px] h-[42px] object-contain"
+            draggable={false}
+            style={{ filter: "drop-shadow(0 2px 6px rgba(0,0,0,0.4))" }}
             animate={{ y: [0, -4, 0] }}
             transition={{ duration: 2, repeat: Infinity, delay: i * 0.3 }}
-          >
-            {item.emoji}
-          </motion.div>
+          />
           <span
             className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md"
             style={{

@@ -132,20 +132,21 @@ export function useTikTokLive() {
               // Load gift map using room_id
               const roomId = String(ri.id || "");
               if (roomId && Object.keys(giftMapRef.current).length === 0) {
-                supabase.auth.getSession().then(({ data: sess }) => {
-                  if (!sess?.session) return;
-                  fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gift-map?room_id=${roomId}`, {
-                    headers: { Authorization: `Bearer ${sess.session.access_token}` },
+                const giftMapUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gift-map?room_id=${roomId}`;
+                fetch(giftMapUrl, {
+                  headers: {
+                    Authorization: `Bearer ${session?.access_token}`,
+                    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                  },
+                })
+                  .then(r => r.json())
+                  .then(giftData => {
+                    if (giftData?.gifts && Object.keys(giftData.gifts).length > 0) {
+                      giftMapRef.current = giftData.gifts;
+                      console.log(`💎 Gift map loaded: ${Object.keys(giftData.gifts).filter((k: string) => !k.startsWith("name:")).length} gifts`);
+                    }
                   })
-                    .then(r => r.json())
-                    .then(giftData => {
-                      if (giftData.gifts && Object.keys(giftData.gifts).length > 0) {
-                        giftMapRef.current = giftData.gifts;
-                        console.log(`💎 Gift map loaded: ${giftData.count} gifts`);
-                      }
-                    })
-                    .catch(e => console.error("Failed to load gift map:", e));
-                });
+                  .catch(e => console.error("Failed to load gift map:", e));
               }
 
               if (ri.liveRoomStats) {

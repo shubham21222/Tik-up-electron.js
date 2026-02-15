@@ -37,6 +37,7 @@ const WebcamFramePreview = lazy(() => import("@/components/overlays/previews/Web
 const VideoCamFramePreview = lazy(() => import("@/components/overlays/previews/VideoCamFramePreview"));
 const VideoLabelBarPreview = lazy(() => import("@/components/overlays/previews/VideoLabelBarPreview"));
 const CoinJarPreview = lazy(() => import("@/components/overlays/previews/CoinJarPreview"));
+const SpinWheelPreview = lazy(() => import("@/components/overlays/previews/SpinWheelPreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -66,6 +67,7 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Video Cam Frame": VideoCamFramePreview,
   "Video Label Bar": VideoLabelBarPreview,
   "Coin Jar": CoinJarPreview,
+  "Spin Wheel": SpinWheelPreview,
 };
 
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -109,6 +111,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Video Cam Frame", description: "Animated WebM video webcam frame with glow and color options. Transparent loop for OBS.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/video-cam-frame", tags: ["Video", "Webcam"] },
     { title: "Video Label Bar", description: "Animated WebM label bar overlay for your stream. Color customizable transparent loop.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/video-label-bar", tags: ["Video", "Label"] },
     { title: "Coin Jar", description: "Watch the jar fill with gifts as viewers interact. A fun, visual way to track your gift goal in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/coin-jar", tags: ["Gift", "Goal", "Interactive"] },
+    { title: "Spin Wheel", description: "Viewers trigger spins with gifts. Land on custom dares, prizes, or actions. Fully animated with winner reveal.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/spin-wheel", tags: ["Interactive", "Gift", "Game"] },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },

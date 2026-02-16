@@ -2,8 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
-const ADMIN_EMAIL = "support@tikup.xyz";
-
 export const TIKUP_PRO = {
   price_id: "price_1T0elJFDweiUKVfYEBKZna3E",
   product_id: "prod_TybzkOW2XCM3TF",
@@ -44,13 +42,6 @@ export function useSubscription() {
   const checkSubscription = useCallback(async () => {
     if (!user) {
       setSubState(null);
-      setLoading(false);
-      return;
-    }
-
-    // Quick admin check on client side for instant UI
-    if (user.email === ADMIN_EMAIL) {
-      setSubState({ subscribed: true, plan: "pro", is_admin: true, subscription_end: null });
       setLoading(false);
       return;
     }

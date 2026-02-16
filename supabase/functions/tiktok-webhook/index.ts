@@ -478,14 +478,41 @@ Deno.serve(async (req) => {
     const rawBody = await req.text();
     const body = JSON.parse(rawBody);
     const webhookSignature = req.headers.get("x-webhook-signature");
+    const webhookSecret = req.headers.get("x-webhook-secret");
+
+    // ── SECURITY: Validate authentication on ALL webhook paths ──
+    const eulerWebKey = Deno.env.get("EULER_ALERT_WEB_KEY") || "";
+    const bridgeWebhookSecret = Deno.env.get("TIKTOK_WEBHOOK_SECRET") || eulerWebKey;
+
+    // ── Replay attack prevention: validate timestamp ──
+    const requestTimestamp = req.headers.get("x-webhook-timestamp");
+    if (requestTimestamp) {
+      const tsMs = Number(requestTimestamp);
+      const now = Date.now();
+      const fiveMinutes = 5 * 60 * 1000;
+      if (isNaN(tsMs) || Math.abs(now - tsMs) > fiveMinutes) {
+        console.error("❌ Webhook timestamp outside tolerance window");
+        return new Response(JSON.stringify({ error: "Request timestamp expired" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
 
     // ── Detect EulerStream native alert webhook format ──
     let tiktok_username: string;
     let events: TikTokEvent[];
 
     if (body.alert && body.creator) {
-      // Validate HMAC signature if present
-      if (webhookSignature) {
+      // EulerStream alerts: validate HMAC signature (required when secret is configured)
+      if (eulerWebKey) {
+        if (!webhookSignature) {
+          console.error("❌ Missing webhook signature for EulerStream alert");
+          return new Response(JSON.stringify({ error: "Missing signature" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
         const valid = await validateWebhookSignature(rawBody, webhookSignature);
         if (!valid) {
           console.error("❌ Invalid webhook signature");
@@ -494,7 +521,7 @@ Deno.serve(async (req) => {
             headers: { ...corsHeaders, "Content-Type": "application/json" },
           });
         }
-        console.log("✅ Webhook signature validated");
+        console.log("✅ EulerStream webhook signature validated");
       }
 
       // Check if this is a "creator went live" alert (state changes)
@@ -515,7 +542,6 @@ Deno.serve(async (req) => {
 
           if (profile) {
             const statusEvent = isLiveAlert ? "creator_live" : "creator_offline";
-            console.log(`📡 ${statusEvent} for @${creatorUsername}`);
 
             // Broadcast live status to dashboard
             await broadcast(`dashboard_${profile.user_id}`, statusEvent, {
@@ -557,9 +583,39 @@ Deno.serve(async (req) => {
       }
       tiktok_username = parsed.tiktok_username;
       events = parsed.events;
-      console.log(`📡 EulerStream alert received for @${tiktok_username}: ${events.map(e => e.type).join(", ")}`);
     } else {
-      // Bridge format: { tiktok_username, events: [...] }
+      // Bridge format: validate shared secret (REQUIRED when configured)
+      if (bridgeWebhookSecret) {
+        // Support both HMAC signature and shared secret header
+        let authenticated = false;
+
+        // Method 1: HMAC signature verification
+        if (webhookSignature) {
+          authenticated = await validateWebhookSignature(rawBody, webhookSignature);
+        }
+
+        // Method 2: Shared secret header
+        if (!authenticated && webhookSecret) {
+          // Constant-time comparison
+          if (webhookSecret.length === bridgeWebhookSecret.length) {
+            let diff = 0;
+            for (let i = 0; i < webhookSecret.length; i++) {
+              diff |= webhookSecret.charCodeAt(i) ^ bridgeWebhookSecret.charCodeAt(i);
+            }
+            authenticated = diff === 0;
+          }
+        }
+
+        if (!authenticated) {
+          console.error("❌ Bridge webhook authentication failed — missing or invalid secret/signature");
+          return new Response(JSON.stringify({ error: "Unauthorized: invalid webhook credentials" }), {
+            status: 401,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        console.log("✅ Bridge webhook authenticated");
+      }
+
       tiktok_username = body.tiktok_username;
       events = body.events;
     }

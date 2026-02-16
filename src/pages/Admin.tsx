@@ -1,9 +1,9 @@
 import AppLayout from "@/components/AppLayout";
 import { useAuth } from "@/hooks/use-auth";
-import { useIsAdmin, useAdminUsers, useAdminAnalytics, useAdminLogs } from "@/hooks/use-admin";
+import { useIsAdmin, useAdminUsers, useAdminAnalytics, useAdminLogs, useAdminAuditLogs } from "@/hooks/use-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown, Gauge, AlertTriangle, Megaphone, Send, Trash2 } from "lucide-react";
+import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown, Gauge, AlertTriangle, Megaphone, Send, Trash2, Link2, FileSearch } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -26,7 +26,7 @@ const Admin = () => {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useIsAdmin();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses" | "ratelimits" | "announcements">("analytics");
+  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses" | "ratelimits" | "announcements" | "tiktok" | "audit">("analytics");
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -41,8 +41,10 @@ const Admin = () => {
   const tabs = [
     { id: "analytics" as const, label: "Analytics", icon: BarChart3 },
     { id: "users" as const, label: "Users", icon: Users },
+    { id: "tiktok" as const, label: "TikTok Links", icon: Link2 },
     { id: "announcements" as const, label: "Announcements", icon: Megaphone },
     { id: "logs" as const, label: "System Logs", icon: ScrollText },
+    { id: "audit" as const, label: "Audit Log", icon: FileSearch },
     { id: "licenses" as const, label: "Licenses", icon: CreditCard },
     { id: "ratelimits" as const, label: "API Limits", icon: Gauge },
   ];
@@ -72,8 +74,10 @@ const Admin = () => {
 
         {tab === "analytics" && <AnalyticsTab />}
         {tab === "users" && <UsersTab />}
+        {tab === "tiktok" && <TikTokLinksTab />}
         {tab === "announcements" && <AnnouncementsTab />}
         {tab === "logs" && <LogsTab />}
+        {tab === "audit" && <AuditLogTab />}
         {tab === "licenses" && <LicensesTab />}
         {tab === "ratelimits" && <RateLimitsTab />}
       </div>
@@ -391,6 +395,156 @@ const LimitBar = ({ label, used, max, color }: { label: string; used: number; ma
       <div className="h-2 rounded-full bg-muted/20 overflow-hidden">
         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.6 }}
           className="h-full rounded-full" style={{ background: `hsl(${color})` }} />
+      </div>
+    </div>
+  );
+};
+
+const TikTokLinksTab = () => {
+  const { users, loading, refetch, unlinkTiktok, overrideTiktok } = useAdminUsers();
+  const [unlinking, setUnlinking] = useState<string | null>(null);
+  const [overrideUser, setOverrideUser] = useState<string | null>(null);
+  const [overrideUsername, setOverrideUsername] = useState("");
+
+  const handleUnlink = async (userId: string) => {
+    setUnlinking(userId);
+    try {
+      await unlinkTiktok(userId);
+      toast.success("TikTok username unlinked");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to unlink");
+    }
+    setUnlinking(null);
+  };
+
+  const handleOverride = async (userId: string) => {
+    if (!overrideUsername.trim()) return;
+    try {
+      await overrideTiktok(userId, overrideUsername.trim());
+      toast.success(`Username overridden to @${overrideUsername.trim()}`);
+      setOverrideUser(null);
+      setOverrideUsername("");
+    } catch (e: any) {
+      toast.error(e.message || "Failed to override");
+    }
+  };
+
+  const linkedUsers = users.filter((u: any) => u.tiktok_username);
+
+  if (loading) return <div className="animate-pulse text-muted-foreground">Loading...</div>;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm text-muted-foreground">{linkedUsers.length} linked accounts</span>
+        <button onClick={() => refetch()} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          <RefreshCw size={12} /> Refresh
+        </button>
+      </div>
+      <div className="rounded-xl border border-border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-muted/10 border-b border-border">
+              <th className="text-left p-3 text-muted-foreground font-medium">User</th>
+              <th className="text-left p-3 text-muted-foreground font-medium">TikTok Username</th>
+              <th className="text-left p-3 text-muted-foreground font-medium">Locked At</th>
+              <th className="text-left p-3 text-muted-foreground font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {linkedUsers.map((u: any) => (
+              <tr key={u.id} className="border-b border-border hover:bg-muted/5">
+                <td className="p-3">
+                  <div className="font-medium text-foreground">{u.display_name || "—"}</div>
+                  <div className="text-xs text-muted-foreground">{u.email}</div>
+                </td>
+                <td className="p-3 text-foreground font-mono">@{u.tiktok_username}</td>
+                <td className="p-3 text-xs text-muted-foreground">
+                  {u.username_locked_at ? new Date(u.username_locked_at).toLocaleString() : "—"}
+                </td>
+                <td className="p-3">
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleUnlink(u.user_id)}
+                      disabled={unlinking === u.user_id}
+                      className="px-3 py-1 rounded-lg text-[11px] font-medium bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50"
+                    >
+                      {unlinking === u.user_id ? "..." : "Unlink"}
+                    </button>
+                    {overrideUser === u.user_id ? (
+                      <div className="flex gap-1">
+                        <input
+                          value={overrideUsername}
+                          onChange={e => setOverrideUsername(e.target.value)}
+                          placeholder="new_username"
+                          className="w-28 bg-muted border border-border rounded px-2 py-1 text-xs text-foreground outline-none"
+                        />
+                        <button onClick={() => handleOverride(u.user_id)}
+                          className="px-2 py-1 rounded text-[11px] font-medium bg-primary/20 text-primary hover:bg-primary/30">
+                          Save
+                        </button>
+                        <button onClick={() => { setOverrideUser(null); setOverrideUsername(""); }}
+                          className="px-2 py-1 rounded text-[11px] text-muted-foreground hover:text-foreground">
+                          ✕
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => { setOverrideUser(u.user_id); setOverrideUsername(u.tiktok_username || ""); }}
+                        className="px-3 py-1 rounded-lg text-[11px] font-medium bg-muted/20 text-muted-foreground hover:bg-muted/40 hover:text-foreground transition-colors"
+                      >
+                        Override
+                      </button>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            ))}
+            {linkedUsers.length === 0 && (
+              <tr><td colSpan={4} className="p-8 text-center text-sm text-muted-foreground">No TikTok accounts linked yet.</td></tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const AuditLogTab = () => {
+  const { logs, loading, refetch } = useAdminAuditLogs();
+
+  if (loading) return <div className="animate-pulse text-muted-foreground">Loading audit logs...</div>;
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-sm text-muted-foreground">{logs.length} audit entries</span>
+        <button onClick={() => refetch()} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+          <RefreshCw size={12} /> Refresh
+        </button>
+      </div>
+      <div className="space-y-2">
+        {logs.map((log: any) => (
+          <div key={log.id} className="rounded-lg border border-border p-3 bg-muted/5">
+            <div className="flex items-center justify-between mb-1">
+              <span className={`text-xs font-mono px-2 py-0.5 rounded ${
+                log.action.includes("unlink") ? "bg-destructive/10 text-destructive" :
+                log.action.includes("override") ? "bg-amber-500/10 text-amber-400" :
+                "bg-primary/10 text-primary"
+              }`}>{log.action}</span>
+              <span className="text-[10px] text-muted-foreground">{new Date(log.created_at).toLocaleString()}</span>
+            </div>
+            {log.target_user_id && (
+              <p className="text-[11px] text-muted-foreground">Target: {log.target_user_id}</p>
+            )}
+            {log.details && Object.keys(log.details).length > 0 && (
+              <pre className="text-[10px] text-muted-foreground mt-1 overflow-x-auto font-mono">
+                {JSON.stringify(log.details, null, 2).slice(0, 300)}
+              </pre>
+            )}
+          </div>
+        ))}
+        {logs.length === 0 && <p className="text-sm text-muted-foreground text-center py-8">No audit events logged yet.</p>}
       </div>
     </div>
   );

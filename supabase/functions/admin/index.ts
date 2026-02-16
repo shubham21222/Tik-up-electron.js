@@ -140,6 +140,85 @@ Deno.serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
+
+      if (action === "unlink_tiktok") {
+        const { user_id: targetUserId } = body;
+        if (!targetUserId) throw new Error("Missing user_id");
+
+        // Get current username for audit log
+        const { data: targetProfile } = await adminClient
+          .from("profiles")
+          .select("tiktok_username")
+          .eq("user_id", targetUserId)
+          .maybeSingle();
+
+        await adminClient.from("profiles").update({
+          tiktok_username: null,
+          tiktok_connected: false,
+          tiktok_connected_at: null,
+          username_locked_at: null,
+        }).eq("user_id", targetUserId);
+
+        // Audit log
+        await adminClient.from("security_audit_log").insert({
+          user_id: user.id,
+          action: "admin_unlink_tiktok",
+          target_user_id: targetUserId,
+          details: { previous_username: targetProfile?.tiktok_username || null },
+        });
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      if (action === "override_tiktok") {
+        const { user_id: targetUserId, tiktok_username } = body;
+        if (!targetUserId || !tiktok_username) throw new Error("Missing user_id or tiktok_username");
+
+        // Get current username for audit log
+        const { data: targetProfile } = await adminClient
+          .from("profiles")
+          .select("tiktok_username")
+          .eq("user_id", targetUserId)
+          .maybeSingle();
+
+        await adminClient.from("profiles").update({
+          tiktok_username,
+          tiktok_connected: true,
+          tiktok_connected_at: new Date().toISOString(),
+          username_locked_at: new Date().toISOString(),
+        }).eq("user_id", targetUserId);
+
+        // Audit log
+        await adminClient.from("security_audit_log").insert({
+          user_id: user.id,
+          action: "admin_override_tiktok",
+          target_user_id: targetUserId,
+          details: {
+            previous_username: targetProfile?.tiktok_username || null,
+            new_username: tiktok_username,
+          },
+        });
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+    }
+
+    // --- GET: Security audit logs ---
+    if (req.method === "GET" && action === "audit_logs") {
+      const limit = parseInt(url.searchParams.get("limit") || "100");
+      const { data: auditLogs } = await adminClient
+        .from("security_audit_log")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .limit(limit);
+
+      return new Response(JSON.stringify({ logs: auditLogs || [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     return new Response(JSON.stringify({ error: "Unknown action" }), {

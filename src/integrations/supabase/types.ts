@@ -790,6 +790,7 @@ export type Database = {
           tiktok_username: string | null
           updated_at: string
           user_id: string
+          username_locked_at: string | null
         }
         Insert: {
           avatar_url?: string | null
@@ -803,6 +804,7 @@ export type Database = {
           tiktok_username?: string | null
           updated_at?: string
           user_id: string
+          username_locked_at?: string | null
         }
         Update: {
           avatar_url?: string | null
@@ -816,6 +818,7 @@ export type Database = {
           tiktok_username?: string | null
           updated_at?: string
           user_id?: string
+          username_locked_at?: string | null
         }
         Relationships: []
       }
@@ -851,6 +854,36 @@ export type Database = {
           queue_limit?: number
           status?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      security_audit_log: {
+        Row: {
+          action: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: string | null
+          target_user_id: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_user_id?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: string | null
+          target_user_id?: string | null
           user_id?: string
         }
         Relationships: []

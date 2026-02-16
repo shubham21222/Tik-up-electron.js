@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-const V = "v5";
+const V = "v6";
 const TIERS = [
   { src: `/buddies/legendary-cat.png?${V}`, size: 52, x: "18%", glow: "0 0 18px rgba(255,200,50,0.6)", crown: true, name: "TopGifter" },
   { src: `/buddies/epic.png?${V}`, size: 44, x: "45%", glow: "0 0 12px rgba(160,80,255,0.5)", crown: false, name: "EpicFan" },

@@ -48,7 +48,7 @@ interface BuddyEvent {
 }
 
 /* ─── Constants ─────────────────────────────────────────── */
-const SPRITE_V = "v3";
+const SPRITE_V = "v4";
 const SPRITE_MAP: Record<Tier, string> = {
   common: `/buddies/common.png?${SPRITE_V}`,
   rare: `/buddies/rare.png?${SPRITE_V}`,

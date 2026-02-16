@@ -119,7 +119,7 @@ const TickerRenderer = () => {
         </motion.div>
       </div>
 
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

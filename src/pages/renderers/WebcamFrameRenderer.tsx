@@ -86,7 +86,6 @@ const WebcamFrameRenderer = () => {
             boxShadow: `0 0 ${8*g}px hsl(${c1}/0.4)` }}
             animate={{ opacity: [0.6, 1, 0.6] }} transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }} />
         ))}
-        {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
       </div></div>
     );
   }
@@ -102,7 +101,6 @@ const WebcamFrameRenderer = () => {
         animate={{ left: ["0%", "60%"] }} transition={{ duration: dur * 2, repeat: Infinity, ease: "easeInOut" }} />
       <motion.div className="absolute bottom-0 right-0 h-[3px]" style={{ width: "30%", background: "linear-gradient(90deg,transparent,hsl(45 90% 70%/0.6),transparent)" }}
         animate={{ right: ["0%", "70%"] }} transition={{ duration: dur * 2.5, repeat: Infinity, ease: "easeInOut", delay: 1 }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div></div>
   );
 
@@ -117,7 +115,6 @@ const WebcamFrameRenderer = () => {
           ...(i===0?{top:0,left:0}:i===1?{bottom:0,right:0}:i===2?{top:0,right:0}:{bottom:0,left:0}),
         }} animate={{ opacity: [0,1,0] }} transition={{ duration: 0.6, repeat: Infinity, repeatDelay: 1.5+i*0.4 }} />
       ))}
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div></div>
   );
 
@@ -126,7 +123,6 @@ const WebcamFrameRenderer = () => {
     <div className={wrap}><div style={frameStyle}>
       <div className="absolute inset-0" style={{ borderRadius: r, border: `${t}px solid hsl(${c1}/0.1)` }} />
       {particles.map(p => <P key={p.id} d={p.delay} x={p.x} y={p.y} c={p.c} />)}
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div></div>
   );
 
@@ -142,7 +138,6 @@ const WebcamFrameRenderer = () => {
         animate={{ width: ["0%", "100%", "0%"], opacity: [0,1,0] }} transition={{ duration: dur*1.5, repeat: Infinity, ease: "easeInOut", delay: dur*0.7 }} />
       <motion.div className="absolute bottom-0 left-0 w-[3px]" style={{ background: "hsl(210 100% 70%)", boxShadow: "0 0 10px hsl(210 100% 60%)" }}
         animate={{ height: ["0%", "100%", "0%"], opacity: [0,1,0] }} transition={{ duration: dur*1.5, repeat: Infinity, ease: "easeInOut", delay: dur*1.05 }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div></div>
   );
 
@@ -161,7 +156,6 @@ const WebcamFrameRenderer = () => {
             animate={{ boxShadow: [`0 0 ${8*g}px hsl(${c1}/0.2)`, `0 0 ${25*g}px hsl(${c1}/0.6)`, `0 0 ${8*g}px hsl(${c1}/0.2)`] }}
             transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.25 }} />
         ))}
-        {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
       </div></div>
     );
   }
@@ -176,7 +170,6 @@ const WebcamFrameRenderer = () => {
         animate={{ rotate: [0, 360] }} transition={{ duration: dur * 4, repeat: Infinity, ease: "linear" }}>
         <div className="w-full h-full" style={{ borderRadius: r - t }} />
       </motion.div>
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div></div>
   );
 
@@ -188,7 +181,6 @@ const WebcamFrameRenderer = () => {
         animate={{ top: ["0px", `${size}px`] }} transition={{ duration: dur * 2.5, repeat: Infinity, repeatType: "reverse", ease: "easeInOut" }} />
       <motion.div className="absolute top-0 bottom-0 w-[2px]" style={{ background: "linear-gradient(180deg,transparent,hsl(300 100% 70%/0.5),hsl(180 100% 70%/0.3),transparent)" }}
         animate={{ left: ["0px", `${size}px`] }} transition={{ duration: dur * 3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut", delay: 0.5 }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div></div>
   );
 
@@ -206,7 +198,6 @@ const WebcamFrameRenderer = () => {
           animate={{ opacity: [0,0.8,0], y: sp.side<2?[0,-10,0]:undefined, x: sp.side>=2?[0,-8,0]:undefined }}
           transition={{ duration: 1.2, repeat: Infinity, delay: sp.delay, repeatDelay: 1 }} />
       ))}
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div></div>
   );
 
@@ -227,7 +218,7 @@ const WebcamFrameRenderer = () => {
             transition={{ duration: 0.7 + (i % 4) * 0.12, repeat: Infinity, ease: "easeInOut", delay: i * 0.1 }} />
         );
       })}
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+      
     </div></div>
   );
 };

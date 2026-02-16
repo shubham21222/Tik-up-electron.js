@@ -67,7 +67,7 @@ const SlotMachineRenderer = () => {
         </motion.div>}
         {!win && lastUser && <div className="text-center mt-2"><span className="text-xs text-white/40">{lastUser} spun!</span></div>}
       </div>
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

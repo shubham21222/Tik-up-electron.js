@@ -197,7 +197,7 @@ const AnimatedBgRenderer = () => {
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
       )}
 
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

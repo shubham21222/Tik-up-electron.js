@@ -115,7 +115,7 @@ const PromoOverlayRenderer = () => {
           style={{ background: `linear-gradient(90deg, transparent, hsl(${accent} / 0.4), transparent)` }} />
       </motion.div>
 
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

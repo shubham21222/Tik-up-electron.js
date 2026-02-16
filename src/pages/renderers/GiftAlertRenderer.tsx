@@ -234,7 +234,7 @@ const GiftAlertRenderer = () => {
         })}
       </AnimatePresence>
 
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+      
     </div>
   );
 };

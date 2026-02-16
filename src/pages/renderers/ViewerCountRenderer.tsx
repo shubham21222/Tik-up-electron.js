@@ -42,7 +42,7 @@ const ViewerCountRenderer = () => {
         <motion.span className={`font-black text-white ${fontClass}`} style={{ fontSize: settings.font_size }} key={count} initial={{ scale: 1.2 }} animate={{ scale: 1 }}>{count.toLocaleString()}</motion.span>
       </div>
       <p className="absolute mt-12 text-[10px] text-white/40">{settings.label_text || "viewers"}</p>
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

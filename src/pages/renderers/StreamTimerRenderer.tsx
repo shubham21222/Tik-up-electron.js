@@ -61,7 +61,7 @@ const StreamTimerRenderer = () => {
         </motion.div>
       )}
       <span className={`font-black text-white ${fontClass}`} style={{ fontSize: settings.font_size, textShadow: settings.glow_animation ? `0 0 ${15 * glow}px hsl(${accent} / 0.3)` : "none" }}>{timeStr}</span>
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

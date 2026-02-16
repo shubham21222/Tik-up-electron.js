@@ -172,7 +172,7 @@ const SoundReactiveRenderer = () => {
         {audioActive && <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" title="Audio active" />}
       </div>
       <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

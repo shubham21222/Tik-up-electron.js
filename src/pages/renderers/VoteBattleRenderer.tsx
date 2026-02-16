@@ -81,7 +81,7 @@ const VoteBattleRenderer = () => {
         <span className="text-sm font-bold" style={{ color: "hsl(350 80% 65%)" }}>{scoreA} pts</span>
         <span className="text-sm font-bold" style={{ color: "hsl(200 80% 65%)" }}>{scoreB} pts</span>
       </div>
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

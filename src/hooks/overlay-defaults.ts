@@ -614,5 +614,5 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   progress_race: { team_count: 3, target: 100, score_source: "gifts", show_pct: true, auto_reset: true, transparent_bg: true, custom_css: "" },
   event_feed: defaultEventFeedSettings,
   stream_buddies: defaultStreamBuddiesSettings,
-  pacman: { theme: "tikup", vote_interval: 1.5, ghost_count: 4, speed_boost_duration: 2, shield_duration: 5, power_duration: 7, slow_duration: 4, transparent_bg: true, custom_css: "" },
+  pacman: { theme: "tikup", vote_interval: 1.5, ghost_count: 4, chaos_mode: true, speed_boost_duration: 3, shield_duration: 5, power_duration: 7, slow_pac_duration: 3, freeze_duration: 1.5, reverse_duration: 4, ghost_speed_duration: 5, swarm_duration: 8, slow_ghost_duration: 4, transparent_bg: true, custom_css: "" },
 };

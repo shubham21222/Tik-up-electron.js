@@ -1,7 +1,7 @@
-import { motion } from "framer-motion";
 import { useEffect, useRef } from "react";
+import { motion } from "framer-motion";
 
-/* Animated preview showing maze, pac-man, ghosts, effects, HUD */
+/* Animated preview: AI Pac-Man escaping ghosts with escape chance HUD */
 const PacManPreview = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -35,7 +35,7 @@ const PacManPreview = () => {
     const rows = maze.length;
     const cell = 14;
     const ox = (420 - cols * cell) / 2;
-    const oy = (280 - rows * cell) / 2 + 4;
+    const oy = (280 - rows * cell) / 2 + 12;
 
     const drawGhost = (x: number, y: number, color: string, scared: boolean) => {
       const gr = cell * 0.38;
@@ -53,7 +53,6 @@ const PacManPreview = () => {
       ctx.closePath();
       ctx.fill();
       ctx.shadowBlur = 0;
-      // Eyes
       ctx.fillStyle = "white";
       ctx.beginPath();
       ctx.arc(x - gr * 0.2, y - gr * 0.2, gr * 0.14, 0, Math.PI * 2);
@@ -68,21 +67,23 @@ const PacManPreview = () => {
       }
     };
 
-    // Effect cycle
-    const effectCycle = 12; // seconds per full cycle
-    const effects = [
-      { name: "NORMAL", icon: "🎮", color: "160 100% 45%", dur: 3 },
-      { name: "FROZEN", icon: "🧊", color: "200 100% 75%", dur: 2 },
-      { name: "POWER", icon: "👻", color: "280 100% 65%", dur: 3 },
-      { name: "REVERSED", icon: "🔄", color: "280 100% 65%", dur: 2 },
-      { name: "SHIELD", icon: "🛡️", color: "200 100% 60%", dur: 2 },
-    ];
-    let effectAcc = 0;
-    effects.forEach(e => { e.dur = e.dur; }); // normalize
+    // Simulate escape chance dropping
+    const getEscapeChance = (): number => {
+      const phase = (t % 10) / 10;
+      if (phase < 0.3) return 95;
+      if (phase < 0.5) return 75;
+      if (phase < 0.7) return 45;
+      if (phase < 0.85) return 35;
+      return 95; // reset
+    };
 
-    const getEffect = () => {
-      const phase = (t / effectCycle * effects.length) % effects.length;
-      return effects[Math.floor(phase)];
+    const getEffectLabel = (): { icon: string; label: string; color: string } | null => {
+      const phase = (t % 10) / 10;
+      if (phase < 0.3) return null;
+      if (phase < 0.5) return { icon: "🧊", label: "FROZEN -20%", color: "200 100% 75%" };
+      if (phase < 0.7) return { icon: "👻", label: "SWARM -30%", color: "0 90% 55%" };
+      if (phase < 0.85) return { icon: "🤪", label: "CONFUSED -25%", color: "45 100% 55%" };
+      return null;
     };
 
     const loop = () => {
@@ -90,10 +91,9 @@ const PacManPreview = () => {
       t += 0.016;
       ctx.clearRect(0, 0, 420, 280);
 
-      const eff = getEffect();
-      const isFrozen = eff.name === "FROZEN";
-      const isPowered = eff.name === "POWER";
-      const isShielded = eff.name === "SHIELD";
+      const escChance = getEscapeChance();
+      const eff = getEffectLabel();
+      const isFrozen = eff?.icon === "🧊";
 
       // Maze
       for (let r = 0; r < rows; r++) {
@@ -103,7 +103,6 @@ const PacManPreview = () => {
           if (maze[r][c] === 1) {
             ctx.fillStyle = "hsl(160 40% 12%)";
             ctx.fillRect(px, py, cell, cell);
-            // Neon edges
             const top = r > 0 && maze[r-1][c] !== 1;
             const bot = r < rows-1 && maze[r+1][c] !== 1;
             const lft = c > 0 && maze[r][c-1] !== 1;
@@ -125,13 +124,12 @@ const PacManPreview = () => {
         }
       }
 
-      // Pac-Man
+      // Pac-Man (AI movement)
       const pacPath = isFrozen ? 0 : Math.sin(t * 1.5) * 3;
       const pacX = ox + (4 + pacPath) * cell;
       const pacY = oy + 5.5 * cell;
       const mouth = isFrozen ? 0.15 : Math.abs(Math.sin(t * 5)) * 0.5;
 
-      // Freeze effect
       if (isFrozen) {
         ctx.strokeStyle = "hsl(200 100% 85% / 0.5)";
         ctx.lineWidth = 2;
@@ -147,63 +145,57 @@ const PacManPreview = () => {
         ctx.stroke();
       }
 
-      const pacColor = isFrozen ? "200 100% 75%" : isPowered ? "280 100% 65%" : isShielded ? "200 100% 60%" : "160 100% 45%";
+      const pacColor = isFrozen ? "200 100% 75%" : "160 100% 45%";
       ctx.fillStyle = `hsl(${pacColor})`;
       ctx.shadowColor = `hsl(${pacColor})`;
-      ctx.shadowBlur = isPowered ? 15 : 8;
+      ctx.shadowBlur = 8;
       ctx.beginPath();
       ctx.arc(pacX, pacY, cell * 0.4, mouth, Math.PI * 2 - mouth);
       ctx.lineTo(pacX, pacY);
       ctx.fill();
       ctx.shadowBlur = 0;
 
-      // Eye
       ctx.fillStyle = "hsl(0 0% 10%)";
       ctx.beginPath();
       ctx.arc(pacX + cell * 0.12, pacY - cell * 0.15, cell * 0.05, 0, Math.PI * 2);
       ctx.fill();
 
-      // Shield
-      if (isShielded) {
-        ctx.strokeStyle = `hsl(200 100% 65% / ${0.3 + Math.sin(t * 3) * 0.15})`;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(pacX, pacY, cell * 0.52, 0, Math.PI * 2);
-        ctx.stroke();
-      }
+      // "AI" label above pac-man
+      ctx.font = "bold 6px system-ui";
+      ctx.fillStyle = "hsl(160 100% 55% / 0.7)";
+      ctx.textAlign = "center";
+      ctx.fillText("🤖 AI", pacX, pacY - cell * 0.6);
+      ctx.textAlign = "start";
 
       // Ghosts
-      const g1x = ox + (10 + Math.cos(t * 0.8) * 2) * cell;
-      const g1y = oy + 3 * cell;
-      drawGhost(g1x, g1y, "0 85% 55%", isPowered);
+      drawGhost(ox + (10 + Math.cos(t * 0.8) * 2) * cell, oy + 3 * cell, "0 85% 55%", false);
+      drawGhost(ox + (13 + Math.sin(t * 0.6) * 1.5) * cell, oy + 7 * cell, "180 90% 50%", false);
+      drawGhost(ox + (8 + Math.cos(t * 0.9 + 1) * 1) * cell, oy + 9 * cell, "300 80% 55%", false);
 
-      const g2x = ox + (13 + Math.sin(t * 0.6) * 1.5) * cell;
-      const g2y = oy + 7 * cell;
-      drawGhost(g2x, g2y, "180 90% 50%", isPowered);
-
-      const g3x = ox + (8 + Math.cos(t * 0.9 + 1) * 1) * cell;
-      const g3y = oy + 9 * cell;
-      drawGhost(g3x, g3y, "300 80% 55%", isPowered);
-
-      // HUD
-      const hudGrad = ctx.createLinearGradient(0, 0, 0, 18);
-      hudGrad.addColorStop(0, "rgba(0,0,0,0.6)");
+      // HUD top bar
+      const hudGrad = ctx.createLinearGradient(0, 0, 0, 22);
+      hudGrad.addColorStop(0, "rgba(0,0,0,0.7)");
       hudGrad.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = hudGrad;
-      ctx.fillRect(0, 0, 420, 18);
+      ctx.fillRect(0, 0, 420, 22);
 
-      ctx.font = "bold 8px 'SF Mono', monospace, system-ui";
-      ctx.fillStyle = "hsl(0 0% 60%)";
-      ctx.fillText("SCORE", ox + 4, 8);
+      ctx.font = "bold 7px system-ui";
+      ctx.fillStyle = "hsl(0 0% 55%)";
+      ctx.fillText("SCORE", ox + 4, 7);
       ctx.fillStyle = "hsl(160 100% 55%)";
       ctx.font = "bold 9px 'SF Mono', monospace, system-ui";
       ctx.fillText("2,450", ox + 4, 16);
+
+      // Round
+      ctx.fillStyle = "hsl(0 0% 50%)";
+      ctx.font = "bold 7px system-ui";
+      ctx.fillText("ROUND 3", ox + 55, 7);
 
       // Lives
       ctx.fillStyle = "hsl(350 90% 55%)";
       for (let i = 0; i < 3; i++) {
         ctx.beginPath();
-        const lx = 210 + i * 12;
+        const lx = 200 + i * 12;
         ctx.arc(lx - 2, 10, 3, Math.PI, 0);
         ctx.arc(lx + 2, 10, 3, Math.PI, 0);
         ctx.lineTo(lx, 16);
@@ -211,34 +203,43 @@ const PacManPreview = () => {
         ctx.fill();
       }
 
-      // Active effect indicator
+      // ═ ESCAPE CHANCE BAR (key visual) ═
+      const barW = 90;
+      const barX = 420 - ox - barW - 4;
+      const barY = 3;
+      const barH = 8;
+
+      ctx.fillStyle = "hsl(0 0% 50%)";
+      ctx.font = "bold 6px system-ui";
       ctx.textAlign = "right";
-      ctx.font = "bold 8px system-ui";
-      ctx.fillStyle = `hsl(${eff.color})`;
-      if (eff.name !== "NORMAL") {
-        ctx.fillText(`${eff.icon} ${eff.name}`, 420 - ox - 4, 12);
-      }
+      ctx.fillText("ESCAPE CHANCE", 420 - ox - 4, barY);
       ctx.textAlign = "start";
 
-      // Vote bar
-      const barY = oy + rows * cell + 5;
-      const barH = 5;
-      const barW = cols * cell;
-      ctx.fillStyle = "hsl(200 80% 55% / 0.4)";
-      ctx.fillRect(ox, barY, barW * 0.35, barH);
-      ctx.fillStyle = "hsl(160 80% 50% / 0.4)";
-      ctx.fillRect(ox + barW * 0.35, barY, barW * 0.25, barH);
-      ctx.fillStyle = "hsl(45 90% 55% / 0.4)";
-      ctx.fillRect(ox + barW * 0.6, barY, barW * 0.15, barH);
-      ctx.fillStyle = "hsl(350 80% 55% / 0.4)";
-      ctx.fillRect(ox + barW * 0.75, barY, barW * 0.25, barH);
+      ctx.fillStyle = "hsl(0 0% 10% / 0.5)";
+      ctx.fillRect(barX, barY + 2, barW, barH);
 
-      ctx.font = "bold 6px system-ui";
+      const pct = escChance / 100;
+      const hue = pct > 0.5 ? 120 + (pct - 0.5) * 80 : pct * 240;
+      ctx.fillStyle = `hsl(${hue} 80% 50%)`;
+      ctx.shadowColor = `hsl(${hue} 80% 50%)`;
+      ctx.shadowBlur = 6;
+      ctx.fillRect(barX, barY + 2, barW * pct, barH);
+      ctx.shadowBlur = 0;
+
       ctx.fillStyle = "white";
-      ctx.fillText("⬅35%", ox + 3, barY + 4);
-      ctx.fillText("⬆25%", ox + barW * 0.37, barY + 4);
-      ctx.fillText("⬇15%", ox + barW * 0.62, barY + 4);
-      ctx.fillText("➡25%", ox + barW * 0.77, barY + 4);
+      ctx.font = "bold 7px 'SF Mono', monospace, system-ui";
+      ctx.textAlign = "right";
+      ctx.fillText(`${escChance}%`, 420 - ox - 4, barY + barH + 1);
+      ctx.textAlign = "start";
+
+      // Active effect
+      if (eff) {
+        ctx.textAlign = "right";
+        ctx.font = "bold 7px system-ui";
+        ctx.fillStyle = `hsl(${eff.color})`;
+        ctx.fillText(`${eff.icon} ${eff.label}`, 420 - ox - 4, barY + barH + 10);
+        ctx.textAlign = "start";
+      }
     };
 
     animId = requestAnimationFrame(loop);
@@ -252,10 +253,10 @@ const PacManPreview = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: [0, 1, 1, 0], y: [10, 0, 0, -10] }}
         transition={{ duration: 3, repeat: Infinity, repeatDelay: 3 }}
-        className="absolute bottom-6 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg text-[10px] font-bold"
-        style={{ background: "hsl(200 100% 75% / 0.1)", border: "1px solid hsl(200 100% 75% / 0.25)", color: "hsl(200 100% 80%)" }}
+        className="absolute bottom-4 left-1/2 -translate-x-1/2 px-3 py-1.5 rounded-lg text-[10px] font-bold"
+        style={{ background: "hsl(0 90% 55% / 0.15)", border: "1px solid hsl(0 90% 55% / 0.3)", color: "hsl(0 90% 55%)" }}
       >
-        🧊 @viewer42 froze Pac-Man!
+        👻 @viewer42 spawned ghost swarm! (-30%)
       </motion.div>
     </div>
   );

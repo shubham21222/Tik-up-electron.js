@@ -4,33 +4,34 @@ import { supabase } from "@/integrations/supabase/client";
 import useOverlayBody from "@/hooks/use-overlay-body";
 
 /* ═══════════════════════════════════════════════════════════
-   PAC-MAN LIVE v2 — Full chaos game engine
-   Sub-pixel movement, stacking effects, ghost AI,
-   freeze/slow/reverse/swarm/shield/power mechanics
+   PAC-MAN LIVE v3 — AI RUNAWAY MODE
+   Pac-Man is AI-controlled with ~95% base escape chance.
+   Gifts = debuffs that reduce escape probability.
+   Round-based: escape or get caught → drama loop.
    ═══════════════════════════════════════════════════════════ */
 
 // ── Types ──────────────────────────────────────────────────
 interface Vec2 { x: number; y: number; }
 type Dir = "left" | "right" | "up" | "down";
-type EffectType = "speed" | "shield" | "power" | "slow_ghosts" | "freeze" | "slow_pac" | "reverse" | "ghost_swarm" | "ghost_speed";
+type EffectType = "freeze" | "slow_pac" | "reverse" | "ai_confusion" | "ghost_swarm" | "ghost_speed" | "shield" | "power" | "speed" | "slow_ghosts";
 
 interface ActiveEffect {
   type: EffectType;
   end: number;
   username: string;
+  escapeReduction: number; // how much this reduces escape %
 }
 
 interface Ghost {
   pos: Vec2;
   target: Vec2;
   dir: Dir;
-  nextDir: Dir | null;
   color: string;
   scared: boolean;
   baseSpeed: number;
   mode: "chase" | "scatter" | "frightened";
-  isExtra: boolean; // spawned by swarm effect
-  trailPositions: Vec2[]; // for glow trail
+  isExtra: boolean;
+  trailPositions: Vec2[];
 }
 
 interface Particle {
@@ -46,10 +47,13 @@ interface Alert {
   icon: string;
 }
 
-interface VoteState { left: number; right: number; up: number; down: number; }
+interface GifterEntry {
+  username: string;
+  totalCoins: number;
+  effectsTriggered: number;
+}
 
-// ── Maze (21×23) ────────────────────────────────────────────
-// 0=path, 1=wall, 2=pellet, 3=power-pellet, 4=ghost-house
+// ── Maze (21×22) ────────────────────────────────────────────
 const MAZE: number[][] = [
   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
   [1,2,2,2,2,2,2,2,2,2,1,2,2,2,2,2,2,2,2,2,1],
@@ -74,38 +78,142 @@ const MAZE: number[][] = [
   [1,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,1],
   [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
 ];
-
 const COLS = MAZE[0].length;
 const ROWS = MAZE.length;
 
-const GHOST_COLORS = [
-  "0 85% 55%",    // Blinky (red) — chase
-  "300 80% 55%",  // Pinky — ambush
-  "180 90% 50%",  // Inky — patrol
-  "30 95% 55%",   // Clyde — random
-];
-
-const GHOST_NAMES = ["Blinky", "Pinky", "Inky", "Clyde"];
-
+const GHOST_COLORS = ["0 85% 55%", "300 80% 55%", "180 90% 50%", "30 95% 55%"];
 const SCATTER_TARGETS: Vec2[] = [
-  { x: COLS - 2, y: 0 },  // top-right
-  { x: 1, y: 0 },          // top-left
-  { x: COLS - 2, y: ROWS - 1 }, // bottom-right
-  { x: 1, y: ROWS - 1 },        // bottom-left
+  { x: COLS - 2, y: 0 }, { x: 1, y: 0 },
+  { x: COLS - 2, y: ROWS - 1 }, { x: 1, y: ROWS - 1 },
 ];
 
 const THEMES = {
-  classic:   { wall: "230 70% 30%", wallGlow: "230 70% 45%", bg: "230 30% 8%", pellet: "50 100% 70%", pacman: "50 100% 55%", glow: "50 100% 55%", maze_line: true },
-  cyberpunk: { wall: "280 80% 25%", wallGlow: "280 100% 55%", bg: "260 40% 5%", pellet: "160 100% 55%", pacman: "160 100% 50%", glow: "160 100% 50%", maze_line: true },
-  tikup:     { wall: "160 40% 16%", wallGlow: "160 100% 40%", bg: "0 0% 3%", pellet: "160 100% 55%", pacman: "160 100% 45%", glow: "160 100% 45%", maze_line: true },
+  classic:   { wall: "230 70% 30%", wallGlow: "230 70% 45%", pellet: "50 100% 70%", pacman: "50 100% 55%", glow: "50 100% 55%", bg: "230 30% 8%" },
+  cyberpunk: { wall: "280 80% 25%", wallGlow: "280 100% 55%", pellet: "160 100% 55%", pacman: "160 100% 50%", glow: "160 100% 50%", bg: "260 40% 5%" },
+  tikup:     { wall: "160 40% 16%", wallGlow: "160 100% 40%", pellet: "160 100% 55%", pacman: "160 100% 45%", glow: "160 100% 45%", bg: "0 0% 3%" },
 } as Record<string, any>;
 
-const DIR_VEC: Record<Dir, Vec2> = {
-  left: { x: -1, y: 0 }, right: { x: 1, y: 0 },
-  up: { x: 0, y: -1 }, down: { x: 0, y: 1 },
-};
+const DIR_VEC: Record<Dir, Vec2> = { left: { x: -1, y: 0 }, right: { x: 1, y: 0 }, up: { x: 0, y: -1 }, down: { x: 0, y: 1 } };
 const OPPOSITE: Record<Dir, Dir> = { left: "right", right: "left", up: "down", down: "up" };
 const ALL_DIRS: Dir[] = ["up", "left", "down", "right"];
+
+// ── Effect escape reductions ─────────────────────────────
+const EFFECT_ESCAPE_REDUCTION: Record<EffectType, number> = {
+  slow_pac: 10,
+  freeze: 20,
+  reverse: 15,
+  ai_confusion: 25,
+  ghost_swarm: 30,
+  ghost_speed: 12,
+  shield: 0,
+  power: 0,
+  speed: 0,
+  slow_ghosts: 0,
+};
+
+// ═══════════════════════════════════════════════════════════
+// BFS pathfinding for AI Pac-Man
+// ═══════════════════════════════════════════════════════════
+function canMoveToTile(x: number, y: number): boolean {
+  if (y === 10 && (x < 0 || x >= COLS)) return true;
+  if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
+  return MAZE[y][x] !== 1;
+}
+
+function bfsPath(from: Vec2, to: Vec2, dangerMap?: Set<string>): Dir | null {
+  const queue: { x: number; y: number; firstDir: Dir }[] = [];
+  const visited = new Set<string>();
+  visited.add(`${from.x},${from.y}`);
+
+  for (const d of ALL_DIRS) {
+    const nx = from.x + DIR_VEC[d].x;
+    const ny = from.y + DIR_VEC[d].y;
+    if (canMoveToTile(nx, ny) && !(dangerMap?.has(`${nx},${ny}`))) {
+      if (nx === to.x && ny === to.y) return d;
+      queue.push({ x: nx, y: ny, firstDir: d });
+      visited.add(`${nx},${ny}`);
+    }
+  }
+
+  while (queue.length > 0) {
+    const cur = queue.shift()!;
+    if (cur.x === to.x && cur.y === to.y) return cur.firstDir;
+    for (const d of ALL_DIRS) {
+      const nx = cur.x + DIR_VEC[d].x;
+      const ny = cur.y + DIR_VEC[d].y;
+      const key = `${nx},${ny}`;
+      if (!visited.has(key) && canMoveToTile(nx, ny) && !(dangerMap?.has(key))) {
+        visited.add(key);
+        queue.push({ x: nx, y: ny, firstDir: cur.firstDir });
+      }
+    }
+  }
+  return null;
+}
+
+// Find safest direction away from all ghosts
+function aiPickSafeDir(pacPos: Vec2, ghosts: Ghost[], confused: boolean): Dir {
+  if (confused) {
+    // Random movement under AI confusion
+    const valid = ALL_DIRS.filter(d => canMoveToTile(pacPos.x + DIR_VEC[d].x, pacPos.y + DIR_VEC[d].y));
+    return valid[Math.floor(Math.random() * valid.length)] || "right";
+  }
+
+  // Build danger zone: tiles within 3 of any ghost
+  const dangerMap = new Set<string>();
+  for (const g of ghosts) {
+    if (g.scared) continue;
+    const gx = Math.round(g.pos.x);
+    const gy = Math.round(g.pos.y);
+    for (let dx = -2; dx <= 2; dx++) {
+      for (let dy = -2; dy <= 2; dy++) {
+        dangerMap.add(`${gx + dx},${gy + dy}`);
+      }
+    }
+  }
+
+  // Score each direction: prefer paths away from ghosts + toward pellets
+  let bestDir: Dir = "right";
+  let bestScore = -Infinity;
+
+  for (const d of ALL_DIRS) {
+    const nx = pacPos.x + DIR_VEC[d].x;
+    const ny = pacPos.y + DIR_VEC[d].y;
+    if (!canMoveToTile(nx, ny)) continue;
+
+    let score = 0;
+
+    // Distance from nearest ghost (higher = safer)
+    for (const g of ghosts) {
+      if (g.scared) continue;
+      const dist = Math.abs(nx - Math.round(g.pos.x)) + Math.abs(ny - Math.round(g.pos.y));
+      score += dist * 3;
+    }
+
+    // Avoid being in danger zone
+    if (dangerMap.has(`${nx},${ny}`)) score -= 50;
+
+    // Prefer pellets
+    if (nx >= 0 && nx < COLS && ny >= 0 && ny < ROWS) {
+      if (MAZE[ny][nx] === 2) score += 5;
+      if (MAZE[ny][nx] === 3) score += 20;
+    }
+
+    // Prefer open paths (more exits = more escape routes)
+    let exits = 0;
+    for (const d2 of ALL_DIRS) {
+      if (canMoveToTile(nx + DIR_VEC[d2].x, ny + DIR_VEC[d2].y)) exits++;
+    }
+    score += exits * 4;
+
+    if (score > bestScore) {
+      bestScore = score;
+      bestDir = d;
+    }
+  }
+
+  return bestDir;
+}
 
 // ═══════════════════════════════════════════════════════════
 // RENDERER
@@ -117,9 +225,11 @@ const PacManRenderer = () => {
 
   const [settings, setSettings] = useState<any>({
     theme: "tikup",
-    vote_interval: 1.5,
     ghost_count: 4,
     chaos_mode: true,
+    ai_mode: true,
+    base_escape_chance: 95,
+    vote_interval: 1.5,
     speed_boost_duration: 3,
     shield_duration: 5,
     power_duration: 7,
@@ -129,6 +239,7 @@ const PacManRenderer = () => {
     ghost_speed_duration: 5,
     swarm_duration: 8,
     slow_ghost_duration: 4,
+    confusion_duration: 5,
     transparent_bg: true,
     custom_css: "",
   });
@@ -136,91 +247,47 @@ const PacManRenderer = () => {
   const gameRef = useRef({
     maze: MAZE.map(r => [...r]),
     pacman: { x: 10, y: 16 } as Vec2,
-    pacSubX: 10,
-    pacSubY: 16,
+    pacSubX: 10, pacSubY: 16,
     pacDir: "right" as Dir,
     pacNextDir: null as Dir | null,
     pacMouth: 0,
-    pacSpeed: 0.08,  // sub-pixel speed
+    pacSpeed: 0.08,
     ghosts: [] as Ghost[],
     score: 0,
     lives: 3,
-    level: 1,
-    pelletsLeft: 0,
+    round: 1,
+    roundStartTime: Date.now(),
+    pelletsEaten: 0,
     startTime: Date.now(),
     particles: [] as Particle[],
     alerts: [] as Alert[],
-    votes: { left: 0, right: 0, up: 0, down: 0 } as VoteState,
-    lastVoteProcess: Date.now(),
     effects: [] as ActiveEffect[],
+    escapeChance: 95,
     gameOver: false,
+    roundOver: false,
+    roundResult: "" as "" | "escaped" | "caught",
+    roundCooldown: 0,
     connected: false,
     cellSize: 0,
-    userCooldowns: {} as Record<string, number>,
+    totalW: 0, totalH: 0,
+    offsetX: 0, offsetY: 0,
     giftCooldown: 0,
-    modeTimer: 0,
-    ghostModePhase: 0, // scatter/chase cycle
     frameCount: 0,
-    totalW: 0,
-    totalH: 0,
-    offsetX: 0,
-    offsetY: 0,
+    modeTimer: 0,
+    ghostModePhase: 0,
+    aiDecisionTimer: 0,
+    gifters: {} as Record<string, GifterEntry>,
+    catchCheckTimer: 0,
+    pelletsLeft: 0,
+    votes: { left: 0, right: 0, up: 0, down: 0 } as Record<Dir, number>,
+    lastVoteProcess: Date.now(),
   });
 
   // ── Helpers ──────────────────────────────────────────────
-  const canMove = (x: number, y: number): boolean => {
-    if (y === 10 && (x < 0 || x >= COLS)) return true; // tunnel
-    if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return false;
-    const t = MAZE[y][x];
-    return t !== 1;
-  };
-
   const hasEffect = useCallback((type: EffectType): boolean => {
     return gameRef.current.effects.some(e => e.type === type && Date.now() < e.end);
   }, []);
 
-  // ── Init ─────────────────────────────────────────────────
-  const initGame = useCallback(() => {
-    const g = gameRef.current;
-    g.maze = MAZE.map(r => [...r]);
-    g.pacman = { x: 10, y: 16 };
-    g.pacSubX = 10; g.pacSubY = 16;
-    g.pacDir = "right";
-    g.pacNextDir = null;
-    g.score = 0; g.lives = 3; g.level = 1;
-    g.startTime = Date.now();
-    g.particles = []; g.alerts = []; g.effects = [];
-    g.gameOver = false; g.frameCount = 0;
-    g.ghostModePhase = 0; g.modeTimer = Date.now();
-
-    // Count pellets
-    let pellets = 0;
-    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-      if (g.maze[r][c] === 2 || g.maze[r][c] === 3) pellets++;
-    }
-    g.pelletsLeft = pellets;
-
-    // Spawn ghosts
-    g.ghosts = [];
-    const count = Math.min(settings.ghost_count || 4, 4);
-    const spawns: Vec2[] = [{ x: 9, y: 10 }, { x: 10, y: 10 }, { x: 11, y: 10 }, { x: 10, y: 9 }];
-    for (let i = 0; i < count; i++) {
-      g.ghosts.push({
-        pos: { ...spawns[i] },
-        target: { ...SCATTER_TARGETS[i] },
-        dir: ALL_DIRS[i % 4],
-        nextDir: null,
-        color: GHOST_COLORS[i],
-        scared: false,
-        baseSpeed: 0.045 + i * 0.003,
-        mode: "scatter",
-        isExtra: false,
-        trailPositions: [],
-      });
-    }
-  }, [settings.ghost_count]);
-
-  // ── Spawn particles ──────────────────────────────────────
   const spawnBurst = useCallback((x: number, y: number, color: string, count: number, type: Particle["type"] = "spark") => {
     const g = gameRef.current;
     for (let i = 0; i < count; i++) {
@@ -237,6 +304,91 @@ const PacManRenderer = () => {
     }
   }, []);
 
+  // ── Init / Reset Round ──────────────────────────────────
+  const initGame = useCallback(() => {
+    const g = gameRef.current;
+    g.maze = MAZE.map(r => [...r]);
+    g.pacman = { x: 10, y: 16 };
+    g.pacSubX = 10; g.pacSubY = 16;
+    g.pacDir = "right"; g.pacNextDir = null;
+    g.score = 0; g.lives = 3; g.round = 1;
+    g.startTime = Date.now(); g.roundStartTime = Date.now();
+    g.particles = []; g.alerts = []; g.effects = [];
+    g.gameOver = false; g.roundOver = false; g.roundResult = "";
+    g.frameCount = 0; g.ghostModePhase = 0; g.modeTimer = Date.now();
+    g.escapeChance = settings.base_escape_chance || 95;
+    g.gifters = {};
+    g.pelletsEaten = 0;
+    g.catchCheckTimer = Date.now() + 8000; // first catch check after 8s
+
+    let pellets = 0;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      if (g.maze[r][c] === 2 || g.maze[r][c] === 3) pellets++;
+    }
+    g.pelletsLeft = pellets;
+
+    // Spawn ghosts
+    g.ghosts = [];
+    const count = Math.min(settings.ghost_count || 4, 4);
+    const spawns: Vec2[] = [{ x: 9, y: 10 }, { x: 10, y: 10 }, { x: 11, y: 10 }, { x: 10, y: 9 }];
+    for (let i = 0; i < count; i++) {
+      g.ghosts.push({
+        pos: { ...spawns[i] },
+        target: { ...SCATTER_TARGETS[i] },
+        dir: ALL_DIRS[i % 4],
+        color: GHOST_COLORS[i],
+        scared: false,
+        baseSpeed: 0.045 + i * 0.003,
+        mode: "scatter",
+        isExtra: false,
+        trailPositions: [],
+      });
+    }
+  }, [settings.ghost_count, settings.base_escape_chance]);
+
+  const resetRound = useCallback(() => {
+    const g = gameRef.current;
+    g.round++;
+    g.roundOver = false;
+    g.roundResult = "";
+    g.pacSubX = 10; g.pacSubY = 16;
+    g.pacman = { x: 10, y: 16 }; g.pacDir = "right";
+    g.effects = [];
+    g.escapeChance = settings.base_escape_chance || 95;
+    g.roundStartTime = Date.now();
+    g.catchCheckTimer = Date.now() + 8000;
+    g.pelletsEaten = 0;
+    // Reset maze pellets
+    g.maze = MAZE.map(r => [...r]);
+    let pellets = 0;
+    for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+      if (g.maze[r][c] === 2 || g.maze[r][c] === 3) pellets++;
+    }
+    g.pelletsLeft = pellets;
+    // Reset ghost positions
+    const spawns: Vec2[] = [{ x: 9, y: 10 }, { x: 10, y: 10 }, { x: 11, y: 10 }, { x: 10, y: 9 }];
+    g.ghosts = g.ghosts.filter(gh => !gh.isExtra);
+    g.ghosts.forEach((gh, i) => {
+      gh.pos = { ...spawns[i % spawns.length] };
+      gh.scared = false; gh.mode = "scatter";
+    });
+    g.alerts.push({ text: `Round ${g.round} — ESCAPE!`, color: "160 100% 55%", time: Date.now(), icon: "🏃" });
+  }, [settings.base_escape_chance]);
+
+  // ── Calculate escape chance ─────────────────────────────
+  const calcEscapeChance = useCallback((): number => {
+    const g = gameRef.current;
+    const base = settings.base_escape_chance || 95;
+    let reduction = 0;
+    const now = Date.now();
+    for (const eff of g.effects) {
+      if (now < eff.end) {
+        reduction += eff.escapeReduction;
+      }
+    }
+    return Math.max(5, Math.min(base, base - reduction));
+  }, [settings.base_escape_chance]);
+
   // ── Realtime ─────────────────────────────────────────────
   useEffect(() => {
     if (!publicToken) return;
@@ -246,9 +398,9 @@ const PacManRenderer = () => {
       .then(({ data }) => { if (data) setSettings((p: any) => ({ ...p, ...(data as any).settings })); });
 
     const addEffect = (type: EffectType, durationMs: number, username: string) => {
-      // Remove existing of same type, then add
       g.effects = g.effects.filter(e => e.type !== type);
-      g.effects.push({ type, end: Date.now() + durationMs, username });
+      g.effects.push({ type, end: Date.now() + durationMs, username, escapeReduction: EFFECT_ESCAPE_REDUCTION[type] });
+      g.escapeChance = calcEscapeChance();
     };
 
     const ch = supabase.channel(`pacman-${publicToken}`)
@@ -256,138 +408,81 @@ const PacManRenderer = () => {
         const p = msg.payload;
         if (!p) return;
         const text = (p.comment || p.text || "").toLowerCase().trim();
-        const username = p.username || "anon";
-        const now = Date.now();
-
-        // Per-user cooldown
-        if (g.userCooldowns[username] && now - g.userCooldowns[username] < 2000) return;
-        g.userCooldowns[username] = now;
-
-        // Movement
-        const reversed = g.effects.some(e => e.type === "reverse" && now < e.end);
-        const mapDir = (d: Dir): Dir => reversed ? OPPOSITE[d] : d;
-
-        if (text === "left" || text === "⬅️" || text === "l" || text === "a") g.votes[mapDir("left")]++;
-        else if (text === "right" || text === "➡️" || text === "r" || text === "d") g.votes[mapDir("right")]++;
-        else if (text === "up" || text === "⬆️" || text === "u" || text === "w") g.votes[mapDir("up")]++;
-        else if (text === "down" || text === "⬇️" || text === "e" || text === "s") g.votes[mapDir("down")]++;
-
-        // Mod commands
-        if (text === "!resetgame") initGame();
-        if (text === "!freeze") {
-          g.effects = g.effects.filter(e => e.type !== "freeze");
-          addEffect("freeze", 0, "mod"); // cancel freeze
-        }
-        if (text === "!endgame") { g.gameOver = true; }
+        // Chat can still influence direction as "chaos votes"
+        if (text === "left" || text === "a") g.votes.left++;
+        else if (text === "right" || text === "d") g.votes.right++;
+        else if (text === "up" || text === "w") g.votes.up++;
+        else if (text === "down" || text === "s") g.votes.down++;
       })
       .on("broadcast", { event: "gift" }, (msg) => {
         const p = msg.payload;
         if (!p) return;
-        const coins = p.coins || p.diamond_count || 0;
+        const coins = Number(p.coins || p.diamond_count || p.coinValue || p.coin_value || 1);
         const username = p.username || "Gifter";
         const now = Date.now();
         const cell = g.cellSize;
         const px = g.pacSubX * cell + cell / 2 + g.offsetX;
         const py = g.pacSubY * cell + cell / 2 + g.offsetY;
 
-        // Gift cooldown (0.5s global)
         if (now < g.giftCooldown) return;
-        g.giftCooldown = now + 500;
+        g.giftCooldown = now + 300;
 
-        // Game over → restart
-        if (g.gameOver) { initGame(); return; }
+        // Track gifter
+        if (!g.gifters[username]) g.gifters[username] = { username, totalCoins: 0, effectsTriggered: 0 };
+        g.gifters[username].totalCoins += coins;
+        g.gifters[username].effectsTriggered++;
+
+        if (g.roundOver || g.gameOver) { resetRound(); return; }
 
         const chaos = settings.chaos_mode !== false;
 
-        if (coins <= 1) {
-          // Rose → Slow Pac-Man
-          if (chaos) {
-            addEffect("slow_pac", (settings.slow_pac_duration || 3) * 1000, username);
-            g.alerts.push({ text: `${username} slowed Pac-Man!`, color: "200 80% 55%", time: now, icon: "🐌" });
-            spawnBurst(px, py, "200 80% 55%", 8, "trail");
-          }
-        } else if (coins <= 5) {
-          // Small gift → Freeze Pac-Man
-          if (chaos) {
-            addEffect("freeze", (settings.freeze_duration || 1.5) * 1000, username);
-            g.alerts.push({ text: `${username} froze Pac-Man!`, color: "200 100% 75%", time: now, icon: "🧊" });
-            spawnBurst(px, py, "200 100% 80%", 15, "ice");
-          }
-        } else if (coins <= 20) {
-          // Medium → Speed boost ghosts
-          if (chaos) {
-            addEffect("ghost_speed", (settings.ghost_speed_duration || 5) * 1000, username);
-            g.alerts.push({ text: `${username} boosted ghosts!`, color: "0 85% 55%", time: now, icon: "💨" });
-            g.ghosts.forEach(gh => {
-              spawnBurst(gh.pos.x * cell + cell / 2 + g.offsetX, gh.pos.y * cell + cell / 2 + g.offsetY, gh.color, 6);
+        // Gift tier → effect mapping (sabotage Pac-Man)
+        if (coins <= 1 && chaos) {
+          addEffect("slow_pac", (settings.slow_pac_duration || 3) * 1000, username);
+          g.alerts.push({ text: `${username} slowed Pac-Man! (-10%)`, color: "200 80% 55%", time: now, icon: "🐌" });
+          spawnBurst(px, py, "200 80% 55%", 8, "trail");
+        } else if (coins <= 5 && chaos) {
+          addEffect("freeze", (settings.freeze_duration || 1.5) * 1000, username);
+          g.alerts.push({ text: `${username} froze Pac-Man! (-20%)`, color: "200 100% 75%", time: now, icon: "🧊" });
+          spawnBurst(px, py, "200 100% 80%", 15, "ice");
+        } else if (coins <= 20 && chaos) {
+          addEffect("ghost_speed", (settings.ghost_speed_duration || 5) * 1000, username);
+          g.alerts.push({ text: `${username} boosted ghosts! (-12%)`, color: "0 85% 55%", time: now, icon: "💨" });
+        } else if (coins <= 50 && chaos) {
+          addEffect("reverse", (settings.reverse_duration || 4) * 1000, username);
+          g.alerts.push({ text: `${username} reversed controls! (-15%)`, color: "280 100% 65%", time: now, icon: "🔄" });
+          spawnBurst(px, py, "280 100% 65%", 12, "star");
+        } else if (coins <= 100 && chaos) {
+          addEffect("ai_confusion", (settings.confusion_duration || 5) * 1000, username);
+          g.alerts.push({ text: `${username} confused the AI! (-25%)`, color: "45 100% 55%", time: now, icon: "🤪" });
+          spawnBurst(px, py, "45 100% 55%", 15, "star");
+        } else if (coins <= 500 && chaos) {
+          addEffect("ghost_swarm", (settings.swarm_duration || 8) * 1000, username);
+          for (let i = 0; i < 3; i++) {
+            g.ghosts.push({
+              pos: { x: 9 + i, y: 10 },
+              target: { ...g.pacman },
+              dir: ALL_DIRS[Math.floor(Math.random() * 4)],
+              color: `${Math.random() * 360} 80% 55%`,
+              scared: false, baseSpeed: 0.05 + Math.random() * 0.02,
+              mode: "chase", isExtra: true, trailPositions: [],
             });
           }
-        } else if (coins <= 50) {
-          // Premium → Reverse controls
-          if (chaos) {
-            addEffect("reverse", (settings.reverse_duration || 4) * 1000, username);
-            g.alerts.push({ text: `${username} reversed controls!`, color: "280 100% 65%", time: now, icon: "🔄" });
-            spawnBurst(px, py, "280 100% 65%", 12, "star");
-          }
-        } else if (coins <= 100) {
-          // Shield Pac-Man
+          g.alerts.push({ text: `${username} spawned GHOST SWARM! (-30%)`, color: "0 90% 55%", time: now, icon: "👻👻👻" });
+          spawnBurst(px, py, "0 90% 55%", 25, "spark");
+        } else if (coins > 500) {
+          // Big supporter → help Pac-Man
           addEffect("shield", (settings.shield_duration || 5) * 1000, username);
-          g.alerts.push({ text: `${username} shielded Pac-Man!`, color: "200 100% 60%", time: now, icon: "🛡️" });
-          spawnBurst(px, py, "200 100% 60%", 10, "ring");
-        } else if (coins <= 500) {
-          // Power pellet mode
-          addEffect("power", (settings.power_duration || 7) * 1000, username);
-          g.ghosts.forEach(gh => { gh.scared = true; gh.mode = "frightened"; });
-          g.alerts.push({ text: `${username} powered up Pac-Man!`, color: "280 100% 65%", time: now, icon: "👻" });
-          spawnBurst(px, py, "280 100% 65%", 20, "star");
-        } else if (coins <= 2000) {
-          // Ghost swarm
-          if (chaos) {
-            addEffect("ghost_swarm", (settings.swarm_duration || 8) * 1000, username);
-            // Spawn 3 extra ghosts
-            for (let i = 0; i < 3; i++) {
-              g.ghosts.push({
-                pos: { x: 9 + i, y: 10 },
-                target: { x: Math.floor(Math.random() * COLS), y: Math.floor(Math.random() * ROWS) },
-                dir: ALL_DIRS[Math.floor(Math.random() * 4)],
-                nextDir: null,
-                color: `${Math.random() * 360} 80% 55%`,
-                scared: false,
-                baseSpeed: 0.05 + Math.random() * 0.02,
-                mode: "chase",
-                isExtra: true,
-                trailPositions: [],
-              });
-            }
-            g.alerts.push({ text: `${username} spawned ghost swarm!`, color: "0 90% 55%", time: now, icon: "👻👻👻" });
-            spawnBurst(px, py, "0 90% 55%", 25, "spark");
-          }
-        } else {
-          // Legendary → Teleport + Slow ghosts + Speed boost
           addEffect("speed", (settings.speed_boost_duration || 3) * 1000, username);
-          addEffect("slow_ghosts", (settings.slow_ghost_duration || 4) * 1000, username);
-          // Find safe tile
-          const safeTiles: Vec2[] = [];
-          for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-            if (g.maze[r][c] === 0 || g.maze[r][c] === 2) {
-              const ghostNear = g.ghosts.some(gh => Math.abs(gh.pos.x - c) + Math.abs(gh.pos.y - r) < 5);
-              if (!ghostNear) safeTiles.push({ x: c, y: r });
-            }
-          }
-          if (safeTiles.length > 0) {
-            const t = safeTiles[Math.floor(Math.random() * safeTiles.length)];
-            g.pacSubX = t.x; g.pacSubY = t.y;
-            g.pacman = { ...t };
-          }
-          g.alerts.push({ text: `${username} SAVED Pac-Man!`, color: "160 100% 55%", time: now, icon: "🌟" });
+          g.alerts.push({ text: `${username} SAVED Pac-Man! 🛡️⚡`, color: "160 100% 55%", time: now, icon: "🌟" });
           spawnBurst(px, py, "160 100% 55%", 30, "star");
         }
+
+        g.escapeChance = calcEscapeChance();
       })
       .on("broadcast", { event: "test_alert" }, () => {
-        const now = Date.now();
-        addEffect("power", 5000, "TestUser");
-        g.ghosts.forEach(gh => { gh.scared = true; gh.mode = "frightened"; });
-        g.alerts.push({ text: "Test power-up!", color: "160 100% 45%", time: now, icon: "🧪" });
+        addEffect("freeze", 3000, "TestUser");
+        g.alerts.push({ text: "Test freeze! (-20%)", color: "200 100% 75%", time: Date.now(), icon: "🧪" });
       })
       .subscribe(s => { g.connected = s === "SUBSCRIBED"; });
 
@@ -397,7 +492,7 @@ const PacManRenderer = () => {
       .subscribe();
 
     return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
-  }, [publicToken, initGame, spawnBurst, settings]);
+  }, [publicToken, initGame, spawnBurst, resetRound, calcEscapeChance, settings]);
 
   useEffect(() => { initGame(); }, [initGame]);
 
@@ -434,26 +529,17 @@ const PacManRenderer = () => {
     resize();
     window.addEventListener("resize", resize);
 
-    // Ghost AI: pick best direction toward target
     const ghostPickDir = (ghost: Ghost): Dir => {
       const gx = Math.round(ghost.pos.x);
       const gy = Math.round(ghost.pos.y);
       const valid = ALL_DIRS.filter(d => {
-        if (d === OPPOSITE[ghost.dir]) return false; // can't reverse
+        if (d === OPPOSITE[ghost.dir]) return false;
         const nx = gx + DIR_VEC[d].x;
         const ny = gy + DIR_VEC[d].y;
-        if (ny === 10 && (nx < 0 || nx >= COLS)) return true;
-        if (nx < 0 || nx >= COLS || ny < 0 || ny >= ROWS) return false;
-        const tile = MAZE[ny][nx];
-        return tile !== 1;
+        return canMoveToTile(nx, ny);
       });
       if (valid.length === 0) return ghost.dir;
-
-      if (ghost.mode === "frightened") {
-        return valid[Math.floor(Math.random() * valid.length)];
-      }
-
-      // Pick direction closest to target
+      if (ghost.mode === "frightened") return valid[Math.floor(Math.random() * valid.length)];
       let best = valid[0];
       let bestDist = Infinity;
       for (const d of valid) {
@@ -470,7 +556,7 @@ const PacManRenderer = () => {
     const loop = (time: number) => {
       animId = requestAnimationFrame(loop);
       const dt = time - lastFrame;
-      if (dt < 16) return; // ~60fps cap
+      if (dt < 16) return;
       lastFrame = time;
 
       const g = gameRef.current;
@@ -482,25 +568,23 @@ const PacManRenderer = () => {
 
       // Clean expired effects
       g.effects = g.effects.filter(e => now < e.end);
-
-      // Remove extra swarm ghosts if swarm expired
       if (!g.effects.some(e => e.type === "ghost_swarm")) {
         g.ghosts = g.ghosts.filter(gh => !gh.isExtra);
       }
-
-      // Un-scare ghosts if power expired
       if (!g.effects.some(e => e.type === "power")) {
-        g.ghosts.forEach(gh => {
-          if (gh.scared) { gh.scared = false; gh.mode = "chase"; }
-        });
+        g.ghosts.forEach(gh => { if (gh.scared) { gh.scared = false; gh.mode = "chase"; } });
       }
+
+      g.escapeChance = Math.max(5, (settings.base_escape_chance || 95) - g.effects.reduce((sum, e) => sum + (now < e.end ? e.escapeReduction : 0), 0));
 
       const isFrozen = g.effects.some(e => e.type === "freeze");
       const isSlowed = g.effects.some(e => e.type === "slow_pac");
       const isSpeedy = g.effects.some(e => e.type === "speed");
       const isShielded = g.effects.some(e => e.type === "shield");
+      const isConfused = g.effects.some(e => e.type === "ai_confusion");
       const ghostSpeedUp = g.effects.some(e => e.type === "ghost_speed");
       const ghostSlowed = g.effects.some(e => e.type === "slow_ghosts");
+      const isReversed = g.effects.some(e => e.type === "reverse");
 
       // ── Ghost mode cycles ──────────
       const phaseDurations = [7000, 20000, 7000, 20000, 5000, 20000, 5000, Infinity];
@@ -516,50 +600,60 @@ const PacManRenderer = () => {
         });
       }
 
-      // ── Process votes ──────────────
-      const voteInterval = (settings.vote_interval || 1.5) * 1000;
-      if (now - g.lastVoteProcess > voteInterval && !g.gameOver) {
-        const { left, right, up, down } = g.votes;
-        const max = Math.max(left, right, up, down);
-        if (max > 0) {
-          let newDir: Dir = g.pacDir;
-          if (left === max) newDir = "left";
-          else if (right === max) newDir = "right";
-          else if (up === max) newDir = "up";
-          else if (down === max) newDir = "down";
-          g.pacNextDir = newDir;
-        }
-        g.votes = { left: 0, right: 0, up: 0, down: 0 };
-        g.lastVoteProcess = now;
-      }
-
-      // ── Move Pac-Man (sub-pixel) ───
-      if (!g.gameOver && !isFrozen) {
+      // ══════════════════════════════════════════════════════
+      // AI PAC-MAN MOVEMENT
+      // ══════════════════════════════════════════════════════
+      if (!g.gameOver && !g.roundOver && !isFrozen) {
         let speed = g.pacSpeed;
         if (isSlowed) speed *= 0.4;
         if (isSpeedy) speed *= 1.8;
 
-        // Try next dir at grid intersections
+        // AI decision every 6 frames (~100ms)
         const atGridX = Math.abs(g.pacSubX - Math.round(g.pacSubX)) < 0.05;
         const atGridY = Math.abs(g.pacSubY - Math.round(g.pacSubY)) < 0.05;
-        if (atGridX && atGridY && g.pacNextDir) {
-          const nx = Math.round(g.pacSubX) + DIR_VEC[g.pacNextDir].x;
-          const ny = Math.round(g.pacSubY) + DIR_VEC[g.pacNextDir].y;
-          if (canMove(nx, ny)) {
-            g.pacDir = g.pacNextDir;
-            g.pacSubX = Math.round(g.pacSubX);
-            g.pacSubY = Math.round(g.pacSubY);
-            g.pacNextDir = null;
+
+        if (atGridX && atGridY) {
+          g.pacSubX = Math.round(g.pacSubX);
+          g.pacSubY = Math.round(g.pacSubY);
+
+          if (settings.ai_mode !== false) {
+            // AI picks safest direction
+            let aiDir = aiPickSafeDir(g.pacman, g.ghosts, isConfused);
+
+            // Apply reverse if active
+            if (isReversed) aiDir = OPPOSITE[aiDir];
+
+            // Chat chaos override: if votes exist, 30% chance to override AI
+            const totalVotes = g.votes.left + g.votes.right + g.votes.up + g.votes.down;
+            if (totalVotes > 3 && Math.random() < 0.3) {
+              let maxVote = 0;
+              let voteDir: Dir = aiDir;
+              (["left", "right", "up", "down"] as Dir[]).forEach(d => {
+                if (g.votes[d] > maxVote) { maxVote = g.votes[d]; voteDir = d; }
+              });
+              if (canMoveToTile(g.pacman.x + DIR_VEC[voteDir].x, g.pacman.y + DIR_VEC[voteDir].y)) {
+                aiDir = voteDir;
+              }
+            }
+
+            if (canMoveToTile(g.pacman.x + DIR_VEC[aiDir].x, g.pacman.y + DIR_VEC[aiDir].y)) {
+              g.pacDir = aiDir;
+            }
+          }
+
+          // Reset votes periodically
+          if (now - g.lastVoteProcess > (settings.vote_interval || 1.5) * 1000) {
+            g.votes = { left: 0, right: 0, up: 0, down: 0 };
+            g.lastVoteProcess = now;
           }
         }
 
-        // Move in current dir
+        // Move Pac-Man
         const vx = DIR_VEC[g.pacDir].x * speed;
         const vy = DIR_VEC[g.pacDir].y * speed;
         let newX = g.pacSubX + vx;
         let newY = g.pacSubY + vy;
 
-        // Tunnel wrap
         if (Math.round(newY) === 10) {
           if (newX < -0.5) newX = COLS - 0.5;
           if (newX > COLS - 0.5) newX = -0.5;
@@ -568,7 +662,7 @@ const PacManRenderer = () => {
         const checkX = vx > 0 ? Math.ceil(newX) : Math.floor(newX);
         const checkY = vy > 0 ? Math.ceil(newY) : Math.floor(newY);
 
-        if (canMove(checkX, checkY) || (Math.round(newY) === 10 && (newX < 0 || newX >= COLS))) {
+        if (canMoveToTile(checkX, checkY) || (Math.round(newY) === 10 && (newX < 0 || newX >= COLS))) {
           g.pacSubX = newX;
           g.pacSubY = newY;
         }
@@ -582,45 +676,21 @@ const PacManRenderer = () => {
           if (g.maze[my][mx] === 2) {
             g.maze[my][mx] = 0;
             g.score += 10;
+            g.pelletsEaten++;
             g.pelletsLeft--;
-            spawnBurst(
-              g.pacSubX * cell + cell / 2 + g.offsetX,
-              g.pacSubY * cell + cell / 2 + g.offsetY,
-              theme.pellet, 3, "spark"
-            );
           }
           if (g.maze[my][mx] === 3) {
             g.maze[my][mx] = 0;
             g.score += 50;
+            g.pelletsEaten++;
             g.pelletsLeft--;
             g.effects = g.effects.filter(e => e.type !== "power");
-            g.effects.push({ type: "power", end: now + 7000, username: "pellet" });
+            g.effects.push({ type: "power", end: now + 7000, username: "pellet", escapeReduction: 0 });
             g.ghosts.forEach(gh => { gh.scared = true; gh.mode = "frightened"; });
-            spawnBurst(
-              g.pacSubX * cell + cell / 2 + g.offsetX,
-              g.pacSubY * cell + cell / 2 + g.offsetY,
-              "280 100% 65%", 15, "star"
-            );
+            const px = g.pacSubX * cell + cell / 2 + g.offsetX;
+            const py = g.pacSubY * cell + cell / 2 + g.offsetY;
+            spawnBurst(px, py, "280 100% 65%", 15, "star");
           }
-        }
-
-        // Level complete
-        if (g.pelletsLeft <= 0) {
-          g.level++;
-          g.alerts.push({ text: `Level ${g.level}!`, color: "160 100% 55%", time: now, icon: "🎉" });
-          // Reset maze
-          g.maze = MAZE.map(r => [...r]);
-          let pellets = 0;
-          for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
-            if (g.maze[r][c] === 2 || g.maze[r][c] === 3) pellets++;
-          }
-          g.pelletsLeft = pellets;
-          g.pacSubX = 10; g.pacSubY = 16;
-          g.pacman = { x: 10, y: 16 };
-          // Reset ghosts
-          const spawns: Vec2[] = [{ x: 9, y: 10 }, { x: 10, y: 10 }, { x: 11, y: 10 }, { x: 10, y: 9 }];
-          g.ghosts = g.ghosts.filter(gh => !gh.isExtra);
-          g.ghosts.forEach((gh, i) => { gh.pos = { ...spawns[i % spawns.length] }; gh.scared = false; gh.mode = "scatter"; });
         }
       }
 
@@ -639,44 +709,95 @@ const PacManRenderer = () => {
         });
       }
 
-      // ── Move Ghosts ────────────────
-      if (!g.gameOver) {
+      // ══════════════════════════════════════════════════════
+      // PROBABILITY CATCH CHECK (every 3s after initial 8s)
+      // ══════════════════════════════════════════════════════
+      if (!g.gameOver && !g.roundOver && now > g.catchCheckTimer) {
+        g.catchCheckTimer = now + 3000;
+
+        // Check proximity to any ghost
+        let nearestGhostDist = Infinity;
         for (const ghost of g.ghosts) {
-          // Update target based on mode
+          if (ghost.scared) continue;
+          const dist = Math.hypot(ghost.pos.x - g.pacSubX, ghost.pos.y - g.pacSubY);
+          if (dist < nearestGhostDist) nearestGhostDist = dist;
+        }
+
+        // Only roll probability if a ghost is reasonably close
+        if (nearestGhostDist < 6) {
+          const roll = Math.random() * 100;
+          const escaped = roll < g.escapeChance;
+
+          if (!escaped && !isShielded) {
+            // CAUGHT! Dramatic moment
+            g.roundOver = true;
+            g.roundResult = "caught";
+            g.lives--;
+            g.roundCooldown = now + 5000;
+
+            // Top gifter (sabotager)
+            const topGifter = Object.values(g.gifters).sort((a, b) => b.totalCoins - a.totalCoins)[0];
+            const topName = topGifter ? topGifter.username : "the ghosts";
+
+            g.alerts.push({
+              text: `CAUGHT! ${topName} wins! 💀`,
+              color: "350 90% 55%", time: now, icon: "💀"
+            });
+
+            const px = g.pacSubX * cell + cell / 2 + g.offsetX;
+            const py = g.pacSubY * cell + cell / 2 + g.offsetY;
+            spawnBurst(px, py, "350 90% 55%", 30, "spark");
+
+            if (g.lives <= 0) {
+              g.gameOver = true;
+            }
+          }
+        }
+
+        // Escape after surviving 30+ seconds with pellets eaten
+        const roundTime = (now - g.roundStartTime) / 1000;
+        if (roundTime > 30 && g.pelletsEaten > 20 && !g.roundOver) {
+          const roll = Math.random() * 100;
+          if (roll < g.escapeChance) {
+            g.roundOver = true;
+            g.roundResult = "escaped";
+            g.roundCooldown = now + 4000;
+            g.score += 500;
+            g.alerts.push({ text: `PAC-MAN ESCAPED! +500 🏃`, color: "160 100% 55%", time: now, icon: "🎉" });
+            const px = g.pacSubX * cell + cell / 2 + g.offsetX;
+            const py = g.pacSubY * cell + cell / 2 + g.offsetY;
+            spawnBurst(px, py, "160 100% 55%", 30, "star");
+          }
+        }
+      }
+
+      // Auto-restart round after cooldown
+      if (g.roundOver && !g.gameOver && now > g.roundCooldown) {
+        resetRound();
+      }
+
+      // ── Move Ghosts ────────────────
+      if (!g.gameOver && !g.roundOver) {
+        for (const ghost of g.ghosts) {
           if (ghost.mode === "chase" && !ghost.scared) {
-            // Each ghost has different targeting
             const idx = g.ghosts.indexOf(ghost) % 4;
-            if (idx === 0) {
-              // Blinky: direct chase
-              ghost.target = { ...g.pacman };
-            } else if (idx === 1) {
-              // Pinky: 4 tiles ahead
-              ghost.target = {
-                x: g.pacman.x + DIR_VEC[g.pacDir].x * 4,
-                y: g.pacman.y + DIR_VEC[g.pacDir].y * 4,
-              };
-            } else if (idx === 2) {
-              // Inky: complex targeting using Blinky
+            if (idx === 0) ghost.target = { ...g.pacman };
+            else if (idx === 1) ghost.target = { x: g.pacman.x + DIR_VEC[g.pacDir].x * 4, y: g.pacman.y + DIR_VEC[g.pacDir].y * 4 };
+            else if (idx === 2) {
               const blinky = g.ghosts[0];
               const ahead = { x: g.pacman.x + DIR_VEC[g.pacDir].x * 2, y: g.pacman.y + DIR_VEC[g.pacDir].y * 2 };
-              ghost.target = {
-                x: ahead.x + (ahead.x - blinky.pos.x),
-                y: ahead.y + (ahead.y - blinky.pos.y),
-              };
+              ghost.target = { x: ahead.x + (ahead.x - blinky.pos.x), y: ahead.y + (ahead.y - blinky.pos.y) };
             } else {
-              // Clyde: chase if far, scatter if close
               const dist = Math.abs(ghost.pos.x - g.pacman.x) + Math.abs(ghost.pos.y - g.pacman.y);
               ghost.target = dist > 8 ? { ...g.pacman } : { ...SCATTER_TARGETS[3] };
             }
           }
 
-          // Sub-pixel ghost movement
           let ghostSpeed = ghost.baseSpeed;
           if (ghost.scared) ghostSpeed *= 0.5;
           if (ghostSpeedUp) ghostSpeed *= 1.6;
           if (ghostSlowed) ghostSpeed *= 0.35;
 
-          // At grid cell, pick new direction
           const gAtX = Math.abs(ghost.pos.x - Math.round(ghost.pos.x)) < ghostSpeed + 0.01;
           const gAtY = Math.abs(ghost.pos.y - Math.round(ghost.pos.y)) < ghostSpeed + 0.01;
           if (gAtX && gAtY) {
@@ -690,7 +811,6 @@ const PacManRenderer = () => {
           let gnx = ghost.pos.x + nvx;
           let gny = ghost.pos.y + nvy;
 
-          // Tunnel
           if (Math.round(gny) === 10) {
             if (gnx < -1) gnx = COLS;
             if (gnx > COLS) gnx = -1;
@@ -698,61 +818,27 @@ const PacManRenderer = () => {
 
           const gcx = nvx > 0 ? Math.ceil(gnx) : Math.floor(gnx);
           const gcy = nvy > 0 ? Math.ceil(gny) : Math.floor(gny);
-          if (canMove(gcx, gcy) || (Math.round(gny) === 10 && (gnx < 0 || gnx >= COLS))) {
+          if (canMoveToTile(gcx, gcy) || (Math.round(gny) === 10 && (gnx < 0 || gnx >= COLS))) {
             ghost.pos.x = gnx;
             ghost.pos.y = gny;
           } else {
-            // Stuck, pick new dir
             ghost.dir = ghostPickDir(ghost);
           }
 
-          // Trail
           ghost.trailPositions.push({ ...ghost.pos });
           if (ghost.trailPositions.length > 6) ghost.trailPositions.shift();
 
-          // ── Collision ──────────────
+          // Direct collision (eat scared ghosts, or shield absorb)
           const dist = Math.hypot(ghost.pos.x - g.pacSubX, ghost.pos.y - g.pacSubY);
           if (dist < 0.7) {
             if (ghost.scared) {
               ghost.pos = { x: 10, y: 10 };
-              ghost.scared = false;
-              ghost.mode = "chase";
+              ghost.scared = false; ghost.mode = "chase";
               g.score += 200;
-              g.alerts.push({ text: `Ghost eaten! +200`, color: "280 100% 65%", time: now, icon: "👻" });
-              spawnBurst(
-                ghost.pos.x * cell + cell / 2 + g.offsetX,
-                ghost.pos.y * cell + cell / 2 + g.offsetY,
-                ghost.color, 10
-              );
-            } else if (!isShielded) {
-              g.lives--;
-              if (g.lives <= 0) {
-                g.gameOver = true;
-                g.alerts.push({ text: "GAME OVER", color: "350 90% 55%", time: now, icon: "💀" });
-                spawnBurst(
-                  g.pacSubX * cell + cell / 2 + g.offsetX,
-                  g.pacSubY * cell + cell / 2 + g.offsetY,
-                  "350 90% 55%", 25, "spark"
-                );
-              } else {
-                g.alerts.push({ text: `${g.lives} lives left`, color: "350 90% 55%", time: now, icon: "💔" });
-                g.pacSubX = 10; g.pacSubY = 16;
-                g.pacman = { x: 10, y: 16 };
-                // Reset ghost positions
-                const spawns: Vec2[] = [{ x: 9, y: 10 }, { x: 10, y: 10 }, { x: 11, y: 10 }, { x: 10, y: 9 }];
-                g.ghosts.forEach((gh, i) => {
-                  if (!gh.isExtra) gh.pos = { ...spawns[i % spawns.length] };
-                });
-              }
-            } else {
-              // Shield absorbed hit
-              g.alerts.push({ text: "Shield absorbed hit!", color: "200 100% 60%", time: now, icon: "🛡️" });
-              spawnBurst(
-                g.pacSubX * cell + cell / 2 + g.offsetX,
-                g.pacSubY * cell + cell / 2 + g.offsetY,
-                "200 100% 60%", 8, "ring"
-              );
+              g.alerts.push({ text: "Ghost eaten! +200", color: "280 100% 65%", time: now, icon: "👻" });
+            } else if (isShielded) {
               ghost.pos = { x: 10, y: 10 };
+              g.alerts.push({ text: "Shield absorbed hit!", color: "200 100% 60%", time: now, icon: "🛡️" });
             }
           }
         }
@@ -760,14 +846,12 @@ const PacManRenderer = () => {
 
       // ── Update particles ───────────
       g.particles = g.particles.filter(p => {
-        p.x += p.vx;
-        p.y += p.vy;
+        p.x += p.vx; p.y += p.vy;
         if (p.type === "ice") p.vy -= 0.01;
         p.life -= 0.015;
         return p.life > 0;
       });
-
-      g.alerts = g.alerts.filter(a => now - a.time < 3500);
+      g.alerts = g.alerts.filter(a => now - a.time < 4000);
 
       // ═══════════════════════════════════════════════════════
       // RENDER
@@ -784,27 +868,21 @@ const PacManRenderer = () => {
       ctx.save();
       ctx.translate(g.offsetX, g.offsetY);
 
-      // ── Maze rendering (neon lines) ─
+      // ── Maze ───────────────────────
       for (let r = 0; r < ROWS; r++) {
         for (let c = 0; c < COLS; c++) {
-          const tile = MAZE[r][c]; // use template for walls
+          const tile = MAZE[r][c];
           const px = c * cell;
           const py = r * cell;
-
           if (tile === 1) {
-            // Check which sides have non-wall neighbors for border drawing
             ctx.fillStyle = `hsl(${theme.wall} / 0.25)`;
             ctx.fillRect(px, py, cell, cell);
-
-            // Neon edge lines
             ctx.strokeStyle = `hsl(${theme.wallGlow} / 0.6)`;
             ctx.lineWidth = 1.5;
-            // Only draw edges facing paths
             const top = r > 0 && MAZE[r-1][c] !== 1;
             const bot = r < ROWS-1 && MAZE[r+1][c] !== 1;
             const lft = c > 0 && MAZE[r][c-1] !== 1;
             const rgt = c < COLS-1 && MAZE[r][c+1] !== 1;
-
             ctx.beginPath();
             if (top) { ctx.moveTo(px, py + 0.5); ctx.lineTo(px + cell, py + 0.5); }
             if (bot) { ctx.moveTo(px, py + cell - 0.5); ctx.lineTo(px + cell, py + cell - 0.5); }
@@ -817,7 +895,6 @@ const PacManRenderer = () => {
             ctx.arc(px + cell / 2, py + cell / 2, cell * 0.1, 0, Math.PI * 2);
             ctx.fill();
           } else if (g.maze[r][c] === 3) {
-            // Pulsing power pellet
             const pulse = 0.2 + Math.sin(time / 200) * 0.08;
             ctx.fillStyle = `hsl(${theme.pellet})`;
             ctx.shadowColor = `hsl(${theme.pellet})`;
@@ -832,10 +909,10 @@ const PacManRenderer = () => {
 
       // ── Ghost trails ───────────────
       for (const ghost of g.ghosts) {
-        const ghostColor = ghost.scared ? "230 80% 60%" : ghost.color;
+        const gc = ghost.scared ? "230 80% 60%" : ghost.color;
         ghost.trailPositions.forEach((tp, ti) => {
           const alpha = (ti / ghost.trailPositions.length) * 0.15;
-          ctx.fillStyle = `hsl(${ghostColor} / ${alpha})`;
+          ctx.fillStyle = `hsl(${gc} / ${alpha})`;
           ctx.beginPath();
           ctx.arc(tp.x * cell + cell / 2, tp.y * cell + cell / 2, cell * 0.3, 0, Math.PI * 2);
           ctx.fill();
@@ -850,23 +927,22 @@ const PacManRenderer = () => {
       const pAngle = angles[g.pacDir];
       const pRadius = cell * 0.42;
 
-      // Slow-mo trail
+      // Slow trail
       if (isSlowed && g.frameCount % 2 === 0) {
         ctx.globalAlpha = 0.15;
-        ctx.fillStyle = `hsl(200 80% 55%)`;
+        ctx.fillStyle = "hsl(200 80% 55%)";
         ctx.beginPath();
         ctx.arc(ppx - DIR_VEC[g.pacDir].x * cell * 0.2, ppy - DIR_VEC[g.pacDir].y * cell * 0.2, pRadius * 0.9, 0, Math.PI * 2);
         ctx.fill();
         ctx.globalAlpha = 1;
       }
 
-      // Freeze visual: ice encasing
+      // Freeze visual
       if (isFrozen) {
         ctx.strokeStyle = "hsl(200 100% 85% / 0.6)";
         ctx.lineWidth = 3;
         ctx.shadowColor = "hsl(200 100% 80%)";
         ctx.shadowBlur = 15;
-        // Ice crystal shape
         ctx.beginPath();
         for (let i = 0; i < 6; i++) {
           const a = (Math.PI * 2 / 6) * i - Math.PI / 2;
@@ -880,11 +956,30 @@ const PacManRenderer = () => {
         ctx.shadowBlur = 0;
       }
 
+      // Confusion visual (glitch effect)
+      if (isConfused) {
+        ctx.strokeStyle = "hsl(45 100% 55% / 0.4)";
+        ctx.lineWidth = 2;
+        for (let i = 0; i < 3; i++) {
+          const ox = (Math.random() - 0.5) * cell * 0.4;
+          const oy = (Math.random() - 0.5) * cell * 0.4;
+          ctx.beginPath();
+          ctx.arc(ppx + ox, ppy + oy, pRadius * 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.font = `bold ${cell * 0.3}px system-ui`;
+        ctx.fillStyle = "hsl(45 100% 55%)";
+        ctx.textAlign = "center";
+        ctx.fillText("?!", ppx, ppy - pRadius - 8);
+        ctx.textAlign = "start";
+      }
+
       // Pac-Man body
       const isPowered = g.effects.some(e => e.type === "power");
       const pacColor = isFrozen ? "200 100% 75%"
         : isPowered ? "280 100% 65%"
         : isShielded ? "200 100% 60%"
+        : isConfused ? "45 100% 55%"
         : theme.pacman;
 
       ctx.shadowColor = `hsl(${pacColor})`;
@@ -898,11 +993,9 @@ const PacManRenderer = () => {
 
       // Eye
       const eyeAngle = pAngle + Math.PI * 0.35;
-      const eyeX = ppx + Math.cos(eyeAngle) * pRadius * 0.45;
-      const eyeY = ppy + Math.sin(eyeAngle) * pRadius * 0.45;
       ctx.fillStyle = isFrozen ? "hsl(200 100% 95%)" : "hsl(0 0% 10%)";
       ctx.beginPath();
-      ctx.arc(eyeX, eyeY, pRadius * 0.12, 0, Math.PI * 2);
+      ctx.arc(ppx + Math.cos(eyeAngle) * pRadius * 0.45, ppy + Math.sin(eyeAngle) * pRadius * 0.45, pRadius * 0.12, 0, Math.PI * 2);
       ctx.fill();
 
       // Shield bubble
@@ -915,17 +1008,11 @@ const PacManRenderer = () => {
         ctx.beginPath();
         ctx.arc(ppx, ppy, pRadius + 6, 0, Math.PI * 2);
         ctx.stroke();
-        // Shield pattern
-        ctx.strokeStyle = `hsl(200 100% 80% / ${shimmer * 0.5})`;
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(ppx, ppy, pRadius + 3, time / 500, time / 500 + Math.PI * 1.2);
-        ctx.stroke();
         ctx.shadowBlur = 0;
       }
 
       // Reverse indicator
-      if (g.effects.some(e => e.type === "reverse")) {
+      if (isReversed) {
         ctx.font = `bold ${cell * 0.35}px system-ui`;
         ctx.fillStyle = "hsl(280 100% 65%)";
         ctx.textAlign = "center";
@@ -943,7 +1030,6 @@ const PacManRenderer = () => {
             ? "0 0% 90%" : "230 80% 60%")
           : ghost.color;
 
-        // Ghost speed glow
         if (ghostSpeedUp && !ghost.scared) {
           ctx.shadowColor = "hsl(0 100% 50%)";
           ctx.shadowBlur = 18;
@@ -952,30 +1038,25 @@ const PacManRenderer = () => {
           ctx.shadowBlur = ghost.scared ? 6 : 12;
         }
 
-        // Body
         ctx.fillStyle = `hsl(${ghostColor})`;
         ctx.beginPath();
         ctx.arc(gx, gy - gr * 0.15, gr, Math.PI, 0);
         ctx.lineTo(gx + gr, gy + gr * 0.55);
-        const waves = 4;
-        for (let w = 0; w < waves; w++) {
-          const wx = gx + gr - (w + 1) * (gr * 2 / waves);
+        for (let w = 0; w < 4; w++) {
+          const wx = gx + gr - (w + 1) * (gr * 2 / 4);
           const waveY = gy + gr * (0.3 + Math.sin(time / 120 + w * 1.5) * 0.15);
-          ctx.quadraticCurveTo(wx + gr / waves, waveY, wx, gy + gr * 0.55);
+          ctx.quadraticCurveTo(wx + gr / 4, waveY, wx, gy + gr * 0.55);
         }
         ctx.closePath();
         ctx.fill();
         ctx.shadowBlur = 0;
 
-        // Eyes
         if (!ghost.scared) {
-          // Eye whites
           ctx.fillStyle = "white";
           ctx.beginPath();
           ctx.ellipse(gx - gr * 0.25, gy - gr * 0.2, gr * 0.18, gr * 0.22, 0, 0, Math.PI * 2);
           ctx.ellipse(gx + gr * 0.25, gy - gr * 0.2, gr * 0.18, gr * 0.22, 0, 0, Math.PI * 2);
           ctx.fill();
-          // Pupils (look toward target)
           const lookX = Math.sign(ghost.target.x - ghost.pos.x) * gr * 0.06;
           const lookY = Math.sign(ghost.target.y - ghost.pos.y) * gr * 0.06;
           ctx.fillStyle = "hsl(230 90% 15%)";
@@ -984,24 +1065,19 @@ const PacManRenderer = () => {
           ctx.arc(gx + gr * 0.25 + lookX, gy - gr * 0.2 + lookY, gr * 0.1, 0, Math.PI * 2);
           ctx.fill();
         } else {
-          // Scared face
           ctx.fillStyle = "white";
           ctx.beginPath();
           ctx.arc(gx - gr * 0.2, gy - gr * 0.15, gr * 0.08, 0, Math.PI * 2);
           ctx.arc(gx + gr * 0.2, gy - gr * 0.15, gr * 0.08, 0, Math.PI * 2);
           ctx.fill();
-          // Wobbly mouth
           ctx.strokeStyle = "white";
           ctx.lineWidth = 1.5;
           ctx.beginPath();
           ctx.moveTo(gx - gr * 0.25, gy + gr * 0.15);
-          for (let w = 0; w < 4; w++) {
-            ctx.lineTo(gx - gr * 0.25 + (w + 0.5) * gr * 0.125, gy + gr * (0.1 + (w % 2) * 0.1));
-          }
+          for (let w = 0; w < 4; w++) ctx.lineTo(gx - gr * 0.25 + (w + 0.5) * gr * 0.125, gy + gr * (0.1 + (w % 2) * 0.1));
           ctx.stroke();
         }
 
-        // Speed-buffed indicator
         if (ghostSpeedUp && !ghost.scared) {
           ctx.fillStyle = "hsl(0 100% 55% / 0.4)";
           ctx.beginPath();
@@ -1028,17 +1104,14 @@ const PacManRenderer = () => {
           ctx.beginPath();
           for (let s = 0; s < 5; s++) {
             const a = (Math.PI * 2 / 5) * s - Math.PI / 2;
-            const r1 = sz;
-            const r2 = sz * 0.4;
-            ctx.lineTo((p.x - g.offsetX) + Math.cos(a) * r1, (p.y - g.offsetY) + Math.sin(a) * r1);
-            ctx.lineTo((p.x - g.offsetX) + Math.cos(a + Math.PI / 5) * r2, (p.y - g.offsetY) + Math.sin(a + Math.PI / 5) * r2);
+            ctx.lineTo((p.x - g.offsetX) + Math.cos(a) * sz, (p.y - g.offsetY) + Math.sin(a) * sz);
+            ctx.lineTo((p.x - g.offsetX) + Math.cos(a + Math.PI / 5) * sz * 0.4, (p.y - g.offsetY) + Math.sin(a + Math.PI / 5) * sz * 0.4);
           }
           ctx.closePath();
           ctx.fill();
           ctx.shadowBlur = 0;
         } else if (p.type === "ice") {
           ctx.fillStyle = `hsl(${p.color} / ${alpha * 0.8})`;
-          // Diamond shape
           const sz = p.size * alpha;
           ctx.beginPath();
           ctx.moveTo(p.x - g.offsetX, (p.y - g.offsetY) - sz);
@@ -1055,123 +1128,148 @@ const PacManRenderer = () => {
         }
       }
       ctx.globalAlpha = 1;
-
-      ctx.restore(); // remove offset translation
+      ctx.restore();
 
       // ═══════════════════════════════════════════════════════
-      // HUD (overlaid on top, not offset)
+      // HUD
       // ═══════════════════════════════════════════════════════
-      const hudH = Math.max(cell * 1.5, 36);
-      const hudY = 0;
-
-      // Semi-transparent HUD bar
+      const hudH = Math.max(cell * 2.2, 50);
       const grad = ctx.createLinearGradient(0, 0, 0, hudH);
-      grad.addColorStop(0, "rgba(0,0,0,0.7)");
+      grad.addColorStop(0, "rgba(0,0,0,0.8)");
       grad.addColorStop(1, "rgba(0,0,0,0)");
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, W, hudH);
 
-      const fontSize = Math.max(cell * 0.45, 13);
-      ctx.font = `bold ${fontSize}px "SF Mono", "JetBrains Mono", monospace, system-ui`;
+      const fontSize = Math.max(cell * 0.4, 12);
       ctx.textBaseline = "middle";
-      ctx.fillStyle = "white";
 
       // Score
-      ctx.fillText(`SCORE`, g.offsetX + 8, hudH * 0.33);
-      ctx.fillStyle = `hsl(${theme.glow})`;
-      ctx.font = `bold ${fontSize * 1.3}px "SF Mono", monospace, system-ui`;
-      ctx.fillText(`${g.score.toLocaleString()}`, g.offsetX + 8, hudH * 0.68);
-
-      // Level
-      ctx.fillStyle = "hsl(0 0% 60%)";
+      ctx.fillStyle = "hsl(0 0% 55%)";
       ctx.font = `bold ${fontSize * 0.8}px system-ui`;
-      ctx.fillText(`LVL ${g.level}`, g.offsetX + cell * 5, hudH * 0.33);
+      ctx.fillText("SCORE", g.offsetX + 8, hudH * 0.25);
+      ctx.fillStyle = `hsl(${theme.glow})`;
+      ctx.font = `bold ${fontSize * 1.2}px "SF Mono", monospace, system-ui`;
+      ctx.fillText(`${g.score.toLocaleString()}`, g.offsetX + 8, hudH * 0.52);
+
+      // Round
+      ctx.fillStyle = "hsl(0 0% 55%)";
+      ctx.font = `bold ${fontSize * 0.8}px system-ui`;
+      ctx.fillText(`ROUND ${g.round}`, g.offsetX + cell * 5, hudH * 0.25);
 
       // Lives
-      ctx.fillStyle = "white";
-      ctx.font = `${fontSize}px system-ui`;
+      ctx.fillStyle = "hsl(350 90% 55%)";
       const livesX = W / 2;
       ctx.textAlign = "center";
       for (let i = 0; i < g.lives; i++) {
-        ctx.fillStyle = "hsl(350 90% 55%)";
         ctx.beginPath();
         const lx = livesX + (i - g.lives / 2) * (fontSize * 1.2);
-        // Heart shape
-        ctx.arc(lx - fontSize * 0.15, hudH * 0.5 - fontSize * 0.1, fontSize * 0.2, Math.PI, 0);
-        ctx.arc(lx + fontSize * 0.15, hudH * 0.5 - fontSize * 0.1, fontSize * 0.2, Math.PI, 0);
-        ctx.lineTo(lx, hudH * 0.5 + fontSize * 0.25);
+        ctx.arc(lx - fontSize * 0.15, hudH * 0.4 - fontSize * 0.1, fontSize * 0.2, Math.PI, 0);
+        ctx.arc(lx + fontSize * 0.15, hudH * 0.4 - fontSize * 0.1, fontSize * 0.2, Math.PI, 0);
+        ctx.lineTo(lx, hudH * 0.4 + fontSize * 0.25);
         ctx.closePath();
         ctx.fill();
       }
       ctx.textAlign = "start";
 
-      // Timer
-      const elapsed = Math.floor((now - g.startTime) / 1000);
-      const mins = Math.floor(elapsed / 60);
-      const secs = elapsed % 60;
-      ctx.fillStyle = "hsl(0 0% 50%)";
-      ctx.font = `${fontSize * 0.9}px "SF Mono", monospace, system-ui`;
+      // ── ESCAPE CHANCE (the key visual) ─────
+      const ecX = W - g.offsetX - 8;
+      const ecW = Math.max(cell * 5, 100);
+      const barX = ecX - ecW;
+      const barY = hudH * 0.15;
+      const barH = hudH * 0.3;
+
+      ctx.fillStyle = "hsl(0 0% 55%)";
+      ctx.font = `bold ${fontSize * 0.7}px system-ui`;
       ctx.textAlign = "right";
-      ctx.fillText(`${mins}:${secs.toString().padStart(2, "0")}`, W - g.offsetX - 8, hudH * 0.33);
+      ctx.fillText("ESCAPE CHANCE", ecX, barY - 2);
+
+      // Bar background
+      ctx.fillStyle = "hsl(0 0% 10% / 0.6)";
+      ctx.beginPath();
+      ctx.roundRect(barX, barY + 2, ecW, barH, 4);
+      ctx.fill();
+
+      // Bar fill — color shifts from green to red
+      const escPct = g.escapeChance / 100;
+      const escHue = escPct > 0.5 ? 120 + (escPct - 0.5) * 80 : escPct * 240;
+      ctx.fillStyle = `hsl(${escHue} 80% 50%)`;
+      ctx.shadowColor = `hsl(${escHue} 80% 50%)`;
+      ctx.shadowBlur = 8;
+      ctx.beginPath();
+      ctx.roundRect(barX, barY + 2, ecW * escPct, barH, 4);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      // Percentage text
+      ctx.fillStyle = "white";
+      ctx.font = `bold ${barH * 0.75}px "SF Mono", monospace, system-ui`;
+      ctx.fillText(`${Math.round(g.escapeChance)}%`, ecX - 4, barY + barH * 0.6 + 2);
+      ctx.textAlign = "start";
 
       // Active effects
-      const activeEffects = g.effects.filter(e => now < e.end);
+      const activeEffects = g.effects.filter(e => now < e.end && e.escapeReduction > 0);
       if (activeEffects.length > 0) {
         ctx.textAlign = "right";
-        ctx.font = `bold ${fontSize * 0.75}px system-ui`;
+        ctx.font = `bold ${fontSize * 0.65}px system-ui`;
         activeEffects.forEach((eff, i) => {
           const remaining = Math.ceil((eff.end - now) / 1000);
-          const labels: Record<EffectType, { icon: string; color: string; label: string }> = {
-            speed: { icon: "⚡", color: "45 100% 55%", label: "SPEED" },
-            shield: { icon: "🛡️", color: "200 100% 60%", label: "SHIELD" },
-            power: { icon: "👻", color: "280 100% 65%", label: "POWER" },
-            slow_ghosts: { icon: "🐌", color: "160 100% 55%", label: "SLOW GHOSTS" },
+          const labels: Record<string, { icon: string; color: string; label: string }> = {
             freeze: { icon: "🧊", color: "200 100% 80%", label: "FROZEN" },
             slow_pac: { icon: "🐌", color: "200 80% 55%", label: "SLOWED" },
             reverse: { icon: "🔄", color: "280 100% 65%", label: "REVERSED" },
+            ai_confusion: { icon: "🤪", color: "45 100% 55%", label: "CONFUSED" },
             ghost_swarm: { icon: "👻", color: "0 90% 55%", label: "SWARM" },
             ghost_speed: { icon: "💨", color: "0 85% 55%", label: "FAST GHOSTS" },
           };
           const info = labels[eff.type];
-          const ey = hudH * 0.7 + i * (fontSize * 1.1);
+          if (!info) return;
+          const ey = hudH * 0.65 + i * (fontSize * 1);
           ctx.fillStyle = `hsl(${info.color} / 0.8)`;
-          ctx.fillText(`${info.icon} ${info.label} ${remaining}s`, W - g.offsetX - 8, ey);
+          ctx.fillText(`${info.icon} ${info.label} -${eff.escapeReduction}% (${remaining}s)`, ecX, ey);
+        });
+      }
+
+      // Positive effects
+      const positiveEffects = g.effects.filter(e => now < e.end && e.escapeReduction === 0);
+      if (positiveEffects.length > 0) {
+        ctx.textAlign = "left";
+        ctx.font = `bold ${fontSize * 0.65}px system-ui`;
+        positiveEffects.forEach((eff, i) => {
+          const remaining = Math.ceil((eff.end - now) / 1000);
+          const labels: Record<string, { icon: string; color: string; label: string }> = {
+            shield: { icon: "🛡️", color: "200 100% 60%", label: "SHIELD" },
+            power: { icon: "👻", color: "280 100% 65%", label: "POWER" },
+            speed: { icon: "⚡", color: "45 100% 55%", label: "SPEED" },
+            slow_ghosts: { icon: "🐌", color: "160 100% 55%", label: "SLOW GHOSTS" },
+          };
+          const info = labels[eff.type];
+          if (!info) return;
+          const ey = hudH * 0.65 + i * (fontSize * 1);
+          ctx.fillStyle = `hsl(${info.color} / 0.8)`;
+          ctx.fillText(`${info.icon} ${info.label} (${remaining}s)`, g.offsetX + 8, ey);
         });
       }
       ctx.textAlign = "start";
 
-      // Vote bar (bottom)
-      const totalVotes = g.votes.left + g.votes.right + g.votes.up + g.votes.down;
-      if (totalVotes > 0) {
-        const barH = Math.max(cell * 0.35, 10);
-        const barY = H - barH;
-        const barX = g.offsetX;
-        const barW = g.totalW;
-        const dirs: Dir[] = ["left", "up", "down", "right"];
-        const dColors = ["200 80% 55%", "160 80% 50%", "45 90% 55%", "350 80% 55%"];
-        const dLabels = ["⬅", "⬆", "⬇", "➡"];
-        let offset = 0;
-        dirs.forEach((d, i) => {
-          const pct = g.votes[d] / totalVotes;
-          if (pct > 0) {
-            ctx.fillStyle = `hsl(${dColors[i]} / 0.5)`;
-            ctx.fillRect(barX + offset, barY, pct * barW, barH);
-            if (pct > 0.08) {
-              ctx.fillStyle = "white";
-              ctx.font = `bold ${barH * 0.65}px system-ui`;
-              ctx.textAlign = "center";
-              ctx.fillText(`${dLabels[i]} ${Math.round(pct * 100)}%`, barX + offset + pct * barW / 2, barY + barH / 2 + 1);
-              ctx.textAlign = "start";
-            }
-            offset += pct * barW;
-          }
+      // ── Top Gifters (bottom-left) ──
+      const gifterList = Object.values(g.gifters).sort((a, b) => b.totalCoins - a.totalCoins).slice(0, 3);
+      if (gifterList.length > 0) {
+        const gY = H - cell * 3;
+        ctx.fillStyle = "hsl(0 0% 40%)";
+        ctx.font = `bold ${fontSize * 0.65}px system-ui`;
+        ctx.fillText("TOP SABOTAGERS", g.offsetX + 8, gY);
+        gifterList.forEach((gf, i) => {
+          const yy = gY + (i + 1) * (fontSize * 1.1);
+          const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : "🥉";
+          ctx.fillStyle = i === 0 ? "hsl(45 100% 55%)" : "hsl(0 0% 60%)";
+          ctx.fillText(`${medal} ${gf.username} (${gf.totalCoins} coins)`, g.offsetX + 8, yy);
         });
       }
 
       // ── Alerts ─────────────────────
       ctx.textAlign = "center";
       g.alerts.forEach((a, i) => {
-        const age = (now - a.time) / 3500;
+        const age = (now - a.time) / 4000;
         if (age > 1) return;
         const yOffset = age * 30;
         ctx.globalAlpha = 1 - age;
@@ -1185,41 +1283,80 @@ const PacManRenderer = () => {
       ctx.globalAlpha = 1;
       ctx.textAlign = "start";
 
+      // ── Round Over screen ──────────
+      if (g.roundOver && !g.gameOver) {
+        ctx.fillStyle = "rgba(0,0,0,0.6)";
+        ctx.fillRect(0, 0, W, H);
+        ctx.textAlign = "center";
+        const isEscaped = g.roundResult === "escaped";
+
+        ctx.font = `bold ${Math.max(cell * 1.3, 36)}px system-ui`;
+        ctx.fillStyle = isEscaped ? "hsl(160 100% 55%)" : "hsl(350 90% 60%)";
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 30;
+        ctx.fillText(isEscaped ? "ESCAPED! 🏃" : "CAUGHT! 💀", W / 2, H * 0.4);
+        ctx.shadowBlur = 0;
+
+        ctx.font = `bold ${Math.max(cell * 0.5, 14)}px system-ui`;
+        ctx.fillStyle = "white";
+        ctx.fillText(`Escape chance was ${Math.round(g.escapeChance)}%`, W / 2, H * 0.5);
+
+        if (!isEscaped) {
+          const topGifter = Object.values(g.gifters).sort((a, b) => b.totalCoins - a.totalCoins)[0];
+          if (topGifter) {
+            ctx.fillStyle = "hsl(45 100% 55%)";
+            ctx.font = `bold ${Math.max(cell * 0.6, 16)}px system-ui`;
+            ctx.fillText(`👑 ${topGifter.username} — Top Sabotager!`, W / 2, H * 0.58);
+          }
+        }
+
+        ctx.fillStyle = "hsl(0 0% 45%)";
+        ctx.font = `${Math.max(cell * 0.35, 11)}px system-ui`;
+        ctx.fillText("Next round starting...", W / 2, H * 0.67);
+        ctx.textAlign = "start";
+      }
+
       // ── Game Over ──────────────────
       if (g.gameOver) {
-        ctx.fillStyle = "rgba(0,0,0,0.75)";
+        ctx.fillStyle = "rgba(0,0,0,0.8)";
         ctx.fillRect(0, 0, W, H);
-
         ctx.textAlign = "center";
-
-        // Glitch effect
         const glitch = Math.sin(time / 50) * 2;
 
         ctx.font = `bold ${Math.max(cell * 1.5, 40)}px system-ui`;
         ctx.fillStyle = "hsl(350 90% 60%)";
         ctx.shadowColor = "hsl(350 90% 60%)";
         ctx.shadowBlur = 30;
-        ctx.fillText("GAME OVER", W / 2 + glitch, H * 0.38);
+        ctx.fillText("GAME OVER", W / 2 + glitch, H * 0.33);
         ctx.fillStyle = "hsl(180 100% 50% / 0.3)";
-        ctx.fillText("GAME OVER", W / 2 - glitch, H * 0.38 + 2);
+        ctx.fillText("GAME OVER", W / 2 - glitch, H * 0.33 + 2);
         ctx.shadowBlur = 0;
 
         ctx.font = `bold ${Math.max(cell * 0.7, 18)}px system-ui`;
         ctx.fillStyle = "white";
-        ctx.fillText(`Final Score: ${g.score.toLocaleString()}`, W / 2, H * 0.5);
+        ctx.fillText(`Final Score: ${g.score.toLocaleString()} • Round ${g.round}`, W / 2, H * 0.45);
 
-        ctx.font = `${Math.max(cell * 0.4, 12)}px system-ui`;
-        ctx.fillStyle = "hsl(0 0% 50%)";
-        ctx.fillText(`Level ${g.level} • ${mins}:${secs.toString().padStart(2, "0")} survived`, W / 2, H * 0.57);
+        // Leaderboard
+        const topGifters = Object.values(g.gifters).sort((a, b) => b.totalCoins - a.totalCoins).slice(0, 5);
+        if (topGifters.length > 0) {
+          ctx.fillStyle = "hsl(45 100% 55%)";
+          ctx.font = `bold ${Math.max(cell * 0.5, 14)}px system-ui`;
+          ctx.fillText("🏆 TOP SABOTAGERS", W / 2, H * 0.54);
+          topGifters.forEach((gf, i) => {
+            ctx.fillStyle = i === 0 ? "hsl(45 100% 60%)" : "hsl(0 0% 60%)";
+            ctx.font = `${Math.max(cell * 0.4, 12)}px system-ui`;
+            const medal = i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : `#${i + 1}`;
+            ctx.fillText(`${medal} ${gf.username} — ${gf.totalCoins} coins (${gf.effectsTriggered} effects)`, W / 2, H * 0.60 + i * (cell * 0.6));
+          });
+        }
 
         ctx.fillStyle = `hsl(${theme.glow} / ${0.4 + Math.sin(time / 300) * 0.2})`;
         ctx.font = `bold ${Math.max(cell * 0.35, 11)}px system-ui`;
-        ctx.fillText("Send a gift to restart!", W / 2, H * 0.66);
-
+        ctx.fillText("Send a gift to restart!", W / 2, H * 0.82);
         ctx.textAlign = "start";
       }
 
-      // Connection indicator
+      // Connection dot
       ctx.fillStyle = g.connected ? "hsl(160 100% 45%)" : "hsl(0 80% 55%)";
       ctx.beginPath();
       ctx.arc(W - 12, 12, 4, 0, Math.PI * 2);
@@ -1228,7 +1365,7 @@ const PacManRenderer = () => {
 
     animId = requestAnimationFrame(loop);
     return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
-  }, [settings, canMove, spawnBurst]);
+  }, [settings, spawnBurst, resetRound]);
 
   return (
     <div className="w-screen h-screen bg-transparent overflow-hidden">

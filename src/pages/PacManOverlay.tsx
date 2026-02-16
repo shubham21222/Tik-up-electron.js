@@ -33,8 +33,8 @@ const PacManOverlay = () => {
         <div className="max-w-5xl mx-auto relative z-10 pb-12">
           <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
             <div>
-              <h1 className="text-2xl font-heading font-bold text-foreground mb-1">Pac-Man LIVE</h1>
-              <p className="text-muted-foreground text-sm">Viewers control Pac-Man via chat. Gifts trigger chaos effects!</p>
+              <h1 className="text-2xl font-heading font-bold text-foreground mb-1">🎮 Runaway AI Pac-Man</h1>
+              <p className="text-muted-foreground text-sm">AI-controlled Pac-Man escapes ~95% of the time. Gifts = sabotage to reduce escape chance!</p>
             </div>
             <button onClick={handleCreate} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5"
               style={{ background: "linear-gradient(135deg, hsl(160 100% 45%), hsl(200 100% 55%))", color: "white", boxShadow: "0 0 25px hsl(160 100% 45% / 0.25)" }}>
@@ -47,28 +47,33 @@ const PacManOverlay = () => {
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-16">
               <Gamepad2 size={48} className="text-muted-foreground/20 mx-auto mb-4" />
               <h2 className="text-lg font-heading font-bold text-foreground mb-2">No Games yet</h2>
-              <p className="text-sm text-muted-foreground mb-6">Create a Pac-Man overlay and let your viewers play!</p>
+              <p className="text-sm text-muted-foreground mb-6">Pac-Man runs on AI. Viewers sabotage with gifts to catch him!</p>
 
               <div className="max-w-lg mx-auto mb-6 text-left">
                 <div className="rounded-2xl border border-white/[0.06] bg-white/[0.02] p-5 space-y-4">
-                  <h3 className="text-sm font-heading font-bold text-foreground">How it works</h3>
+                  <h3 className="text-sm font-heading font-bold text-foreground">🧠 How AI Runaway Works</h3>
                   <div className="space-y-1.5 text-xs text-muted-foreground">
-                    <p>🎮 <span className="text-foreground font-medium">Chat Controls</span> — Viewers type <code className="px-1 py-0.5 rounded bg-white/5 text-primary">left</code> <code className="px-1 py-0.5 rounded bg-white/5 text-primary">right</code> <code className="px-1 py-0.5 rounded bg-white/5 text-primary">up</code> <code className="px-1 py-0.5 rounded bg-white/5 text-primary">down</code> to vote on movement direction</p>
+                    <p>🤖 <span className="text-foreground font-medium">AI Mode</span> — Pac-Man uses pathfinding to escape ghosts (~95% escape chance)</p>
+                    <p>🎁 <span className="text-foreground font-medium">Gifts = Sabotage</span> — Each gift reduces escape probability</p>
+                    <p>🏆 <span className="text-foreground font-medium">Drama Loop</span> — Viewers race to stack enough debuffs to catch Pac-Man!</p>
                   </div>
                   <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
                     <div className="space-y-1.5">
-                      <p className="text-foreground font-semibold text-[11px] mb-1">😈 Chaos Effects</p>
-                      <p>🐌 <span className="text-foreground">Small Gift</span> → Slow Pac-Man</p>
-                      <p>🧊 <span className="text-foreground">Rose</span> → Freeze Pac-Man</p>
-                      <p>💨 <span className="text-foreground">Medium Gift</span> → Speed up ghosts</p>
-                      <p>🔄 <span className="text-foreground">Premium Gift</span> → Reverse controls</p>
-                      <p>👻 <span className="text-foreground">Legendary</span> → Ghost swarm!</p>
+                      <p className="text-foreground font-semibold text-[11px] mb-1">😈 Sabotage Effects</p>
+                      <p>🐌 <span className="text-foreground">1 coin</span> → Slow (-10%)</p>
+                      <p>🧊 <span className="text-foreground">1-5 coins</span> → Freeze (-20%)</p>
+                      <p>💨 <span className="text-foreground">5-20 coins</span> → Fast ghosts (-12%)</p>
+                      <p>🔄 <span className="text-foreground">20-50 coins</span> → Reverse (-15%)</p>
+                      <p>🤪 <span className="text-foreground">50-100 coins</span> → AI Confusion (-25%)</p>
+                      <p>👻 <span className="text-foreground">100-500 coins</span> → Ghost Swarm (-30%)</p>
                     </div>
                     <div className="space-y-1.5">
-                      <p className="text-foreground font-semibold text-[11px] mb-1">✨ Positive Effects</p>
-                      <p>🛡️ <span className="text-foreground">Big Gift</span> → Shield Pac-Man</p>
-                      <p>👻 <span className="text-foreground">Large Gift</span> → Power pellet mode</p>
-                      <p>🌟 <span className="text-foreground">Mega Gift</span> → Teleport + slow ghosts</p>
+                      <p className="text-foreground font-semibold text-[11px] mb-1">✨ Support (500+ coins)</p>
+                      <p>🛡️ Shield + ⚡ Speed boost</p>
+                      <p className="mt-2 text-foreground font-semibold text-[11px]">📊 Probability</p>
+                      <p>95% - (20% + 10% + 30%)</p>
+                      <p>= 35% escape chance!</p>
+                      <p className="text-primary font-medium mt-1">More gifts = more catches</p>
                     </div>
                   </div>
                 </div>
@@ -89,31 +94,37 @@ const PacManOverlay = () => {
                   onToggleActive={() => toggleActive(widget.id)} onTest={() => {}}
                   previewSlot={<PacManPreview />}
                   settingsSlot={<div className="space-y-4">
-                    <SettingRow label="Theme" description="Visual style of the game"><SettingSelect value={s.theme || "tikup"} onChange={v => set("theme", v)} options={[
+                    <SettingRow label="Theme" description="Visual style"><SettingSelect value={s.theme || "tikup"} onChange={v => set("theme", v)} options={[
                       { value: "tikup", label: "TikUp Neon" },
                       { value: "classic", label: "Classic Arcade" },
                       { value: "cyberpunk", label: "Cyberpunk" },
                     ]} /></SettingRow>
+
+                    <div className="pt-2 border-t border-white/[0.06]">
+                      <p className="text-[11px] font-bold text-foreground/60 uppercase tracking-wider mb-3">🧠 AI Configuration</p>
+                    </div>
+                    <SettingRow label="AI Mode" description="Pac-Man auto-escapes using pathfinding AI"><SettingToggle checked={s.ai_mode ?? true} onChange={v => set("ai_mode", v)} /></SettingRow>
+                    <SettingRow label="Base Escape Chance" description="Starting probability Pac-Man escapes (before gifts)"><SettingSlider value={s.base_escape_chance || 95} onChange={v => set("base_escape_chance", v)} min={50} max={99} suffix="%" /></SettingRow>
                     <SettingRow label="Ghost Count" description="Base number of ghosts"><SettingSlider value={s.ghost_count || 4} onChange={v => set("ghost_count", v)} min={1} max={4} /></SettingRow>
-                    <SettingRow label="Vote Interval" description="Seconds between movement votes"><SettingSlider value={s.vote_interval || 1.5} onChange={v => set("vote_interval", v)} min={0.5} max={5} step={0.5} suffix="s" /></SettingRow>
-                    <SettingRow label="Chaos Mode" description="Enable sabotage gifts (freeze, slow, reverse, swarm)"><SettingToggle checked={s.chaos_mode ?? true} onChange={v => set("chaos_mode", v)} /></SettingRow>
+                    <SettingRow label="Chaos Mode" description="Enable gift-based sabotage effects"><SettingToggle checked={s.chaos_mode ?? true} onChange={v => set("chaos_mode", v)} /></SettingRow>
 
                     <div className="pt-2 border-t border-white/[0.06]">
-                      <p className="text-[11px] font-bold text-foreground/60 uppercase tracking-wider mb-3">✨ Positive Effect Durations</p>
+                      <p className="text-[11px] font-bold text-foreground/60 uppercase tracking-wider mb-3">😈 Sabotage Durations</p>
                     </div>
-                    <SettingRow label="Speed Boost"><SettingSlider value={s.speed_boost_duration || 3} onChange={v => set("speed_boost_duration", v)} min={1} max={10} suffix="s" /></SettingRow>
+                    <SettingRow label="Freeze (🧊 -20%)"><SettingSlider value={s.freeze_duration || 1.5} onChange={v => set("freeze_duration", v)} min={0.5} max={5} step={0.5} suffix="s" /></SettingRow>
+                    <SettingRow label="Slow (🐌 -10%)"><SettingSlider value={s.slow_pac_duration || 3} onChange={v => set("slow_pac_duration", v)} min={1} max={8} suffix="s" /></SettingRow>
+                    <SettingRow label="Reverse (🔄 -15%)"><SettingSlider value={s.reverse_duration || 4} onChange={v => set("reverse_duration", v)} min={2} max={10} suffix="s" /></SettingRow>
+                    <SettingRow label="AI Confusion (🤪 -25%)"><SettingSlider value={s.confusion_duration || 5} onChange={v => set("confusion_duration", v)} min={2} max={10} suffix="s" /></SettingRow>
+                    <SettingRow label="Ghost Speed (💨 -12%)"><SettingSlider value={s.ghost_speed_duration || 5} onChange={v => set("ghost_speed_duration", v)} min={2} max={10} suffix="s" /></SettingRow>
+                    <SettingRow label="Ghost Swarm (👻 -30%)"><SettingSlider value={s.swarm_duration || 8} onChange={v => set("swarm_duration", v)} min={3} max={15} suffix="s" /></SettingRow>
+
+                    <div className="pt-2 border-t border-white/[0.06]">
+                      <p className="text-[11px] font-bold text-foreground/60 uppercase tracking-wider mb-3">✨ Support Durations</p>
+                    </div>
                     <SettingRow label="Shield"><SettingSlider value={s.shield_duration || 5} onChange={v => set("shield_duration", v)} min={2} max={15} suffix="s" /></SettingRow>
-                    <SettingRow label="Power Pellet"><SettingSlider value={s.power_duration || 7} onChange={v => set("power_duration", v)} min={3} max={15} suffix="s" /></SettingRow>
-                    <SettingRow label="Slow Ghosts"><SettingSlider value={s.slow_ghost_duration || 4} onChange={v => set("slow_ghost_duration", v)} min={2} max={10} suffix="s" /></SettingRow>
+                    <SettingRow label="Speed Boost"><SettingSlider value={s.speed_boost_duration || 3} onChange={v => set("speed_boost_duration", v)} min={1} max={10} suffix="s" /></SettingRow>
 
-                    <div className="pt-2 border-t border-white/[0.06]">
-                      <p className="text-[11px] font-bold text-foreground/60 uppercase tracking-wider mb-3">😈 Chaos Effect Durations</p>
-                    </div>
-                    <SettingRow label="Freeze Pac-Man"><SettingSlider value={s.freeze_duration || 1.5} onChange={v => set("freeze_duration", v)} min={0.5} max={5} step={0.5} suffix="s" /></SettingRow>
-                    <SettingRow label="Slow Pac-Man"><SettingSlider value={s.slow_pac_duration || 3} onChange={v => set("slow_pac_duration", v)} min={1} max={8} suffix="s" /></SettingRow>
-                    <SettingRow label="Reverse Controls"><SettingSlider value={s.reverse_duration || 4} onChange={v => set("reverse_duration", v)} min={2} max={10} suffix="s" /></SettingRow>
-                    <SettingRow label="Ghost Speed Boost"><SettingSlider value={s.ghost_speed_duration || 5} onChange={v => set("ghost_speed_duration", v)} min={2} max={10} suffix="s" /></SettingRow>
-                    <SettingRow label="Ghost Swarm"><SettingSlider value={s.swarm_duration || 8} onChange={v => set("swarm_duration", v)} min={3} max={15} suffix="s" /></SettingRow>
+                    <SettingRow label="Chat Vote Interval" description="How often chat votes influence AI direction"><SettingSlider value={s.vote_interval || 1.5} onChange={v => set("vote_interval", v)} min={0.5} max={5} step={0.5} suffix="s" /></SettingRow>
                   </div>}
                   advancedSlot={<div className="space-y-4">
                     <SettingRow label="Transparent Background"><SettingToggle checked={s.transparent_bg ?? true} onChange={v => set("transparent_bg", v)} /></SettingRow>

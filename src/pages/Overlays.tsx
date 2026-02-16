@@ -44,6 +44,7 @@ const SlotMachinePreview = lazy(() => import("@/components/overlays/previews/Slo
 const VoteBattlePreview = lazy(() => import("@/components/overlays/previews/VoteBattlePreview"));
 const ProgressRacePreview = lazy(() => import("@/components/overlays/previews/ProgressRacePreview"));
 const StreamBuddiesPreview = lazy(() => import("@/components/overlays/previews/StreamBuddiesPreview"));
+const PacManPreview = lazy(() => import("@/components/overlays/previews/PacManPreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -80,6 +81,7 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Vote Battle": VoteBattlePreview,
   "Progress Race": ProgressRacePreview,
   "Stream Buddies": StreamBuddiesPreview,
+  "Pac-Man LIVE": PacManPreview,
 };
 
 const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
@@ -145,6 +147,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Slot Machine", description: "Gift-triggered 3-reel slot machine with customizable jackpot rewards.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/slot-machine", category: "actions" },
     { title: "Vote Battle", description: "Two-sided animated vote bar. Viewers power their team with gifts.", hasPreview: true, color: "200 80% 55%", pro: true, route: "/vote-battle", category: "actions" },
     { title: "Stream Buddies", description: "Animated pixel-art avatars of your top supporters that walk, jump, and react to gifts and chat in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/stream-buddies", category: "actions" },
+    { title: "Pac-Man LIVE", description: "Interactive Pac-Man game controlled by chat commands. Gifts trigger power-ups, speed boosts, and shields!", hasPreview: true, color: "160 100% 45%", pro: true, route: "/pacman", category: "actions" },
 
     // Banners & Stream Design
     { title: "Promo Overlay", description: "Branded promo overlay with logo, animated rings, and follow CTA.", hasPreview: true, color: "160 100% 45%", route: "/promo-overlay", category: "design" },

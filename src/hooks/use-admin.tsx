@@ -60,7 +60,17 @@ export function useAdminUsers() {
     await fetch();
   };
 
-  return { users, loading, refetch: fetch, updatePlan };
+  const unlinkTiktok = async (userId: string) => {
+    await adminFetch("unlink_tiktok", "POST", { user_id: userId });
+    await fetch();
+  };
+
+  const overrideTiktok = async (userId: string, tiktokUsername: string) => {
+    await adminFetch("override_tiktok", "POST", { user_id: userId, tiktok_username: tiktokUsername });
+    await fetch();
+  };
+
+  return { users, loading, refetch: fetch, updatePlan, unlinkTiktok, overrideTiktok };
 }
 
 export function useAdminAnalytics() {
@@ -83,6 +93,24 @@ export function useAdminLogs() {
     try {
       const data = await adminFetch("logs", "GET", undefined, { limit: String(limit) });
       setLogs(data.events || []);
+    } catch { /* silent */ }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => { fetch(); }, [fetch]);
+
+  return { logs, loading, refetch: fetch };
+}
+
+export function useAdminAuditLogs() {
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetch = useCallback(async (limit = 100) => {
+    setLoading(true);
+    try {
+      const data = await adminFetch("audit_logs", "GET", undefined, { limit: String(limit) });
+      setLogs(data.logs || []);
     } catch { /* silent */ }
     setLoading(false);
   }, []);

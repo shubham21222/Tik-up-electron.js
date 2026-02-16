@@ -104,18 +104,61 @@ const Setup = () => {
       setConnectionStatus("error");
       return;
     }
+    // Basic format validation
+    if (!/^[a-zA-Z0-9_.]{1,30}$/.test(clean)) {
+      setConnectionError("Invalid TikTok username format");
+      setConnectionStatus("error");
+      return;
+    }
     setConnectionError("");
     setConnectionStatus("connecting");
 
-    // Save username to profile
+    // Check if this user already has a locked username (different from what they're trying to set)
+    const { data: currentProfile } = await supabase
+      .from("profiles")
+      .select("tiktok_username, tiktok_connected, username_locked_at")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (currentProfile) {
+      const cp = currentProfile as any;
+      if (cp.username_locked_at && cp.tiktok_username && cp.tiktok_connected
+          && cp.tiktok_username.toLowerCase() !== clean.toLowerCase()) {
+        setConnectionError("Your account already has a locked TikTok username. Contact support to change it.");
+        setConnectionStatus("error");
+        return;
+      }
+    }
+
+    // Check if username is already linked to another account
+    const { data: existingLink } = await supabase
+      .from("profiles")
+      .select("user_id")
+      .ilike("tiktok_username", clean)
+      .eq("tiktok_connected", true)
+      .neq("user_id", user.id)
+      .maybeSingle();
+
+    if (existingLink) {
+      setConnectionError("This TikTok username is already linked to another account.");
+      setConnectionStatus("error");
+      return;
+    }
+
+    // Save username to profile and lock it
     const { error } = await supabase.from("profiles").update({
       tiktok_username: clean,
       tiktok_connected: true,
       tiktok_connected_at: new Date().toISOString(),
+      username_locked_at: new Date().toISOString(),
     } as any).eq("user_id", user.id);
 
     if (error) {
-      setConnectionError("Failed to save connection. Please try again.");
+      if (error.message?.includes("unique") || error.code === "23505") {
+        setConnectionError("This TikTok username is already linked to another account.");
+      } else {
+        setConnectionError("Failed to save connection. Please try again.");
+      }
       setConnectionStatus("error");
       return;
     }

@@ -1,10 +1,11 @@
 import { motion } from "framer-motion";
 
+const V = "v3";
 const TIERS = [
-  { src: "/buddies/legendary.png", size: 52, x: "18%", glow: "0 0 18px rgba(255,200,50,0.6)", crown: true, name: "TopGifter" },
-  { src: "/buddies/epic.png", size: 44, x: "45%", glow: "0 0 12px rgba(160,80,255,0.5)", crown: false, name: "EpicFan" },
-  { src: "/buddies/rare.png", size: 38, x: "70%", glow: "0 0 8px rgba(80,160,255,0.4)", crown: false, name: "RareViewer" },
-  { src: "/buddies/common.png", size: 32, x: "88%", glow: "none", crown: false, name: "NewFan" },
+  { src: `/buddies/legendary-cat.png?${V}`, size: 52, x: "18%", glow: "0 0 18px rgba(255,200,50,0.6)", crown: true, name: "TopGifter" },
+  { src: `/buddies/epic.png?${V}`, size: 44, x: "45%", glow: "0 0 12px rgba(160,80,255,0.5)", crown: false, name: "EpicFan" },
+  { src: `/buddies/rare.png?${V}`, size: 38, x: "70%", glow: "0 0 8px rgba(80,160,255,0.4)", crown: false, name: "RareViewer" },
+  { src: `/buddies/common.png?${V}`, size: 32, x: "88%", glow: "none", crown: false, name: "NewFan" },
 ];
 
 const StreamBuddiesPreview = () => (

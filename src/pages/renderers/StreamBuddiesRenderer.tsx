@@ -48,11 +48,12 @@ interface BuddyEvent {
 }
 
 /* ─── Constants ─────────────────────────────────────────── */
+const SPRITE_V = "v3";
 const SPRITE_MAP: Record<Tier, string> = {
-  common: "/buddies/common.png",
-  rare: "/buddies/rare.png",
-  epic: "/buddies/epic.png",
-  legendary: "/buddies/legendary.png",
+  common: `/buddies/common.png?${SPRITE_V}`,
+  rare: `/buddies/rare.png?${SPRITE_V}`,
+  epic: `/buddies/epic.png?${SPRITE_V}`,
+  legendary: `/buddies/legendary-cat.png?${SPRITE_V}`,
 };
 
 const TIER_THRESHOLDS: { tier: Tier; min: number }[] = [

@@ -14,13 +14,14 @@ import { copyToClipboard } from "@/lib/clipboard";
 import ProGate from "@/components/ProGate";
 
 /* ═══════════════════════════════════════════════════════════
-   SPRITE PATHS — 3D chibi vinyl-toy avatars per tier
+   SPRITE PATHS — 3D chibi TikUp cat avatars per tier
    ═══════════════════════════════════════════════════════════ */
+const SPRITE_VERSION = "v3";
 const SPRITE_PATHS: Record<string, string> = {
-  common: "/buddies/common.png",
-  rare: "/buddies/rare.png",
-  epic: "/buddies/epic.png",
-  legendary: "/buddies/legendary.png",
+  common: `/buddies/common.png?${SPRITE_VERSION}`,
+  rare: `/buddies/rare.png?${SPRITE_VERSION}`,
+  epic: `/buddies/epic.png?${SPRITE_VERSION}`,
+  legendary: `/buddies/legendary-cat.png?${SPRITE_VERSION}`,
 };
 
 const THEMES: Record<string, {

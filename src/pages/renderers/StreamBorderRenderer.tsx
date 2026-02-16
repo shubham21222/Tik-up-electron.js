@@ -65,7 +65,6 @@ const StreamBorderRenderer = () => {
           borderColor: [`hsl(${c1}/0.5)`, `hsl(${c2}/0.7)`, `hsl(${c1}/0.5)`],
         }}
         transition={{ duration: dur, repeat: Infinity, ease: "easeInOut" }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -80,7 +79,6 @@ const StreamBorderRenderer = () => {
         animate={{ left: ["-20%", "120%"] }} transition={{ duration: dur*2.5, repeat: Infinity, ease: "easeInOut" }} />
       <motion.div className="absolute bottom-0 h-[3px]" style={{ background: "linear-gradient(90deg,transparent,hsl(45 90% 70%/0.6),transparent)", width: "30%", borderRadius: r }}
         animate={{ right: ["-20%", "120%"] }} transition={{ duration: dur*3, repeat: Infinity, ease: "easeInOut", delay: 1 }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -94,7 +92,6 @@ const StreamBorderRenderer = () => {
           animate={{ opacity: [0,1,0], x: [0,6,-4,0], scaleX: [1,1.08,0.95,1] }}
           transition={{ duration: 0.25, repeat: Infinity, repeatDelay: 1.2+i*0.5 }} />
       ))}
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -114,7 +111,6 @@ const StreamBorderRenderer = () => {
           }} animate={{ opacity: [0,1,0.4,1,0], scale: [0.5,1.8,0.8,1.5,0.5] }}
             transition={{ duration: 0.7, repeat: Infinity, repeatDelay: 1.8, delay: sp.delay }} />
         ))}
-        {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
       </div>
     );
   }
@@ -133,7 +129,6 @@ const StreamBorderRenderer = () => {
         transition={{ duration: dur*4, repeat: Infinity, ease: "linear" }}>
         <div className="w-full h-full" style={{ borderRadius: r - t }} />
       </motion.div>
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -149,7 +144,6 @@ const StreamBorderRenderer = () => {
         style={{ background: "linear-gradient(180deg,transparent,hsl(300 100% 70%/0.5),hsl(180 100% 70%/0.3),transparent)" }}
         animate={{ left: ["0px", "100%"] }}
         transition={{ duration: dur*3, repeat: Infinity, repeatType: "reverse", ease: "easeInOut", delay: 0.5 }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -167,7 +161,6 @@ const StreamBorderRenderer = () => {
       <div className={wrap}>
         <div className="absolute inset-0" style={{ border: `${t}px solid hsl(45 70% 55%/0.15)`, borderRadius: r }} />
         {pts.map(p => <P key={p.id} d={p.delay} x={p.x} y={p.y} c={p.c} />)}
-        {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
       </div>
     );
   }
@@ -185,7 +178,6 @@ const StreamBorderRenderer = () => {
       <motion.div className="absolute top-0 h-full w-[25%]"
         style={{ background: "linear-gradient(90deg,transparent,hsl(280 100% 70%/0.12),transparent)" }}
         animate={{ left: ["-25%", "125%"] }} transition={{ duration: dur*2.5, repeat: Infinity, ease: "easeInOut" }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -210,7 +202,6 @@ const StreamBorderRenderer = () => {
               transition={{ duration: dur * 2.5, repeat: Infinity, repeatType: "reverse", delay: f.delay, ease: "easeInOut" }} />
           );
         })}
-        {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
       </div>
     );
   }
@@ -237,7 +228,6 @@ const StreamBorderRenderer = () => {
           borderRight: pos.right!==undefined ? "2px solid hsl(120 80% 45%/0.6)" : "none",
         }} animate={{ opacity: [0.4,1,0.4] }} transition={{ duration: 1.5, repeat: Infinity, delay: i*0.3 }} />
       ))}
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -255,7 +245,6 @@ const StreamBorderRenderer = () => {
         style={{ border: "1px solid hsl(190 100% 70%/0.15)" }}
         animate={{ scale: [1,1.02,1], opacity: [0.3,0.6,0.3] }}
         transition={{ duration: dur, repeat: Infinity }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -273,7 +262,6 @@ const StreamBorderRenderer = () => {
         style={{ background: "linear-gradient(90deg,transparent,hsl(35 90% 55%/0.7),hsl(170 80% 45%/0.5),transparent)", width: "30%", borderRadius: r }}
         animate={{ left: ["-10%", "110%"] }}
         transition={{ duration: dur*2, repeat: Infinity, ease: "easeInOut" }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -296,7 +284,6 @@ const StreamBorderRenderer = () => {
         transition={{ duration: 0.2, repeat: Infinity, repeatDelay: 4 }}>
         <div className="w-full h-full" style={{ background: "hsl(0 80% 55%)", borderRadius: r }} />
       </motion.div>
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -317,7 +304,6 @@ const StreamBorderRenderer = () => {
       <motion.div className="absolute inset-[10%] rounded-full border border-red-500/20"
         animate={{ scale: [0.95,1.05,0.95], opacity: [0.1,0.3,0.1] }}
         transition={{ duration: dur*2, repeat: Infinity }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
     </div>
   );
 
@@ -337,7 +323,7 @@ const StreamBorderRenderer = () => {
       <motion.div className="absolute bottom-0 left-0 w-[3px]" style={{ background: "hsl(210 100% 70%)", boxShadow: "0 0 10px hsl(210 100% 60%)" }}
         animate={{ height: ["0%", "100%", "0%"], opacity: [0,1,0] }}
         transition={{ duration: dur*1.5, repeat: Infinity, ease: "easeInOut", delay: dur*1.2 }} />
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+      
     </div>
   );
 };

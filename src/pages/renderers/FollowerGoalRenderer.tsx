@@ -43,7 +43,7 @@ const FollowerGoalRenderer = () => {
         <motion.div className="h-full rounded-full" animate={{ width: `${pct}%` }} style={{ background: `hsl(${accent})`, boxShadow: `0 0 15px hsl(${accent} / 0.3)` }} transition={{ duration: 1 }} />
       </div>
       {settings.show_percentage && <p className="text-xs text-white/50 mt-2">{current} / {target} ({Math.round(pct)}%)</p>}
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

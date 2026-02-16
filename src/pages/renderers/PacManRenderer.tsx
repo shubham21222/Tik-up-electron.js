@@ -1370,7 +1370,7 @@ const PacManRenderer = () => {
   return (
     <div className="w-screen h-screen bg-transparent overflow-hidden">
       <canvas ref={canvasRef} className="block" />
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

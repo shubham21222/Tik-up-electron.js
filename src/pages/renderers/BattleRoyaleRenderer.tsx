@@ -119,7 +119,7 @@ const BattleRoyaleRenderer = () => {
           <p className="text-sm text-white/50">Last one standing!</p>
         </div>
       </motion.div>}
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

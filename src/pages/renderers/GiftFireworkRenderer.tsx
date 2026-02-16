@@ -102,7 +102,7 @@ const GiftFireworkRenderer = () => {
           </div>
         ))}
       </AnimatePresence>
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

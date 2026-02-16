@@ -61,7 +61,7 @@ const VideoCamFrameRenderer = () => {
           ref={(el) => { if (el) el.playbackRate = speed; }}
         />
       </div>
-      {s.custom_css && <style dangerouslySetInnerHTML={{ __html: s.custom_css }} />}
+      
     </div>
   );
 };

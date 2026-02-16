@@ -43,7 +43,7 @@ const LikeCounterRenderer = () => {
         <motion.span className={`font-black text-white ${fontClass}`} style={{ fontSize: settings.font_size, textShadow: `0 0 ${15 * glow}px hsl(${accent} / 0.3)` }} key={count}
           initial={{ scale: 1.2 }} animate={{ scale: 1 }}>{count.toLocaleString()}</motion.span>
       </motion.div>
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

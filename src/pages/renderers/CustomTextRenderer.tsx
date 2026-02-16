@@ -64,7 +64,7 @@ const CustomTextRenderer = () => {
         {...(settings.animated_gradient ? { animate: { backgroundPosition: ["0% 50%", "200% 50%"] }, transition: { duration: settings.gradient_speed || 3, repeat: Infinity, ease: "linear" } } : {})}>
         {resolved}
       </motion.p>
-      {settings.custom_css && <style dangerouslySetInnerHTML={{ __html: settings.custom_css }} />}
+      
     </div>
   );
 };

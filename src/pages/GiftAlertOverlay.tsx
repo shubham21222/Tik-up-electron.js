@@ -1,5 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import { useCallback, Suspense, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Plus, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -197,7 +198,12 @@ const GiftAlertOverlay = () => {
                     onDelete={() => deleteWidget(widget.id)}
                     onReset={() => updateSettings(widget.id, defaultGiftAlertSettings)}
                     onToggleActive={() => toggleActive(widget.id)}
-                    onTest={() => setTestTrigger(prev => prev + 1)}
+                    onTest={() => {
+                      setTestTrigger(prev => prev + 1);
+                      // Also broadcast test_alert to live renderer
+                      supabase.channel(`gift-alert-${widget.public_token}`)
+                        .send({ type: "broadcast", event: "test_alert", payload: {} });
+                    }}
                     previewSlot={
                       <Suspense fallback={null}>
                         <GiftAlertPreview settings={s} testTrigger={testTrigger} />

@@ -49,7 +49,7 @@ const LikeAlertPreview = ({ settings = {} }: LikeAlertPreviewProps) => {
   const [visible, setVisible] = useState(true);
   const duration = settings.duration || 4;
   const style = settings.animation_style || "hearts_rise";
-  const iconSize = settings.icon_size || 48;
+  const iconSize = settings.icon_size || 64;
   const glowIntensity = (settings.glow_intensity || 60) / 100;
   const particleCount = settings.particle_count || 12;
   const colors = getColors(settings.color_mode || "warm");
@@ -168,11 +168,11 @@ const LikeAlertPreview = ({ settings = {} }: LikeAlertPreviewProps) => {
             {/* Text */}
             <motion.div className="text-center" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
               {settings.username_visible !== false && (
-                <p className="text-sm font-bold text-white">{like.user}</p>
+                <p className="text-base font-bold text-white">{like.user}</p>
               )}
               {showCount && (
                 <motion.p
-                  className="text-lg font-heading font-black mt-0.5"
+                  className="text-xl font-heading font-black mt-1"
                   style={{ color: colors[0] }}
                   initial={{ scale: 0.5 }}
                   animate={{ scale: [0.5, 1.2, 1] }}
@@ -181,7 +181,7 @@ const LikeAlertPreview = ({ settings = {} }: LikeAlertPreviewProps) => {
                   +{like.count} ❤️
                 </motion.p>
               )}
-              <p className="text-[10px] text-white/40 mt-0.5">liked your stream</p>
+              <p className="text-xs text-white/40 mt-1">liked your stream</p>
             </motion.div>
           </motion.div>
         )}

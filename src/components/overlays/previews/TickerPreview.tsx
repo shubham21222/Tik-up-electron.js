@@ -20,7 +20,7 @@ const TickerPreview = () => {
       <div className="w-full px-3 py-2 rounded-xl bg-[rgba(0,0,0,0.55)] backdrop-blur-lg border border-white/[0.06]">
         <div className="overflow-hidden">
           <motion.div
-            className="whitespace-nowrap text-[11px] text-white/70 font-medium"
+            className="whitespace-nowrap text-xs text-white/70 font-medium"
             animate={{ x: ["0%", "-50%"] }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           >

@@ -52,7 +52,7 @@ const GiftComboPreview = () => {
         animate={combo > 10 ? { scale: [1, 1.02, 1] } : {}}
         transition={{ duration: 0.3, repeat: Infinity }}
       >
-        <span className="text-[10px] font-bold tracking-widest" style={{ color: `hsl(${tier.color})` }}>
+        <span className="text-xs font-bold tracking-widest" style={{ color: `hsl(${tier.color})` }}>
           {tier.label}
         </span>
         <div className="flex items-baseline gap-1">
@@ -62,14 +62,14 @@ const GiftComboPreview = () => {
               initial={{ y: 20, opacity: 0, scale: 0.5 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: -20, opacity: 0, scale: 0.5 }}
-              className="text-4xl font-black text-white"
+              className="text-5xl font-black text-white"
               style={{ textShadow: `0 0 20px hsl(${tier.color} / 0.5)` }}
             >
               {combo}x
             </motion.span>
           </AnimatePresence>
         </div>
-        <span className="text-[10px] text-white/50">{gifter}</span>
+        <span className="text-xs text-white/50">{gifter}</span>
       </motion.div>
     </div>
   );

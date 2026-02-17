@@ -20,7 +20,7 @@ const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
   const [streak, setStreak] = useState(1);
   const duration = settings.duration || 5;
   const style = settings.animation_style || "spotlight";
-  const iconSize = settings.icon_size || 56;
+  const iconSize = settings.icon_size || 68;
   const glowIntensity = (settings.glow_intensity || 50) / 100;
   const cardStyle = settings.card_style || "glass";
   const accentColor = settings.accent_color || "160 100% 45%";
@@ -87,7 +87,7 @@ const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
             )}
 
             {/* Card */}
-            <div className="relative rounded-2xl px-6 py-4 flex items-center gap-4 min-w-[260px]" style={getCardBg()}>
+            <div className="relative rounded-2xl px-8 py-5 flex items-center gap-5 min-w-[300px]" style={getCardBg()}>
               {/* Streak indicator */}
               {isStreak && (
                 <motion.div
@@ -125,7 +125,7 @@ const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
               {/* Text */}
               <div>
                 <motion.p
-                  className={`text-sm font-bold text-white ${settings.username_font === "mono" ? "font-mono" : settings.username_font === "heading" ? "font-heading" : ""}`}
+                  className={`text-base font-bold text-white ${settings.username_font === "mono" ? "font-mono" : settings.username_font === "heading" ? "font-heading" : ""}`}
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15 }}
@@ -133,7 +133,7 @@ const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
                   {follow.user}
                 </motion.p>
                 <motion.p
-                  className="text-[11px] mt-0.5"
+                  className="text-xs mt-0.5"
                   style={{ color: `hsl(${accentColor})` }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}

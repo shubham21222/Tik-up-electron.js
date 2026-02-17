@@ -45,7 +45,6 @@ const sections: SidebarSection[] = [
       { id: "/viewer-count", label: "Viewer Count", icon: Users },
       { id: "/like-counter", label: "Like & Follower Counter", icon: BarChart3 },
       { id: "/stream-timer", label: "Stream Timer", icon: Timer },
-      { id: "/presets", label: "Stream Themes", icon: Sparkles },
     ],
   },
   {

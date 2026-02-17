@@ -6,6 +6,7 @@ import ProfileDropdown from "./ProfileDropdown";
 import { Search, User, Menu } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import TutorialsPanel from "./TutorialsPanel";
+import ThemeToggle from "./ThemeToggle";
 import ProfileSwitcher from "./ProfileSwitcher";
 import { SidebarStateProvider, useSidebarState } from "@/hooks/use-sidebar-state";
 import { useAuth } from "@/hooks/use-auth";
@@ -71,6 +72,7 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
 
           <div className="flex items-center gap-2 md:gap-3">
             {user && !isMobile && <ProfileSwitcher />}
+            <ThemeToggle />
             <NotificationBell />
             {!isMobile && <TutorialsPanel />}
             {user ? (

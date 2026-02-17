@@ -79,7 +79,7 @@ const OverlaySettingsShell = ({
         </div>
 
         {/* Live Preview – canvas stays dark for contrast */}
-        <div className="overlay-shell-preview relative h-[220px] overflow-hidden overlay-shell-border-b">
+        <div className="overlay-shell-preview relative h-[320px] overflow-hidden overlay-shell-border-b">
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
             backgroundSize: "24px 24px"

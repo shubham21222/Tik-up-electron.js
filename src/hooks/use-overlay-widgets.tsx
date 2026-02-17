@@ -7,6 +7,7 @@ import { overlayDefaultsMap } from "@/hooks/overlay-defaults";
 // Re-export all defaults for backward compatibility
 export {
   defaultGiftAlertSettings,
+  giftAlertPresets,
   defaultChatBoxSettings,
   defaultLikeAlertSettings,
   defaultFollowAlertSettings,

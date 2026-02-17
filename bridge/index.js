@@ -257,11 +257,13 @@ async function flushEvents(username) {
 
   try {
     const webhookSecret = process.env.EULER_ALERT_WEB_KEY || process.env.WEBHOOK_SECRET || "";
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
     const res = await fetch(WEBHOOK_URL, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...(webhookSecret ? { "x-webhook-secret": webhookSecret } : {}),
+        ...(serviceKey ? { "Authorization": `Bearer ${serviceKey}` } : {}),
       },
       body: JSON.stringify({
         tiktok_username: username,

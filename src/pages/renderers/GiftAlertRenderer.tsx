@@ -100,9 +100,18 @@ const GiftAlertRenderer = () => {
     fetchTriggers();
   }, [ownerId]);
 
-  // Realtime subscription
+  // Keep a ref to giftTriggers so the subscription handler always has latest
+  const giftTriggersRef = useRef<GiftTrigger[]>([]);
+  useEffect(() => { giftTriggersRef.current = giftTriggers; }, [giftTriggers]);
+
+  const settingsRef = useRef(settings);
+  useEffect(() => { settingsRef.current = settings; }, [settings]);
+
+  // Realtime subscription — only depends on publicToken to avoid reconnect churn
   useEffect(() => {
     if (!publicToken) return;
+
+    console.log(`[GiftAlert] Subscribing to gift-alert-${publicToken}`);
 
     const channel = supabase
       .channel(`gift-alert-${publicToken}`)
@@ -113,12 +122,13 @@ const GiftAlertRenderer = () => {
         const normalizedName = giftName.toLowerCase().replace(/\s+/g, "_");
         
         // Check per-gift trigger from client-side cache OR webhook-injected overrides
-        const trigger = giftTriggers.find(t => 
+        const trigger = giftTriggersRef.current.find(t => 
           t.gift_id === normalizedName || t.gift_id === String(giftId) || t.gift_id === giftName.toLowerCase()
         );
 
         // Sound: prefer webhook-injected, then client trigger, then global setting
-        const soundUrl = p.alert_sound_url || trigger?.alert_sound_url || settings.sound_url || undefined;
+        const s = settingsRef.current;
+        const soundUrl = p.alert_sound_url || trigger?.alert_sound_url || s.sound_url || undefined;
         // Animation: prefer webhook-injected, then client trigger
         const animOverride = p.animation_effect || trigger?.animation_effect || undefined;
         
@@ -134,20 +144,25 @@ const GiftAlertRenderer = () => {
           soundUrl,
         };
         
+        console.log(`[GiftAlert] Received gift: ${giftName} from ${event.user}`);
         setAlerts(prev => [...prev, event]);
         
         // Play sound
         playSound(soundUrl);
       })
       .on("broadcast", { event: "test_alert" }, () => {
+        const s = settingsRef.current;
         const testEvent: AlertEvent = {
           id: Date.now(), user: "TestUser", gift: "Rose", emoji: "🌹", value: 1,
-          soundUrl: settings.sound_url || undefined,
+          soundUrl: s.sound_url || undefined,
         };
         setAlerts(prev => [...prev, testEvent]);
-        playSound(settings.sound_url || undefined);
+        playSound(s.sound_url || undefined);
       })
-      .subscribe(status => setConnected(status === "SUBSCRIBED"));
+      .subscribe(status => {
+        console.log(`[GiftAlert] Channel status: ${status}`);
+        setConnected(status === "SUBSCRIBED");
+      });
 
     const dbChannel = supabase
       .channel(`gift-alert-db-${publicToken}`)
@@ -165,7 +180,7 @@ const GiftAlertRenderer = () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(dbChannel);
     };
-  }, [publicToken, giftTriggers, playSound, settings.sound_url]);
+  }, [publicToken, playSound]);
 
   // Auto-remove alerts after duration
   useEffect(() => {

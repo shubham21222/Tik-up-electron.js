@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TikTokLiveProvider } from "@/hooks/use-tiktok-live-context";
@@ -74,7 +74,7 @@ import PromoOverlayRenderer from "./pages/renderers/PromoOverlayRenderer";
 import StreamBorderRenderer from "./pages/renderers/StreamBorderRenderer";
 import WebcamFrameRenderer from "./pages/renderers/WebcamFrameRenderer";
 import EventFeedRenderer from "./pages/renderers/EventFeedRenderer";
-import GiftBrowser from "./pages/GiftBrowser";
+
 import StreamPresets from "./pages/StreamPresets";
 import KeystrokeTriggers from "./pages/KeystrokeTriggers";
 import GTATriggers from "./pages/GTATriggers";
@@ -205,7 +205,7 @@ const App = () => (
                 <Route path="/promo-overlay" element={<PromoOverlay />} />
                 <Route path="/stream-border" element={<StreamBorderOverlay />} />
                 <Route path="/webcam-frame" element={<WebcamFrameOverlay />} />
-                <Route path="/gift-browser" element={<GiftBrowser />} />
+                <Route path="/gift-browser" element={<Navigate to="/actions" replace />} />
                 <Route path="/keystroke-triggers" element={<KeystrokeTriggers />} />
                 <Route path="/gta-triggers" element={<GTATriggers />} />
                 <Route path="/presets" element={<StreamPresets />} />

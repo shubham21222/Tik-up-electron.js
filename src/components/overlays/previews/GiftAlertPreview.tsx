@@ -2,26 +2,30 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const mockAlerts = [
-  { user: "Tikup_User", gift: "Rose", emoji: "🌹", value: 1, count: 1 },
-  { user: "Tikup_User", gift: "Lion", emoji: "🦁", value: 500, count: 3 },
-  { user: "Tikup_User", gift: "Universe", emoji: "🌌", value: 10000, count: 1 },
-  { user: "Tikup_User", gift: "Crown", emoji: "👑", value: 2000, count: 7 },
+  { user: "CoolViewer42", gift: "Rose", emoji: "🌹", value: 1, count: 5, giftImageUrl: "" },
+  { user: "NightOwl_Live", gift: "Lion", emoji: "🦁", value: 500, count: 3, giftImageUrl: "" },
+  { user: "StreamFan99", gift: "Universe", emoji: "🌌", value: 10000, count: 1, giftImageUrl: "" },
+  { user: "GiftKing_Pro", gift: "Crown", emoji: "👑", value: 2000, count: 7, giftImageUrl: "" },
 ];
 
+/* ── Animation variants (identical to renderer) ── */
 const getEntryVariants = (style: string) => {
   switch (style) {
-    case "slide": return { initial: { x: -100, opacity: 0 }, animate: { x: 0, opacity: 1 } };
+    case "slide": return { initial: { x: -200, opacity: 0 }, animate: { x: 0, opacity: 1 } };
     case "explosion": return { initial: { scale: 3, opacity: 0, rotate: 15 }, animate: { scale: 1, opacity: 1, rotate: 0 } };
     case "flip_3d": return { initial: { rotateY: 90, opacity: 0 }, animate: { rotateY: 0, opacity: 1 } };
-    case "glitch": return { initial: { x: [-5, 5, -3, 0], opacity: 0, skewX: 5 }, animate: { x: 0, opacity: 1, skewX: 0 } };
-    case "flames_rising": return { initial: { scale: 0.6, opacity: 0, y: 30 }, animate: { scale: 1, opacity: 1, y: 0 } };
+    case "glitch": return { initial: { x: [-8, 8, -4, 0], opacity: 0, skewX: 5 }, animate: { x: 0, opacity: 1, skewX: 0 } };
+    case "flames_rising": return { initial: { scale: 0.6, opacity: 0, y: 40 }, animate: { scale: 1, opacity: 1, y: 0 } };
     case "icy_blast": return { initial: { scale: 1.8, opacity: 0 }, animate: { scale: 1, opacity: 1 } };
+    case "christmas_spark": return { initial: { scale: 0, opacity: 0, rotate: -30 }, animate: { scale: 1, opacity: 1, rotate: 0 } };
+    case "snowfall": return { initial: { scale: 0.5, opacity: 0, y: -30 }, animate: { scale: 1, opacity: 1, y: 0 } };
     case "cyber_pulse": return { initial: { scaleX: 2, scaleY: 0.3, opacity: 0 }, animate: { scaleX: 1, scaleY: 1, opacity: 1 } };
     case "explosion_burst": return { initial: { scale: 0, opacity: 0 }, animate: { scale: 1, opacity: 1 } };
-    default: return { initial: { scale: 0.3, opacity: 0, y: 20 }, animate: { scale: 1, opacity: 1, y: 0 } };
+    default: return { initial: { scale: 0.3, opacity: 0, y: 50 }, animate: { scale: 1, opacity: 1, y: 0 } };
   }
 };
 
+/* ── Font mapping (identical to renderer) ── */
 const getFontFamily = (f: string) => {
   switch (f) {
     case "inter": return "'Inter', sans-serif";
@@ -33,37 +37,39 @@ const getFontFamily = (f: string) => {
   }
 };
 
+/* ── Background style builder (identical to renderer) ── */
 const getBgStyle = (bgStyle: string, accentColor: string, glowIntensity: number) => {
   switch (bgStyle) {
     case "glass": return {
       background: "rgba(0,0,0,0.55)",
       backdropFilter: "blur(24px) saturate(1.5)",
       border: `1px solid hsl(${accentColor} / ${0.15 * glowIntensity})`,
-      borderRadius: "20px",
+      borderRadius: "24px",
     };
     case "neon": return {
       background: "rgba(0,0,0,0.7)",
       border: `2px solid hsl(${accentColor} / ${0.6 * glowIntensity})`,
-      borderRadius: "16px",
-      boxShadow: `0 0 ${20 * glowIntensity}px hsl(${accentColor} / ${0.25 * glowIntensity}), inset 0 0 ${15 * glowIntensity}px hsl(${accentColor} / ${0.05 * glowIntensity})`,
+      borderRadius: "20px",
+      boxShadow: `0 0 ${30 * glowIntensity}px hsl(${accentColor} / ${0.25 * glowIntensity}), inset 0 0 ${20 * glowIntensity}px hsl(${accentColor} / ${0.05 * glowIntensity})`,
     };
     case "solid": return {
       background: `linear-gradient(135deg, hsl(${accentColor} / 0.15), rgba(0,0,0,0.8))`,
       border: `1px solid hsl(${accentColor} / ${0.1 * glowIntensity})`,
-      borderRadius: "16px",
+      borderRadius: "20px",
     };
     default: return {};
   }
 };
 
+/* ── Position mapping (identical to renderer) ── */
 const getPositionClass = (pos: string) => {
   switch (pos) {
-    case "top": return "items-start justify-center pt-6";
-    case "bottom": return "items-end justify-center pb-6";
-    case "top-left": return "items-start justify-start pt-6 pl-6";
-    case "top-right": return "items-start justify-end pt-6 pr-6";
-    case "bottom-left": return "items-end justify-start pb-6 pl-6";
-    case "bottom-right": return "items-end justify-end pb-6 pr-6";
+    case "top": return "items-start justify-center pt-8";
+    case "bottom": return "items-end justify-center pb-8";
+    case "top-left": return "items-start justify-start pt-8 pl-8";
+    case "top-right": return "items-start justify-end pt-8 pr-8";
+    case "bottom-left": return "items-end justify-start pb-8 pl-8";
+    case "bottom-right": return "items-end justify-end pb-8 pr-8";
     default: return "items-center justify-center";
   }
 };
@@ -79,7 +85,6 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
   const animStyle = settings.animation_style || "bounce";
   const glowIntensity = (settings.glow_intensity || 50) / 100;
   const shadowDepth = (settings.shadow_depth || 30) / 100;
-  const imageSize = settings.gift_image_size || 80;
   const noBackground = settings.no_background ?? false;
   const noBorder = settings.no_border ?? false;
   const accentColor = settings.accent_color || "280 100% 65%";
@@ -87,9 +92,11 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
   const textColor = settings.text_color || "0 0% 100%";
   const bgStyle = settings.bg_style || "glass";
   const fontFamily = getFontFamily(settings.font_family || "default");
-  const fontSize = Math.min(settings.font_size || 24, 24);
+  const fontSize = settings.font_size || 24;
   const fontWeight = settings.font_weight || 800;
   const alertPosition = settings.alert_position || "center";
+  // Scale the image size exactly like the renderer (3x multiplier)
+  const imageSize = (settings.gift_image_size || 64) * 2;
   const cardBg = noBackground ? {} : getBgStyle(bgStyle, accentColor, glowIntensity);
 
   // Load Google Font
@@ -136,10 +143,10 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
           <motion.div
             key={currentAlert}
             className="relative flex flex-col items-center"
-            style={{ fontFamily, ...cardBg, padding: noBackground ? 0 : "20px 32px" }}
+            style={{ fontFamily, ...cardBg, padding: noBackground ? 0 : "28px 40px" }}
             initial={variants.initial}
             animate={variants.animate}
-            exit={{ opacity: 0, scale: 0.8, y: 10 }}
+            exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ duration: 0.5 / (settings.animation_speed || 1), ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Outer glow ring */}
@@ -147,9 +154,9 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
               <motion.div
                 className="absolute rounded-full"
                 style={{
-                  width: imageSize * 1.5, height: imageSize * 1.5,
-                  top: "50%", left: "50%", transform: "translate(-50%, -65%)",
-                  border: `1.5px solid hsl(${glowColor} / ${0.3 * glowIntensity})`,
+                  width: imageSize * 1.6, height: imageSize * 1.6,
+                  top: "50%", left: "50%", transform: "translate(-50%, -70%)",
+                  border: `2px solid hsl(${glowColor} / ${0.3 * glowIntensity})`,
                 }}
                 initial={{ scale: 0.5, opacity: 0.8 }}
                 animate={{ scale: 2.5, opacity: 0 }}
@@ -157,13 +164,13 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
               />
             )}
 
-            {/* Ambient glow */}
+            {/* Ambient glow behind gift */}
             {!noBackground && (
               <motion.div
-                className="absolute blur-2xl"
+                className="absolute blur-3xl"
                 style={{
-                  width: imageSize * 1.3, height: imageSize * 1.3,
-                  top: "50%", left: "50%", transform: "translate(-50%, -65%)",
+                  width: imageSize * 1.5, height: imageSize * 1.5,
+                  top: "50%", left: "50%", transform: "translate(-50%, -70%)",
                   background: `radial-gradient(circle, hsl(${glowColor} / ${0.2 * glowIntensity}), transparent 70%)`,
                   borderRadius: "50%",
                 }}
@@ -175,42 +182,42 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
             {/* Shadow under card */}
             {!noBackground && shadowDepth > 0 && (
               <div
-                className="absolute -bottom-2 left-1/2 -translate-x-1/2 rounded-full blur-xl"
+                className="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full blur-2xl"
                 style={{
-                  width: "70%", height: "16px",
+                  width: "80%", height: "24px",
                   background: `hsl(${accentColor} / ${0.15 * shadowDepth})`,
                 }}
               />
             )}
 
-            {/* Gift icon */}
+            {/* Gift icon circle */}
             <motion.div
-              className="rounded-full flex items-center justify-center mb-3 relative z-10"
+              className="rounded-full flex items-center justify-center mb-4 relative z-10"
               style={{
                 width: imageSize, height: imageSize,
                 background: noBackground ? "transparent" : "rgba(0,0,0,0.5)",
                 backdropFilter: noBackground ? "none" : "blur(20px)",
                 border: noBorder ? "none" : `2px solid hsl(${glowColor} / ${0.25 * glowIntensity})`,
-                boxShadow: noBorder ? "none" : `0 0 ${30 * glowIntensity}px hsl(${glowColor} / ${0.2 * glowIntensity}), 0 ${12 * shadowDepth}px ${24 * shadowDepth}px rgba(0,0,0,0.5)`,
+                boxShadow: noBorder ? "none" : `0 0 ${40 * glowIntensity}px hsl(${glowColor} / ${0.2 * glowIntensity}), 0 ${20 * shadowDepth}px ${40 * shadowDepth}px rgba(0,0,0,0.5)`,
               }}
-              animate={isHighValue ? { scale: [1, 1.06, 1] } : undefined}
+              animate={isHighValue ? { scale: [1, 1.08, 1] } : undefined}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             >
               <span style={{ fontSize: imageSize * 0.45 }}>{alert.emoji}</span>
             </motion.div>
 
-            {/* Text */}
+            {/* Text content — exact match to renderer */}
             <div className="text-center relative z-10">
               <motion.p
-                className="truncate max-w-[260px]"
+                className="truncate max-w-[400px]"
                 style={{
                   fontSize: `${fontSize}px`,
                   fontWeight,
                   color: `hsl(${textColor})`,
-                  textShadow: `0 2px 8px rgba(0,0,0,0.8), 0 0 ${14 * glowIntensity}px hsl(${glowColor} / ${0.3 * glowIntensity})`,
+                  textShadow: `0 2px 12px rgba(0,0,0,0.8), 0 0 ${20 * glowIntensity}px hsl(${glowColor} / ${0.3 * glowIntensity})`,
                   letterSpacing: "-0.02em",
                 }}
-                initial={{ y: 6, opacity: 0 }}
+                initial={{ y: 10, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.15 }}
               >
@@ -218,13 +225,13 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
               </motion.p>
 
               <motion.p
-                className="mt-0.5 font-semibold"
+                className="mt-1 font-semibold"
                 style={{
-                  fontSize: `${Math.max(fontSize * 0.55, 10)}px`,
+                  fontSize: `${Math.max(fontSize * 0.55, 13)}px`,
                   color: `hsl(${textColor} / 0.55)`,
-                  textShadow: "0 1px 3px rgba(0,0,0,0.6)",
+                  textShadow: "0 1px 4px rgba(0,0,0,0.6)",
                 }}
-                initial={{ y: 5, opacity: 0 }}
+                initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.25 }}
               >
@@ -232,13 +239,13 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
               </motion.p>
 
               <motion.p
-                className="mt-1 font-bold"
+                className="mt-2 font-bold"
                 style={{
-                  fontSize: `${Math.max(fontSize * 0.75, 13)}px`,
+                  fontSize: `${Math.max(fontSize * 0.8, 18)}px`,
                   color: `hsl(${accentColor})`,
-                  textShadow: `0 0 ${12 * glowIntensity}px hsl(${glowColor} / ${0.5 * glowIntensity})`,
+                  textShadow: `0 0 ${16 * glowIntensity}px hsl(${glowColor} / ${0.5 * glowIntensity})`,
                 }}
-                initial={{ y: 5, opacity: 0 }}
+                initial={{ y: 8, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.3 }}
               >
@@ -248,14 +255,14 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
               {/* Combo counter */}
               {alert.count > 1 && (
                 <motion.p
-                  className="mt-1.5 tracking-tight"
+                  className="mt-2 tracking-tight"
                   style={{
-                    fontSize: `${Math.max(fontSize * 1.4, 24)}px`,
+                    fontSize: `${Math.max(fontSize * 1.6, 36)}px`,
                     fontWeight: 900,
                     color: "hsl(45 100% 60%)",
-                    textShadow: "0 0 14px hsl(45 100% 55% / 0.6), 0 0 28px hsl(45 100% 55% / 0.3)",
+                    textShadow: "0 0 20px hsl(45 100% 55% / 0.6), 0 0 40px hsl(45 100% 55% / 0.3)",
                   }}
-                  initial={{ scale: 2, opacity: 0 }}
+                  initial={{ scale: 2.5, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ type: "spring", stiffness: 400, damping: 15 }}
                 >
@@ -263,11 +270,12 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
                 </motion.p>
               )}
 
+              {/* Coin value */}
               {alert.value > 0 && (
                 <motion.p
-                  className="mt-1 font-medium"
+                  className="mt-2 font-medium"
                   style={{
-                    fontSize: `${Math.max(fontSize * 0.45, 9)}px`,
+                    fontSize: `${Math.max(fontSize * 0.5, 12)}px`,
                     color: `hsl(${textColor} / 0.45)`,
                   }}
                   initial={{ opacity: 0 }}
@@ -279,20 +287,20 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
               )}
             </div>
 
-            {/* Sparkle particles for high-value */}
-            {isHighValue && [...Array(6)].map((_, i) => (
+            {/* Sparkle particles for high-value gifts */}
+            {isHighValue && [...Array(8)].map((_, i) => (
               <motion.div
                 key={i}
-                className="absolute w-1 h-1 rounded-full"
-                style={{ background: `hsl(${glowColor})`, top: "35%", left: "50%" }}
+                className="absolute w-1.5 h-1.5 rounded-full"
+                style={{ background: `hsl(${glowColor})`, top: "40%", left: "50%" }}
                 initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
                 animate={{
-                  x: Math.cos((i * 60) * Math.PI / 180) * 50,
-                  y: Math.sin((i * 60) * Math.PI / 180) * 50,
+                  x: Math.cos((i * 45) * Math.PI / 180) * (60 + Math.random() * 30),
+                  y: Math.sin((i * 45) * Math.PI / 180) * (60 + Math.random() * 30),
                   opacity: 0,
                   scale: 0,
                 }}
-                transition={{ duration: 0.8, delay: 0.15 + i * 0.04, ease: "easeOut" }}
+                transition={{ duration: 1 + Math.random() * 0.5, delay: 0.1 + i * 0.05, ease: "easeOut" }}
               />
             ))}
           </motion.div>

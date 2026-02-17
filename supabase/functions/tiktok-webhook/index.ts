@@ -914,6 +914,9 @@ Deno.serve(async (req) => {
       }
 
       // ── TTS triggering with full filtering pipeline ──
+      if (event.type === "chat") {
+        console.log(`TTS check: enabled=${ttsSettings?.enabled}, comment_type=${ttsSettings?.comment_type}, trigger_mode=${ttsSettings?.trigger_mode}`);
+      }
       if (ttsSettings?.enabled && event.type === "chat") {
         const message = (event.data.message as string) || "";
         const minChars = ttsSettings.min_chars || 3;
@@ -936,9 +939,9 @@ Deno.serve(async (req) => {
 
         // ── 1) Comment type / command filtering ──
         if (!ttsSkipReason) {
-          if (commentType === "slash_command" && !message.startsWith("/")) {
+          if ((commentType === "slash_command" || commentType === "slash") && !message.startsWith("/")) {
             ttsSkipReason = "not_slash_command";
-          } else if (commentType === "dot_prefix" && !message.startsWith(".")) {
+          } else if ((commentType === "dot_prefix" || commentType === "dot") && !message.startsWith(".")) {
             ttsSkipReason = "not_dot_prefix";
           } else if (commentType === "command" && !message.toLowerCase().startsWith(commentCommand.toLowerCase())) {
             ttsSkipReason = "not_matching_command";
@@ -1094,6 +1097,9 @@ Deno.serve(async (req) => {
         }
 
         // ── 9) If all checks pass, generate and broadcast TTS ──
+        if (ttsSkipReason) {
+          console.log(`TTS skipped for "${event.username}": ${ttsSkipReason}`);
+        }
         if (!ttsSkipReason) {
           const truncated = ttsText.slice(0, maxLength);
 

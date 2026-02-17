@@ -21,7 +21,11 @@ const FollowerGoalRenderer = () => {
   useEffect(() => {
     if (!publicToken) return;
     const ch = supabase.channel(`follower-goal-${publicToken}`)
-      .on("broadcast", { event: "follower_update" }, (msg) => { if (msg.payload?.count != null) setCurrent(msg.payload.count); })
+      .on("broadcast", { event: "follower_update" }, (msg) => {
+        const p = msg.payload as any;
+        const v = p?.followerCount ?? p?.follower_count ?? p?.count;
+        if (v != null) setCurrent(prev => Math.max(prev, Number(v)));
+      })
       .on("broadcast", { event: "test_alert" }, () => setCurrent(prev => prev + 10))
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
     const db = supabase.channel(`follower-goal-db-${publicToken}`)

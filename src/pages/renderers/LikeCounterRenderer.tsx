@@ -21,7 +21,11 @@ const LikeCounterRenderer = () => {
   useEffect(() => {
     if (!publicToken) return;
     const ch = supabase.channel(`like-counter-${publicToken}`)
-      .on("broadcast", { event: "like_update" }, (msg) => { if (msg.payload?.count != null) setCount(msg.payload.count); })
+      .on("broadcast", { event: "like_update" }, (msg) => {
+        const p = msg.payload as any;
+        const v = p?.likeCount ?? p?.like_count ?? p?.count ?? p?.totalLikeCount;
+        if (v != null) setCount(prev => Math.max(prev, Number(v)));
+      })
       .on("broadcast", { event: "test_alert" }, () => setCount(prev => prev + 42))
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
     const db = supabase.channel(`like-counter-db-${publicToken}`)

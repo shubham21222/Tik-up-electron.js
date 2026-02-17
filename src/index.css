@@ -165,6 +165,31 @@ main > div[class*="max-w-"] {
   max-width: 100% !important;
 }
 
+/* ── Sidebar section header animated glow text ── */
+@keyframes sidebarTextGlow {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.sidebar-section-label {
+  background: linear-gradient(
+    90deg,
+    hsl(160 100% 45%),
+    hsl(180 100% 50%),
+    hsl(140 100% 50%),
+    hsl(160 100% 45%)
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: sidebarTextGlow 3s ease-in-out infinite;
+}
+
 /* ── Premium Sidebar Styles ── */
 .sidebar-shell {
   background: linear-gradient(180deg, hsl(0 0% 3% / 0.98) 0%, hsl(0 0% 1% / 0.99) 100%);

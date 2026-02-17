@@ -220,7 +220,7 @@ const SidebarSectionGroup = ({
         ) : (
           <>
             <section.sectionIcon size={14} className="flex-shrink-0 opacity-60" />
-            <span className="uppercase tracking-[0.14em] font-bold text-[10px] flex-1 text-left">
+            <span className="sidebar-section-label uppercase tracking-[0.14em] font-bold text-[10px] flex-1 text-left">
               {section.label}
             </span>
             <motion.div

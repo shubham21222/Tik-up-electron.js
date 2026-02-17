@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TikUp Desktop</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --border: rgba(255,255,255,0.08);
+      --text: #ffffff;
+      --text-muted: #888888;
+      --accent: hsl(160, 100%, 45%);
+      --accent-glow: hsla(160, 100%, 45%, 0.25);
+      --danger: hsl(0, 85%, 55%);
+      --radius: 16px;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      -webkit-app-region: drag;
+      min-height: 100vh;
+      overflow: hidden;
+    }
+    .titlebar {
+      height: 38px;
+      display: flex;
+      align-items: center;
+      padding: 0 16px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+      color: var(--text-muted);
+      -webkit-app-region: drag;
+    }
+    .titlebar span { color: var(--accent); margin-right: 6px; }
+    .app {
+      -webkit-app-region: no-drag;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 38px);
+      padding: 32px;
+      gap: 24px;
+      overflow-y: auto;
+    }
+
+    /* ─── Screens ─────────────────── */
+    .screen { display: none; flex-direction: column; gap: 24px; }
+    .screen.active { display: flex; }
+
+    /* ─── Cards ────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+    }
+    .card h2 { font-size: 18px; font-weight: 700; margin-bottom: 12px; }
+    .card p { color: var(--text-muted); font-size: 14px; line-height: 1.6; }
+
+    /* ─── Inputs ───────────────────── */
+    input, select {
+      width: 100%;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      margin-top: 8px;
+      -webkit-app-region: no-drag;
+    }
+    input:focus, select:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+    label { font-size: 13px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* ─── Buttons ──────────────────── */
+    .btn {
+      padding: 12px 28px;
+      border: none;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      -webkit-app-region: no-drag;
+    }
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+    }
+    .btn-primary:hover { filter: brightness(1.15); transform: translateY(-1px); }
+    .btn-secondary {
+      background: rgba(255,255,255,0.06);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    .btn-danger { background: var(--danger); color: white; }
+
+    /* ─── Status indicators ────────── */
+    .status-dot {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+    .status-dot.online { background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+    .status-dot.offline { background: var(--danger); }
+
+    /* ─── Device list ─────────────── */
+    .device-item {
+      padding: 12px 16px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      margin-top: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .device-item:hover { border-color: var(--accent); }
+    .device-item.selected { border-color: var(--accent); background: var(--accent-glow); }
+    .device-name { font-size: 14px; font-weight: 500; }
+    .device-type { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── Audio meter ─────────────── */
+    .meter-bar {
+      height: 8px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-top: 12px;
+    }
+    .meter-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), hsl(120, 100%, 50%));
+      border-radius: 4px;
+      transition: width 0.1s;
+      width: 0%;
+    }
+
+    .flex-row { display: flex; gap: 12px; align-items: center; }
+    .flex-grow { flex: 1; }
+    .mt-16 { margin-top: 16px; }
+    .text-accent { color: var(--accent); }
+    .text-sm { font-size: 13px; }
+  </style>
+</head>
+<body>
+
+<div class="titlebar">
+  <span>▶</span> TikUp Desktop Companion
+</div>
+
+<div class="app">
+
+  <!-- ═══ Login Screen ═══ -->
+  <div class="screen active" id="screen-login">
+    <div class="card" style="max-width: 420px; margin: auto;">
+      <h2>🔐 Sign in to TikUp</h2>
+      <p>Use your TikUp account to connect.</p>
+      <div class="mt-16">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="you@email.com" />
+      </div>
+      <div class="mt-16">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" />
+      </div>
+      <div class="mt-16 flex-row">
+        <button class="btn btn-primary flex-grow" id="btn-login">Sign In</button>
+      </div>
+      <p id="login-error" class="mt-16 text-sm" style="color: var(--danger); display: none;"></p>
+    </div>
+  </div>
+
+  <!-- ═══ Dashboard Screen ═══ -->
+  <div class="screen" id="screen-dashboard">
+    <div class="flex-row" style="justify-content: space-between;">
+      <div>
+        <h2 id="dash-greeting" style="font-size: 22px;">Welcome back</h2>
+        <p class="text-sm" style="color: var(--text-muted);" id="dash-username">Loading...</p>
+      </div>
+      <button class="btn btn-secondary" id="btn-signout">Sign Out</button>
+    </div>
+
+    <!-- Connection Status -->
+    <div class="card">
+      <h2><span class="status-dot" id="connection-dot"></span> TikTok LIVE Connection</h2>
+      <p id="connection-status">Not connected</p>
+      <div class="mt-16 flex-row">
+        <button class="btn btn-primary" id="btn-connect">Connect to LIVE</button>
+        <button class="btn btn-danger" id="btn-disconnect" style="display:none;">Disconnect</button>
+      </div>
+    </div>
+
+    <!-- Audio Setup -->
+    <div class="card">
+      <h2>🔊 Virtual Audio Output</h2>
+      <p>Select a virtual audio device to route TTS audio to TikTok LIVE Studio.</p>
+      <div id="device-list" class="mt-16">
+        <p class="text-sm" style="color: var(--text-muted);">Scanning devices...</p>
+      </div>
+      <div class="mt-16">
+        <label>Audio Level</label>
+        <div class="meter-bar">
+          <div class="meter-fill" id="audio-meter"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Live Event Feed -->
+    <div class="card">
+      <h2>📡 Live Event Feed</h2>
+      <div id="event-feed" style="max-height: 200px; overflow-y: auto;">
+        <p class="text-sm" style="color: var(--text-muted);">Events will appear here when connected...</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

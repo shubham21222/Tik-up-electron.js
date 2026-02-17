@@ -17,7 +17,7 @@ const ShareAlertPreview = ({ settings = {} }: ShareAlertPreviewProps) => {
   const [visible, setVisible] = useState(true);
   const duration = settings.duration || 5;
   const style = settings.animation_style || "rocket_launch";
-  const iconSize = settings.icon_size || 52;
+  const iconSize = settings.icon_size || 68;
   const glowIntensity = (settings.glow_intensity || 55) / 100;
   const accentColor = settings.accent_color || "200 100% 55%";
 
@@ -122,9 +122,9 @@ const ShareAlertPreview = ({ settings = {} }: ShareAlertPreviewProps) => {
             {/* Text */}
             <motion.div className="text-center" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
               {settings.username_visible !== false && (
-                <p className="text-sm font-bold text-white">{share.user}</p>
+                <p className="text-base font-bold text-white">{share.user}</p>
               )}
-              <p className="text-[11px] text-white/50 mt-0.5">shared your stream!</p>
+              <p className="text-xs text-white/50 mt-1">shared your stream!</p>
               {settings.show_share_count !== false && share.count > 1 && (
                 <motion.p
                   className="text-xs font-bold mt-1"

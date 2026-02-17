@@ -267,7 +267,7 @@ const Overlays = () => {
                 className="group rounded-2xl cursor-default overlay-market-card"
               >
                 <div className="rounded-2xl overflow-hidden">
-                  <div className="relative h-[280px] overflow-hidden">
+                  <div className="relative h-[340px] overflow-hidden">
                     <div className="absolute inset-0 opacity-[0.03]"
                       style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />
                     <Suspense fallback={<div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs">Loading...</div>}>

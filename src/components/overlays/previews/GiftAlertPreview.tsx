@@ -79,7 +79,7 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
   const animStyle = settings.animation_style || "bounce";
   const glowIntensity = (settings.glow_intensity || 50) / 100;
   const shadowDepth = (settings.shadow_depth || 30) / 100;
-  const imageSize = settings.gift_image_size || 64;
+  const imageSize = settings.gift_image_size || 80;
   const noBackground = settings.no_background ?? false;
   const noBorder = settings.no_border ?? false;
   const accentColor = settings.accent_color || "280 100% 65%";
@@ -87,7 +87,7 @@ const GiftAlertPreview = ({ settings = {} }: GiftAlertPreviewProps) => {
   const textColor = settings.text_color || "0 0% 100%";
   const bgStyle = settings.bg_style || "glass";
   const fontFamily = getFontFamily(settings.font_family || "default");
-  const fontSize = Math.min(settings.font_size || 24, 20); // scale down for preview
+  const fontSize = Math.min(settings.font_size || 24, 24);
   const fontWeight = settings.font_weight || 800;
   const alertPosition = settings.alert_position || "center";
   const cardBg = noBackground ? {} : getBgStyle(bgStyle, accentColor, glowIntensity);

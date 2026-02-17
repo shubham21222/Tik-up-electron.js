@@ -17,12 +17,25 @@ const userColors = [
   "hsl(350 90% 60%)", "hsl(45 100% 60%)", "hsl(120 80% 55%)",
 ];
 
+const badgeMap: Record<string, string> = {
+  gift: "🎁",
+  follow: "⭐",
+  like: "❤️",
+};
+
 const getAnimationVariants = (style: string) => {
   switch (style) {
     case "fade": return { initial: { opacity: 0 }, animate: { opacity: 1 } };
     case "pop": return { initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 } };
+    case "typewriter": return { initial: { opacity: 0, x: -10, scaleX: 0.9 }, animate: { opacity: 1, x: 0, scaleX: 1 } };
     default: return { initial: { opacity: 0, x: -20, scale: 0.9 }, animate: { opacity: 1, x: 0, scale: 1 } };
   }
+};
+
+const fontFamilyMap: Record<string, string> = {
+  sans: "ui-sans-serif, system-ui, sans-serif",
+  mono: "ui-monospace, SFMono-Regular, monospace",
+  heading: "'Space Grotesk', sans-serif",
 };
 
 interface ChatBoxPreviewProps {
@@ -36,6 +49,12 @@ const ChatBoxPreview = ({ settings }: ChatBoxPreviewProps) => {
   const animation = settings.message_animation || "slide";
   const fontSize = settings.font_size || 13;
   const mode = settings.display_mode || "cyber";
+  const fontFamily = fontFamilyMap[settings.font_family] || fontFamilyMap.sans;
+  const emoteScale = settings.emote_scale || 1.2;
+  const showBadges = settings.show_badges !== false;
+  const shadowDepth = settings.shadow_depth ?? 20;
+  const accentColor = settings.accent_color || "160 100% 45%";
+  const accentHsl = `hsl(${accentColor})`;
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -60,12 +79,13 @@ const ChatBoxPreview = ({ settings }: ChatBoxPreviewProps) => {
   };
 
   const variants = getAnimationVariants(animation);
+  const shadowStyle = shadowDepth > 0 ? `0 ${Math.round(shadowDepth / 10)}px ${Math.round(shadowDepth / 3)}px rgba(0,0,0,${shadowDepth / 100})` : "none";
 
   return (
     <div className="relative w-full h-full flex items-end justify-start p-6">
-      <div className="w-[300px] flex flex-col gap-1.5">
+      <div className="w-[300px] flex flex-col gap-1.5" style={{ fontFamily }}>
         <AnimatePresence initial={false}>
-          {messages.map((msg, idx) => (
+          {messages.map((msg) => (
             <motion.div
               key={msg.id}
               layout
@@ -75,10 +95,17 @@ const ChatBoxPreview = ({ settings }: ChatBoxPreviewProps) => {
               transition={{ duration: 0.3 }}
               className="relative"
             >
-              <div className={`flex items-start gap-2 px-3.5 py-2 rounded-2xl border ${getBgStyle(msg.type)}`}
-                style={{ fontSize }}>
+              <div
+                className={`flex items-start gap-2 px-3.5 py-2 rounded-2xl border ${getBgStyle(msg.type)}`}
+                style={{ fontSize, boxShadow: shadowStyle }}
+              >
+                {showBadges && badgeMap[msg.type] && (
+                  <span className="flex-shrink-0" style={{ fontSize: fontSize * emoteScale }}>
+                    {badgeMap[msg.type]}
+                  </span>
+                )}
                 <span className="font-semibold flex-shrink-0" style={{
-                  color: settings.username_color_auto ? userColors[msg.user.length % userColors.length] : "hsl(280 100% 70%)",
+                  color: settings.username_color_auto ? userColors[msg.user.length % userColors.length] : accentHsl,
                   fontSize: fontSize - 2,
                 }}>
                   {msg.user}

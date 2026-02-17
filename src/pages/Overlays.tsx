@@ -154,6 +154,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Video Cam Frame", description: "Animated WebM video webcam frame with glow and color options.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/video-cam-frame", category: "design" },
     { title: "Video Label Bar", description: "Animated WebM label bar overlay. Color customizable transparent loop.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/video-label-bar", category: "design" },
     { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/animated-bg", category: "design" },
+    { title: "Studio Backgrounds", description: "10 premium animated room backgrounds with customizable LED signs. Sofa scenes for every vibe.", hasPreview: false, color: "40 95% 55%", pro: true, route: "/backgrounds", category: "design" },
   ],
   "Alert Overlays": [
     { title: "Gift Alert", description: "Animated gift celebration with sender name, gift icon, and value display. Supports custom sounds per gift tier.", hasPreview: false, color: "280 100% 65%", pro: true, route: "/gift-alerts", tags: ["Gift", "Sound"] },

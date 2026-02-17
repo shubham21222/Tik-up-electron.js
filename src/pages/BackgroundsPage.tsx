@@ -3,7 +3,7 @@ import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Palette, Lock, Star, Copy, Play, Check,
-  Sparkles, Monitor, Type, Sliders, Zap, ChevronRight, ExternalLink
+  Sparkles, Monitor, Type, Sliders, Zap, ChevronRight, ExternalLink, Sun, Eye
 } from "lucide-react";
 import ProGate from "@/components/ProGate";
 import { useAuth } from "@/hooks/use-auth";
@@ -24,70 +24,156 @@ interface RoomBackground {
   ledFonts: string[];
   ledAnimations: string[];
   envFx: string[];
+  sofaStyle: string;
+  lightingMood: string;
+  free?: boolean;
 }
 
 const backgrounds: RoomBackground[] = [
   {
     id: "neon-cyberroom",
     title: "Neon Cyberroom",
-    category: "Tech",
-    description: "Futuristic hacker room with flickering neon tubes, sci-fi screens, and soft rotating ambient lights.",
+    category: "Cyber",
+    description: "Futuristic hacker room with flickering neon tubes, a sleek modern sofa, and soft rotating ambient lights.",
     gradientColors: ["hsl(280 100% 25%)", "hsl(200 100% 15%)", "hsl(320 80% 20%)"],
     accentColor: "280 100% 65%",
-    ledFonts: ["Neon", "Cyber", "Digital"],
-    ledAnimations: ["static", "pulse", "rainbow", "flicker"],
+    ledFonts: ["Neon", "Cyber", "Digital", "Minimal"],
+    ledAnimations: ["static", "pulse", "rainbow", "flicker", "sparkle"],
     envFx: ["Particle motion", "Ambient glow", "Blur depth"],
+    sofaStyle: "Modern",
+    lightingMood: "Purple",
+    free: true,
   },
   {
     id: "gaming-lair",
     title: "Gaming Lair",
-    category: "Gaming",
-    description: "Pro gamer room with RGB desk lights cycling, animated LED strips, and monitor screen flicker.",
+    category: "Gamer",
+    description: "Pro gamer room with RGB desk lights cycling, a modular gaming sofa, and monitor screen flicker.",
     gradientColors: ["hsl(160 100% 20%)", "hsl(200 100% 18%)", "hsl(280 80% 25%)"],
     accentColor: "160 100% 45%",
-    ledFonts: ["Arcade", "Neon", "Futuristic"],
-    ledAnimations: ["static", "pulse", "flicker", "sparkle"],
+    ledFonts: ["Arcade", "Neon", "Futuristic", "Minimal"],
+    ledAnimations: ["static", "pulse", "flicker", "sparkle", "rainbow"],
     envFx: ["RGB animation", "Keyboard glow", "Ambient wrap"],
+    sofaStyle: "Modular",
+    lightingMood: "RGB Cycle",
+    free: true,
   },
   {
     id: "arcade-retro",
     title: "Arcade Retro Room",
-    category: "Neon",
-    description: "Retro arcade with machine lights, moving particle hex scanlines, and glitch effects.",
+    category: "Cyber",
+    description: "Retro arcade with machine lights, scanlines, a leather lounge chair, and glitch effects.",
     gradientColors: ["hsl(340 80% 22%)", "hsl(45 100% 18%)", "hsl(200 80% 20%)"],
     accentColor: "340 80% 55%",
     ledFonts: ["Arcade", "Digital", "Neon"],
     ledAnimations: ["static", "pulse", "rainbow"],
     envFx: ["Scanlines", "Glitch flicker", "Particle hex"],
+    sofaStyle: "Leather",
+    lightingMood: "Red",
   },
   {
     id: "space-command",
     title: "Space Command Deck",
-    category: "Fantasy",
-    description: "Futuristic space station with starfield motion, console node lights, and animated UI displays.",
+    category: "Cyber",
+    description: "Futuristic space station with starfield motion, a minimal command chair, and animated UI displays.",
     gradientColors: ["hsl(220 60% 12%)", "hsl(240 50% 18%)", "hsl(200 80% 22%)"],
     accentColor: "220 80% 60%",
     ledFonts: ["Futuristic", "Cyber", "Digital"],
     ledAnimations: ["static", "pulse", "sparkle", "rainbow"],
     envFx: ["Starfield", "Console blink", "Parallax depth"],
+    sofaStyle: "Minimal",
+    lightingMood: "Blue",
   },
   {
     id: "mystic-chill",
     title: "Mystic Chill Room",
-    category: "Fantasy",
-    description: "Cozy fantasy stream room with magic runes, warm lantern glows, and soft dust motes.",
+    category: "Cozy",
+    description: "Cozy fantasy stream room with magic runes, a plush fabric sofa, and warm lantern glows.",
     gradientColors: ["hsl(30 60% 15%)", "hsl(260 40% 18%)", "hsl(180 30% 16%)"],
     accentColor: "30 80% 55%",
     ledFonts: ["Script", "Neon", "Arcade"],
     ledAnimations: ["static", "pulse", "flicker"],
     envFx: ["Rune float", "Lantern glow", "Dust motes"],
+    sofaStyle: "Cozy Fabric",
+    lightingMood: "Warm Amber",
+  },
+  {
+    id: "luxury-lounge",
+    title: "Luxury Lounge",
+    category: "Luxury",
+    description: "Premium velvet sofa in a dimly lit luxury lounge with gold accents and bokeh particles.",
+    gradientColors: ["hsl(35 50% 12%)", "hsl(25 40% 8%)", "hsl(45 60% 15%)"],
+    accentColor: "40 95% 55%",
+    ledFonts: ["Script", "Minimal", "Neon"],
+    ledAnimations: ["static", "pulse", "sparkle"],
+    envFx: ["Gold bokeh", "Warm glow", "Light rays"],
+    sofaStyle: "Luxury Velvet",
+    lightingMood: "Gold",
+  },
+  {
+    id: "pastel-creator",
+    title: "Pastel Creator Room",
+    category: "Minimal",
+    description: "Light, airy creator studio with a minimal white sofa, pastel gradients, and soft floating particles.",
+    gradientColors: ["hsl(300 50% 25%)", "hsl(200 50% 22%)", "hsl(340 40% 28%)"],
+    accentColor: "330 85% 60%",
+    ledFonts: ["Minimal", "Script", "Neon"],
+    ledAnimations: ["static", "pulse", "sparkle"],
+    envFx: ["Soft bokeh", "Light dust", "Gentle glow"],
+    sofaStyle: "Minimal White",
+    lightingMood: "Pink",
+  },
+  {
+    id: "nightclub-vibe",
+    title: "Night Club Vibe",
+    category: "Cyber",
+    description: "Dark nightclub atmosphere with a leather VIP sofa, laser beams, and pulsing bass-reactive lights.",
+    gradientColors: ["hsl(280 80% 12%)", "hsl(320 90% 15%)", "hsl(260 70% 10%)"],
+    accentColor: "320 90% 60%",
+    ledFonts: ["Neon", "Cyber", "Digital", "Arcade"],
+    ledAnimations: ["static", "pulse", "rainbow", "flicker", "sparkle"],
+    envFx: ["Laser sweep", "Strobe flash", "Bass pulse"],
+    sofaStyle: "Leather VIP",
+    lightingMood: "Purple",
+  },
+  {
+    id: "podcast-chill",
+    title: "Chill Podcast Room",
+    category: "Cozy",
+    description: "Warm podcast studio with a deep cozy sofa, warm backlighting, and soft ambient dust motes.",
+    gradientColors: ["hsl(20 40% 14%)", "hsl(30 50% 10%)", "hsl(15 35% 12%)"],
+    accentColor: "25 80% 55%",
+    ledFonts: ["Minimal", "Script", "Neon"],
+    ledAnimations: ["static", "pulse"],
+    envFx: ["Warm backlight", "Dust motes", "Soft vignette"],
+    sofaStyle: "Deep Cozy",
+    lightingMood: "Warm Amber",
+  },
+  {
+    id: "cinematic-studio",
+    title: "Cinematic Studio",
+    category: "Luxury",
+    description: "Film-grade studio with a modern director's sofa, dramatic teal-orange lighting, and light rays.",
+    gradientColors: ["hsl(190 60% 12%)", "hsl(30 60% 15%)", "hsl(200 50% 10%)"],
+    accentColor: "180 100% 50%",
+    ledFonts: ["Futuristic", "Minimal", "Cyber"],
+    ledAnimations: ["static", "pulse", "sparkle"],
+    envFx: ["Cinematic rays", "Teal-orange grade", "Depth blur"],
+    sofaStyle: "Modern Director",
+    lightingMood: "Teal",
   },
 ];
 
-const categories = ["All", "Rooms", "Tech", "Neon", "Fantasy", "Gaming"];
+const categories = ["All", "Cyber", "Gamer", "Cozy", "Luxury", "Minimal"];
+
+const sizePresets = [
+  { label: "16:9 Landscape", value: "1920x1080" },
+  { label: "9:16 Portrait", value: "1080x1920" },
+  { label: "1:1 Square", value: "1080x1080" },
+];
 
 /* ─── Animated Room Preview ─── */
-const RoomPreview = ({ bg, selected, onClick }: { bg: RoomBackground; selected: boolean; onClick: () => void }) => (
+const RoomPreview = ({ bg, selected, onClick, isPro }: { bg: RoomBackground; selected: boolean; onClick: () => void; isPro: boolean }) => (
   <motion.button
     onClick={onClick}
     whileHover={{ scale: 1.02, y: -4 }}
@@ -161,23 +247,27 @@ const RoomPreview = ({ bg, selected, onClick }: { bg: RoomBackground; selected: 
           YOUR TEXT
         </motion.div>
       </div>
-      {/* Pro badge */}
+      {/* Badge */}
       <div
         className="absolute top-2.5 right-2.5 text-[8px] font-extrabold px-2 py-0.5 rounded-md flex items-center gap-1"
-        style={{
+        style={bg.free ? {
+          background: "hsl(160 100% 45% / 0.15)",
+          color: "hsl(160 100% 55%)",
+          border: "1px solid hsl(160 100% 45% / 0.25)",
+        } : {
           background: "linear-gradient(135deg, hsl(280 100% 65% / 0.2), hsl(280 100% 55% / 0.1))",
           color: "hsl(280 100% 70%)",
           border: "1px solid hsl(280 100% 65% / 0.25)",
         }}
       >
-        <Star size={7} /> PRO
+        {bg.free ? "FREE" : <><Star size={7} /> PRO</>}
       </div>
     </div>
 
     {/* Info */}
     <div className="p-3.5">
       <h3 className="text-[13px] font-heading font-bold text-foreground mb-1">{bg.title}</h3>
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 flex-wrap">
         <span
           className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
           style={{
@@ -187,6 +277,7 @@ const RoomPreview = ({ bg, selected, onClick }: { bg: RoomBackground; selected: 
         >
           {bg.category}
         </span>
+        <span className="text-[9px] text-muted-foreground/60">{bg.sofaStyle}</span>
       </div>
     </div>
 
@@ -200,7 +291,7 @@ const RoomPreview = ({ bg, selected, onClick }: { bg: RoomBackground; selected: 
           border: `1px solid hsl(${bg.accentColor} / 0.3)`,
         }}
       >
-        {selected ? "Selected" : "Select"}
+        {selected ? "Selected" : !bg.free && !isPro ? "🔒 Pro Only" : "Select"}
       </span>
     </div>
   </motion.button>
@@ -208,21 +299,10 @@ const RoomPreview = ({ bg, selected, onClick }: { bg: RoomBackground; selected: 
 
 /* ─── LED Preview Component ─── */
 const LEDPreview = ({
-  bg,
-  text,
-  color,
-  animation,
-  font,
-  glowIntensity,
-  speed,
+  bg, text, color, animation, font, glowIntensity, speed, brightness, vignette, particles,
 }: {
-  bg: RoomBackground;
-  text: string;
-  color: string;
-  animation: string;
-  font: string;
-  glowIntensity: number;
-  speed: number;
+  bg: RoomBackground; text: string; color: string; animation: string; font: string;
+  glowIntensity: number; speed: number; brightness: number; vignette: boolean; particles: boolean;
 }) => {
   const glowPx = 4 + (glowIntensity / 100) * 20;
 
@@ -233,10 +313,11 @@ const LEDPreview = ({
     Futuristic: "system-ui, sans-serif",
     Digital: "'Courier New', monospace",
     Script: "Georgia, serif",
+    Minimal: "system-ui, sans-serif",
   }[font] || "system-ui, sans-serif";
 
   return (
-    <div className="relative w-full h-64 rounded-2xl overflow-hidden">
+    <div className="relative w-full h-64 rounded-2xl overflow-hidden" style={{ filter: `brightness(${brightness / 100})` }}>
       {/* Animated room background */}
       <motion.div
         className="absolute inset-0"
@@ -251,8 +332,8 @@ const LEDPreview = ({
         transition={{ duration: 8 / speed, repeat: Infinity, ease: "linear" }}
       />
 
-      {/* Particles */}
-      {[...Array(15)].map((_, i) => (
+      {/* Ambient Particles */}
+      {particles && [...Array(15)].map((_, i) => (
         <motion.div
           key={i}
           className="absolute rounded-full"
@@ -331,7 +412,17 @@ const LEDPreview = ({
         </motion.div>
       </div>
 
-      {/* OBS Frame guide lines */}
+      {/* Vignette overlay */}
+      {vignette && (
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: "radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.6) 100%)",
+          }}
+        />
+      )}
+
+      {/* OBS Frame guide */}
       <div className="absolute inset-2 border border-dashed border-white/5 rounded-xl pointer-events-none" />
       <div className="absolute bottom-2 right-3 text-[9px] text-white/20 font-mono">1920×1080</div>
     </div>
@@ -352,6 +443,11 @@ const BackgroundsPage = () => {
   const [glowIntensity, setGlowIntensity] = useState(60);
   const [animSpeed, setAnimSpeed] = useState(1);
   const [copied, setCopied] = useState<string | null>(null);
+  const [brightness, setBrightness] = useState(100);
+  const [vignette, setVignette] = useState(false);
+  const [ambientParticles, setAmbientParticles] = useState(true);
+  const [sizePreset, setSizePreset] = useState("1920x1080");
+  const [ledOpacity, setLedOpacity] = useState(100);
 
   const filtered = activeCategory === "All"
     ? backgrounds
@@ -360,7 +456,7 @@ const BackgroundsPage = () => {
   const buildUrl = (bgId: string, extra = "") => {
     const base = `${getOverlayBaseUrl()}/overlay/backgrounds/${bgId}`;
     const colorEncoded = ledColor.replace(/ /g, "_").replace(/%/g, "");
-    const params = `led=${encodeURIComponent(ledText)}&color=${colorEncoded}&anim=${ledAnimation}&font=${ledFont.toLowerCase()}&speed=${animSpeed}&glow=${glowIntensity}`;
+    const params = `led=${encodeURIComponent(ledText)}&color=${colorEncoded}&anim=${ledAnimation}&font=${ledFont.toLowerCase()}&speed=${animSpeed}&glow=${glowIntensity}&brightness=${brightness}&vignette=${vignette ? 1 : 0}&particles=${ambientParticles ? 1 : 0}&size=${sizePreset}&ledopacity=${ledOpacity}`;
     return `${base}?${params}${extra ? "&" + extra : ""}`;
   };
 
@@ -380,7 +476,11 @@ const BackgroundsPage = () => {
     { label: "Gold", value: "40 95% 55%" },
     { label: "Pink", value: "330 85% 60%" },
     { label: "White", value: "0 0% 90%" },
+    { label: "Teal", value: "180 70% 45%" },
+    { label: "Amber", value: "30 90% 55%" },
   ];
+
+  const canUseRoom = (bg: RoomBackground) => bg.free || isPro;
 
   return (
     <AppLayout>
@@ -411,7 +511,7 @@ const BackgroundsPage = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-heading font-bold text-foreground flex items-center gap-2">
-                  Animated Backgrounds
+                  TikUp Studio Rooms
                   <span
                     className="text-[9px] font-extrabold px-2 py-0.5 rounded-md flex items-center gap-1"
                     style={{
@@ -420,16 +520,16 @@ const BackgroundsPage = () => {
                       border: "1px solid hsl(280 100% 65% / 0.2)",
                     }}
                   >
-                    <Star size={8} /> PRO
+                    <Star size={8} /> 10 ROOMS
                   </span>
                 </h1>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Live animated room backgrounds with dynamic LED signs for your stream.
+                  Premium animated room backgrounds with customizable LED signs. 2 rooms free, 8 Pro-exclusive.
                 </p>
               </div>
             </div>
           </div>
-          <PageHelpButton featureKey="animated-backgrounds" title="Animated Backgrounds" />
+          <PageHelpButton featureKey="animated-backgrounds" title="Studio Backgrounds" />
         </motion.div>
 
         {/* Category Filter */}
@@ -484,6 +584,7 @@ const BackgroundsPage = () => {
                 <RoomPreview
                   bg={bg}
                   selected={selectedBg.id === bg.id}
+                  isPro={isPro}
                   onClick={() => setSelectedBg(bg)}
                 />
               </motion.div>
@@ -491,8 +592,8 @@ const BackgroundsPage = () => {
           </AnimatePresence>
         </motion.div>
 
-        {/* Pro Lock Overlay */}
-        {!isPro && (
+        {/* Pro Lock for non-free rooms */}
+        {!canUseRoom(selectedBg) && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -506,10 +607,10 @@ const BackgroundsPage = () => {
               <Lock size={32} className="mx-auto mb-3" style={{ color: "hsl(280 100% 65%)" }} />
             </motion.div>
             <h2 className="text-lg font-heading font-bold text-foreground mb-1">
-              Upgrade to Pro to unlock animated backgrounds!
+              "{selectedBg.title}" is a Pro room
             </h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Get customizable room scenes + animated LED signs + overlay URLs.
+              Upgrade to Pro to unlock all 10 studio rooms, full LED customization, and overlay URLs.
             </p>
             <Link
               to="/pro"
@@ -542,12 +643,15 @@ const BackgroundsPage = () => {
                 <p className="text-[11px] text-muted-foreground">{selectedBg.description}</p>
               </div>
             </div>
-            <span
-              className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
-              style={{ background: `hsl(${selectedBg.accentColor} / 0.1)`, color: `hsl(${selectedBg.accentColor})` }}
-            >
-              {selectedBg.category}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] text-muted-foreground/50">{selectedBg.sofaStyle} · {selectedBg.lightingMood}</span>
+              <span
+                className="text-[9px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider"
+                style={{ background: `hsl(${selectedBg.accentColor} / 0.1)`, color: `hsl(${selectedBg.accentColor})` }}
+              >
+                {selectedBg.category}
+              </span>
+            </div>
           </div>
 
           {/* Live Preview */}
@@ -560,11 +664,14 @@ const BackgroundsPage = () => {
               font={ledFont}
               glowIntensity={glowIntensity}
               speed={animSpeed}
+              brightness={brightness}
+              vignette={vignette}
+              particles={ambientParticles}
             />
             <div className="flex items-center gap-2 mt-3 justify-end">
               <button
                 onClick={() => {
-                  if (!isPro) { toast.error("Upgrade to Pro"); return; }
+                  if (!canUseRoom(selectedBg)) { toast.error("Upgrade to Pro"); return; }
                   window.open(buildUrl(selectedBg.id), "_blank");
                 }}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold transition-all hover:-translate-y-0.5"
@@ -578,7 +685,7 @@ const BackgroundsPage = () => {
               </button>
               <button
                 onClick={() => {
-                  if (!isPro) { toast.error("Upgrade to Pro"); return; }
+                  if (!canUseRoom(selectedBg)) { toast.error("Upgrade to Pro"); return; }
                   window.open(buildUrl(selectedBg.id), "_blank");
                 }}
                 className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[11px] font-bold text-muted-foreground hover:text-foreground transition-all"
@@ -683,10 +790,29 @@ const BackgroundsPage = () => {
                   ))}
                 </div>
               </div>
+
+              {/* LED Opacity */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[11px] font-medium text-muted-foreground">LED Opacity</label>
+                  <span className="text-[11px] font-bold text-foreground">{ledOpacity}%</span>
+                </div>
+                <input
+                  type="range"
+                  min={20}
+                  max={100}
+                  value={ledOpacity}
+                  onChange={e => setLedOpacity(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{
+                    background: `linear-gradient(to right, hsl(${selectedBg.accentColor}) ${ledOpacity}%, hsl(0 0% 100% / 0.08) ${ledOpacity}%)`,
+                  }}
+                />
+              </div>
             </div>
           </motion.div>
 
-          {/* Visuals & Motion Options */}
+          {/* Visuals & Motion + Room Customisation */}
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
@@ -696,7 +822,7 @@ const BackgroundsPage = () => {
           >
             <div className="flex items-center gap-2 mb-4">
               <Sliders size={14} style={{ color: `hsl(${selectedBg.accentColor})` }} />
-              <h3 className="text-sm font-heading font-bold text-foreground">Visuals & Motion</h3>
+              <h3 className="text-sm font-heading font-bold text-foreground">Room & Motion Controls</h3>
             </div>
 
             <div className="space-y-5">
@@ -707,15 +833,10 @@ const BackgroundsPage = () => {
                   <span className="text-[11px] font-bold text-foreground">{glowIntensity}%</span>
                 </div>
                 <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={glowIntensity}
+                  type="range" min={0} max={100} value={glowIntensity}
                   onChange={e => setGlowIntensity(Number(e.target.value))}
                   className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, hsl(${selectedBg.accentColor}) ${glowIntensity}%, hsl(0 0% 100% / 0.08) ${glowIntensity}%)`,
-                  }}
+                  style={{ background: `linear-gradient(to right, hsl(${selectedBg.accentColor}) ${glowIntensity}%, hsl(0 0% 100% / 0.08) ${glowIntensity}%)` }}
                 />
               </div>
 
@@ -726,17 +847,77 @@ const BackgroundsPage = () => {
                   <span className="text-[11px] font-bold text-foreground">{animSpeed.toFixed(1)}x</span>
                 </div>
                 <input
-                  type="range"
-                  min={0.5}
-                  max={2}
-                  step={0.1}
-                  value={animSpeed}
+                  type="range" min={0.5} max={2} step={0.1} value={animSpeed}
                   onChange={e => setAnimSpeed(Number(e.target.value))}
                   className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                  style={{
-                    background: `linear-gradient(to right, hsl(${selectedBg.accentColor}) ${((animSpeed - 0.5) / 1.5) * 100}%, hsl(0 0% 100% / 0.08) ${((animSpeed - 0.5) / 1.5) * 100}%)`,
-                  }}
+                  style={{ background: `linear-gradient(to right, hsl(${selectedBg.accentColor}) ${((animSpeed - 0.5) / 1.5) * 100}%, hsl(0 0% 100% / 0.08) ${((animSpeed - 0.5) / 1.5) * 100}%)` }}
                 />
+              </div>
+
+              {/* Brightness */}
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <label className="text-[11px] font-medium text-muted-foreground flex items-center gap-1.5">
+                    <Sun size={10} /> Room Brightness
+                  </label>
+                  <span className="text-[11px] font-bold text-foreground">{brightness}%</span>
+                </div>
+                <input
+                  type="range" min={30} max={150} value={brightness}
+                  onChange={e => setBrightness(Number(e.target.value))}
+                  className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                  style={{ background: `linear-gradient(to right, hsl(${selectedBg.accentColor}) ${((brightness - 30) / 120) * 100}%, hsl(0 0% 100% / 0.08) ${((brightness - 30) / 120) * 100}%)` }}
+                />
+              </div>
+
+              {/* Toggles */}
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  onClick={() => setVignette(!vignette)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all ${
+                    vignette ? "text-foreground" : "text-muted-foreground/60"
+                  }`}
+                  style={{
+                    background: vignette ? `hsl(${selectedBg.accentColor} / 0.12)` : "hsl(0 0% 100% / 0.03)",
+                    border: `1px solid ${vignette ? `hsl(${selectedBg.accentColor} / 0.25)` : "hsl(0 0% 100% / 0.06)"}`,
+                  }}
+                >
+                  <Eye size={12} /> Cinematic Vignette
+                </button>
+                <button
+                  onClick={() => setAmbientParticles(!ambientParticles)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-[11px] font-bold transition-all ${
+                    ambientParticles ? "text-foreground" : "text-muted-foreground/60"
+                  }`}
+                  style={{
+                    background: ambientParticles ? `hsl(${selectedBg.accentColor} / 0.12)` : "hsl(0 0% 100% / 0.03)",
+                    border: `1px solid ${ambientParticles ? `hsl(${selectedBg.accentColor} / 0.25)` : "hsl(0 0% 100% / 0.06)"}`,
+                  }}
+                >
+                  <Sparkles size={12} /> Ambient Particles
+                </button>
+              </div>
+
+              {/* Size Preset */}
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground mb-2 block">Size Preset</label>
+                <div className="flex flex-wrap gap-1.5">
+                  {sizePresets.map(sp => (
+                    <button
+                      key={sp.value}
+                      onClick={() => setSizePreset(sp.value)}
+                      className={`px-3 py-1.5 rounded-lg text-[11px] font-bold transition-all ${
+                        sizePreset === sp.value ? "text-foreground" : "text-muted-foreground/60"
+                      }`}
+                      style={{
+                        background: sizePreset === sp.value ? `hsl(${selectedBg.accentColor} / 0.12)` : "hsl(0 0% 100% / 0.03)",
+                        border: `1px solid ${sizePreset === sp.value ? `hsl(${selectedBg.accentColor} / 0.25)` : "hsl(0 0% 100% / 0.06)"}`,
+                      }}
+                    >
+                      {sp.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Env FX */}
@@ -764,8 +945,8 @@ const BackgroundsPage = () => {
               >
                 <p className="text-[10px] font-bold text-muted-foreground mb-1.5 uppercase tracking-wider">Recommended OBS Settings</p>
                 <div className="grid grid-cols-2 gap-2 text-[11px]">
-                  <span className="text-muted-foreground">Width: <span className="text-foreground font-medium">1920px</span></span>
-                  <span className="text-muted-foreground">Height: <span className="text-foreground font-medium">1080px</span></span>
+                  <span className="text-muted-foreground">Width: <span className="text-foreground font-medium">{sizePreset.split("x")[0]}px</span></span>
+                  <span className="text-muted-foreground">Height: <span className="text-foreground font-medium">{sizePreset.split("x")[1]}px</span></span>
                   <span className="text-muted-foreground">FPS: <span className="text-foreground font-medium">30</span></span>
                   <span className="text-muted-foreground">Opacity: <span className="text-foreground font-medium">100%</span></span>
                 </div>
@@ -790,8 +971,8 @@ const BackgroundsPage = () => {
           <div className="space-y-3">
             {[
               { label: "Primary Background", extra: "" },
-              { label: "Preview Mode", extra: "mode=preview" },
-              { label: "LED Only", extra: "mode=led" },
+              { label: "Background Only (no LED)", extra: "mode=preview" },
+              { label: "LED Only (transparent)", extra: "mode=led" },
             ].map(url => {
               const fullUrl = buildUrl(selectedBg.id, url.extra);
               const isCopied = copied === url.label;
@@ -810,7 +991,7 @@ const BackgroundsPage = () => {
                   </div>
                   <button
                     onClick={() => {
-                      if (!isPro) {
+                      if (!canUseRoom(selectedBg)) {
                         toast.error("Upgrade to Pro to copy overlay URLs");
                         return;
                       }
@@ -843,7 +1024,7 @@ const BackgroundsPage = () => {
           className="mt-8 text-center"
         >
           <p className="text-[11px] text-muted-foreground/50">
-            🔥 5 professionally animated scenes · Fully customizable LED sign · Instant OBS/TikTok LIVE Studio URLs · Exclusive Pro feature
+            🔥 10 professionally animated studio rooms · Fully customizable LED sign · Instant OBS/TikTok LIVE Studio URLs · 2 Free, 8 Pro-exclusive
           </p>
         </motion.div>
       </div>

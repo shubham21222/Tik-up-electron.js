@@ -88,6 +88,7 @@ const GiftAlertPreview = ({ settings = {}, testTrigger = 0 }: GiftAlertPreviewPr
   const shadowDepth = (settings.shadow_depth || 30) / 100;
   const noBackground = settings.no_background ?? false;
   const noBorder = settings.no_border ?? false;
+  const borderGlow = settings.border_glow ?? true;
   const accentColor = settings.accent_color || "280 100% 65%";
   const glowColor = settings.glow_color || accentColor;
   const textColor = settings.text_color || "0 0% 100%";
@@ -167,6 +168,24 @@ const GiftAlertPreview = ({ settings = {}, testTrigger = 0 }: GiftAlertPreviewPr
             exit={{ opacity: 0, scale: 0.8, y: 20 }}
             transition={{ duration: 0.5 / (settings.animation_speed || 1), ease: [0.16, 1, 0.3, 1] }}
           >
+            {/* Border glow pulse */}
+            {borderGlow && !noBorder && !noBackground && (
+              <motion.div
+                className="absolute inset-0 rounded-[24px] pointer-events-none"
+                style={{
+                  border: `1px solid hsl(${glowColor} / ${0.4 * glowIntensity})`,
+                  boxShadow: `0 0 ${20 * glowIntensity}px hsl(${glowColor} / ${0.15 * glowIntensity})`,
+                }}
+                animate={{
+                  boxShadow: [
+                    `0 0 ${15 * glowIntensity}px hsl(${glowColor} / ${0.1 * glowIntensity})`,
+                    `0 0 ${35 * glowIntensity}px hsl(${glowColor} / ${0.3 * glowIntensity})`,
+                    `0 0 ${15 * glowIntensity}px hsl(${glowColor} / ${0.1 * glowIntensity})`,
+                  ],
+                }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+              />
+            )}
             {/* Outer glow ring */}
             {!noBorder && (
               <motion.div

@@ -54,8 +54,9 @@ const GiftAlertRenderer = () => {
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
-  // Play sound for an alert
-  const playSound = useCallback((url: string | undefined) => {
+  // Play sound for an alert — uses ref to avoid re-creating callback
+  const playSoundRef = useRef<(url: string | undefined) => void>(() => {});
+  playSoundRef.current = (url: string | undefined) => {
     if (!url) return;
     try {
       if (audioRef.current) {
@@ -67,7 +68,10 @@ const GiftAlertRenderer = () => {
       audioRef.current = audio;
       audio.play().catch(() => {});
     } catch {}
-  }, [settings.sound_volume]);
+  };
+  const playSound = useCallback((url: string | undefined) => {
+    playSoundRef.current(url);
+  }, []);
 
   // Fetch widget settings + owner
   useEffect(() => {

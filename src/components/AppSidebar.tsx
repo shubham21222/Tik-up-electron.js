@@ -26,6 +26,7 @@ interface NavItem {
 interface SidebarSection {
   label: string;
   emoji: string;
+  sectionIcon: typeof LayoutDashboard;
   items: NavItem[];
 }
 
@@ -37,6 +38,7 @@ const sections: SidebarSection[] = [
   {
     label: "Live Controls",
     emoji: "📡",
+    sectionIcon: Activity,
     items: [
       { id: "/actions", label: "Gift Alerts", icon: Gift },
       { id: "/chat-overlay", label: "Chat Overlay", icon: MessageCircle },
@@ -49,6 +51,7 @@ const sections: SidebarSection[] = [
   {
     label: "Engagement",
     emoji: "🔥",
+    sectionIcon: Sparkles,
     items: [
       { id: "/sounds", label: "Spotify Connect", icon: Volume2, pro: true },
       { id: "/sound-alerts", label: "Sound Alerts", icon: Volume2 },
@@ -60,6 +63,7 @@ const sections: SidebarSection[] = [
   {
     label: "Growth & Goals",
     emoji: "🚀",
+    sectionIcon: Target,
     items: [
       { id: "/goal-overlays", label: "Stream Goals", icon: Target },
       { id: "/leaderboard", label: "Top Supporters", icon: Trophy, pro: true },
@@ -69,6 +73,7 @@ const sections: SidebarSection[] = [
   {
     label: "Creator Tools",
     emoji: "🛠",
+    sectionIcon: Terminal,
     items: [
       { id: "/chat-commands", label: "Chat Commands", icon: Terminal },
       { id: "/tts", label: "TTS Chat", icon: Mic },
@@ -81,6 +86,7 @@ const sections: SidebarSection[] = [
   {
     label: "Enterprise",
     emoji: "🏢",
+    sectionIcon: Building2,
     items: [
       { id: "/enterprise", label: "Command Center", icon: BarChart3 },
       { id: "/agencies", label: "Agency Hub", icon: Building2 },
@@ -89,6 +95,7 @@ const sections: SidebarSection[] = [
   {
     label: "Settings",
     emoji: "⚙",
+    sectionIcon: Settings,
     items: [
       { id: "/setup", label: "Connect TikTok", icon: Link2 },
       { id: "/brand-settings", label: "Brand & Style", icon: Palette, pro: true },
@@ -199,28 +206,28 @@ const SidebarSectionGroup = ({
 
   return (
     <div className="space-y-0.5">
-      {/* Section header */}
+      {/* Section header – dropdown style with icon */}
       <button
         onClick={() => !isCollapsed && onToggle()}
         className={cn(
-          "w-full flex items-center gap-2 transition-colors duration-200",
-          isCollapsed ? "justify-center px-0 py-1" : "px-3 py-1.5",
-          "text-muted-foreground/40 hover:text-muted-foreground/60"
+          "sidebar-section-header w-full flex items-center gap-2.5 rounded-lg transition-all duration-200",
+          isCollapsed ? "justify-center p-2" : "px-3 py-2",
+          "text-muted-foreground/60 hover:text-muted-foreground/90 hover:bg-[hsl(0_0%_100%/0.03)]"
         )}
       >
         {isCollapsed ? (
-          <span className="text-[10px]">{section.emoji}</span>
+          <section.sectionIcon size={16} className="flex-shrink-0 opacity-50" />
         ) : (
           <>
-            <span className="text-[10px]">{section.emoji}</span>
-            <span className="uppercase tracking-[0.18em] font-bold text-[9px] flex-1 text-left">
+            <section.sectionIcon size={14} className="flex-shrink-0 opacity-60" />
+            <span className="uppercase tracking-[0.14em] font-bold text-[10px] flex-1 text-left">
               {section.label}
             </span>
             <motion.div
               animate={{ rotate: isOpen ? 0 : -90 }}
               transition={{ duration: 0.2, ease: "easeInOut" }}
             >
-              <ChevronDown size={10} className="flex-shrink-0 opacity-50" />
+              <ChevronRight size={12} className="flex-shrink-0 opacity-40" />
             </motion.div>
           </>
         )}

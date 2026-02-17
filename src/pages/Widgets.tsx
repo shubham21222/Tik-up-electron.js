@@ -3,10 +3,8 @@ import PageHelpButton from "@/components/PageHelpButton";
 import { motion } from "framer-motion";
 import { Puzzle, Plus, Crown, Code2, Eye, Settings, Trash2 } from "lucide-react";
 
-const glassCard = "rounded-2xl p-[1px]";
-const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
-const glassInner = "rounded-2xl h-full transition-shadow duration-300 group-hover:shadow-[0_0_30px_hsl(280_100%_65%/0.06)]";
-const glassInnerStyle = { background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" };
+const glassCard = "rounded-2xl";
+const glassInner = "rounded-2xl h-full transition-shadow duration-300";
 
 const widgets = [
   { id: "1", name: "Spinning Wheel", type: "HTML/CSS/JS", status: "active", desc: "Interactive spinning wheel triggered by gifts" },
@@ -40,9 +38,9 @@ const Widgets = () => (
             initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.06 }}
             whileHover={{ y: -3, transition: { duration: 0.2 } }}
-            className={`${glassCard} group`} style={glassGradient}
+            className={`${glassCard} group overlay-market-card`}
           >
-            <div className={glassInner} style={glassInnerStyle}>
+            <div className={glassInner}>
               <div className="p-5">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center gap-3">

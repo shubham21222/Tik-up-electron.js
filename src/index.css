@@ -6,62 +6,66 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Exo+2:ital,wght@0,100..900;1,100..900&display=swap');
 
 @layer base {
+  /* ── LIGHT MODE (Apple-inspired) ── */
   :root {
-    --background: 0 0% 97%;
-    --foreground: 0 0% 12%;
+    --background: 0 0% 98%;
+    --foreground: 0 0% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 12%;
+    --card-foreground: 0 0% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 12%;
+    --popover-foreground: 0 0% 11%;
 
-    --primary: 160 100% 35%;
+    --primary: 160 84% 36%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 280 80% 55%;
+    --secondary: 270 60% 52%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 0 0% 92%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 0 0% 94%;
-    --accent-foreground: 0 0% 12%;
+    --accent: 220 14% 96%;
+    --accent-foreground: 0 0% 11%;
 
-    --destructive: 0 80% 50%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 88%;
-    --input: 0 0% 88%;
-    --ring: 160 100% 35%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 160 84% 36%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 99%;
-    --sidebar-foreground: 0 0% 45%;
-    --sidebar-primary: 160 100% 35%;
+    --sidebar-background: 220 14% 96%;
+    --sidebar-foreground: 220 9% 46%;
+    --sidebar-primary: 160 84% 36%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 95%;
-    --sidebar-accent-foreground: 0 0% 12%;
-    --sidebar-border: 0 0% 90%;
-    --sidebar-ring: 160 100% 35%;
+    --sidebar-accent: 220 14% 93%;
+    --sidebar-accent-foreground: 0 0% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 160 84% 36%;
 
     /* Custom tokens */
-    --glow-primary: 160 100% 35%;
-    --glow-secondary: 280 80% 55%;
+    --glow-primary: 160 84% 36%;
+    --glow-secondary: 270 60% 52%;
     --surface-raised: 0 0% 100%;
-    --surface-overlay: 0 0% 96%;
-    --gradient-primary: linear-gradient(135deg, hsl(160 100% 35%), hsl(180 100% 30%));
-    --gradient-accent: linear-gradient(135deg, hsl(280 80% 55%), hsl(320 80% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(0 0% 98%));
-    --shadow-glow: 0 0 20px hsl(160 100% 35% / 0.1);
-    --shadow-glow-strong: 0 0 40px hsl(160 100% 35% / 0.18);
-    --shadow-glow-secondary: 0 0 20px hsl(280 80% 55% / 0.12);
+    --surface-overlay: 220 14% 96%;
+    --gradient-primary: linear-gradient(135deg, hsl(160 84% 36%), hsl(175 72% 32%));
+    --gradient-accent: linear-gradient(135deg, hsl(270 60% 52%), hsl(300 55% 48%));
+    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(220 14% 98%));
+    --shadow-glow: 0 1px 3px hsl(0 0% 0% / 0.04), 0 4px 12px hsl(0 0% 0% / 0.03);
+    --shadow-glow-strong: 0 2px 8px hsl(0 0% 0% / 0.06), 0 8px 24px hsl(0 0% 0% / 0.04);
+    --shadow-glow-secondary: 0 1px 3px hsl(270 60% 52% / 0.06);
+    --shadow-card: 0 1px 2px hsl(0 0% 0% / 0.03), 0 2px 8px hsl(0 0% 0% / 0.04);
+    --shadow-card-hover: 0 2px 4px hsl(0 0% 0% / 0.04), 0 8px 24px hsl(0 0% 0% / 0.06);
 
     --font-heading: 'Exo 2', sans-serif;
     --font-body: 'Outfit', sans-serif;
   }
 
+  /* ── DARK MODE ── */
   .dark {
     --background: 0 0% 0%;
     --foreground: 0 0% 88%;
@@ -111,6 +115,8 @@
     --shadow-glow: 0 0 20px hsl(160 100% 45% / 0.08);
     --shadow-glow-strong: 0 0 40px hsl(160 100% 45% / 0.15);
     --shadow-glow-secondary: 0 0 20px hsl(280 100% 65% / 0.1);
+    --shadow-card: none;
+    --shadow-card-hover: none;
   }
 }
 
@@ -216,7 +222,7 @@ main > div[class*="max-w-"] {
   max-width: 100% !important;
 }
 
-/* ── Sidebar section header animated glow text ── */
+/* ── Sidebar section header animated glow text (dark mode only) ── */
 @keyframes sidebarTextGlow {
   0%, 100% {
     background-position: 0% 50%;
@@ -226,7 +232,7 @@ main > div[class*="max-w-"] {
   }
 }
 
-.sidebar-section-label, .sidebar-section-icon {
+.dark .sidebar-section-label, .dark .sidebar-section-icon {
   background: linear-gradient(
     90deg,
     hsl(160 100% 45%),
@@ -241,22 +247,39 @@ main > div[class*="max-w-"] {
   animation: sidebarTextGlow 3s ease-in-out infinite;
 }
 
-.sidebar-section-icon {
+.dark .sidebar-section-icon {
   -webkit-text-fill-color: initial;
   color: transparent;
 }
 
+/* Light mode: clean muted labels, no animated gradient */
+:root .sidebar-section-label {
+  color: hsl(220 9% 46%);
+  -webkit-text-fill-color: hsl(220 9% 46%);
+  background: none;
+  animation: none;
+}
+
+:root .sidebar-section-icon {
+  color: hsl(220 9% 46%);
+  -webkit-text-fill-color: initial;
+  background: none;
+  animation: none;
+}
+
 /* ── Premium Sidebar Styles ── */
+
+/* Light mode sidebar: Apple-style clean light grey */
 .sidebar-shell {
-  background: linear-gradient(180deg, hsl(var(--sidebar-background) / 0.98) 0%, hsl(var(--sidebar-background) / 0.99) 100%);
-  border-right: 1px solid hsl(var(--sidebar-border) / 0.6);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: hsl(var(--sidebar-background));
+  border-right: 1px solid hsl(var(--sidebar-border));
 }
 
 .dark .sidebar-shell {
   background: linear-gradient(180deg, hsl(0 0% 3% / 0.98) 0%, hsl(0 0% 1% / 0.99) 100%);
   border-right: 1px solid hsl(0 0% 8% / 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
 }
 
 .sidebar-separator {
@@ -274,8 +297,16 @@ main > div[class*="max-w-"] {
   inset: 0;
   border-radius: 0.75rem;
   opacity: 0;
-  background: linear-gradient(135deg, hsl(var(--primary) / 0.06), hsl(var(--primary) / 0.02));
   transition: opacity 0.2s ease;
+}
+
+/* Light mode nav hover: subtle grey pill */
+.sidebar-nav-item::before {
+  background: hsl(var(--accent));
+}
+
+.dark .sidebar-nav-item::before {
+  background: linear-gradient(135deg, hsl(var(--primary) / 0.06), hsl(var(--primary) / 0.02));
 }
 
 .sidebar-nav-item:hover::before {
@@ -286,49 +317,107 @@ main > div[class*="max-w-"] {
   color: hsl(var(--primary));
 }
 
+/* Light mode active: soft pill with no heavy glow */
 .sidebar-nav-active::before {
+  opacity: 1;
+  background: hsl(var(--primary) / 0.08);
+}
+
+.dark .sidebar-nav-active::before {
   opacity: 1;
   background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.03));
 }
 
+/* Light mode icon glass: soft white */
 .sidebar-icon-glass {
+  background: hsl(0 0% 100%);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 1px 2px hsl(0 0% 0% / 0.04);
+}
+
+.dark .sidebar-icon-glass {
   background: hsl(var(--muted));
   border: 1px solid hsl(var(--border));
+  box-shadow: none;
 }
 
 .sidebar-icon-active {
-  background: hsl(var(--primary) / 0.12);
-  border: 1px solid hsl(var(--primary) / 0.2);
-  box-shadow: 0 0 8px hsl(var(--primary) / 0.15);
+  background: hsl(var(--primary) / 0.1);
+  border: 1px solid hsl(var(--primary) / 0.18);
   color: hsl(var(--primary));
 }
 
+.dark .sidebar-icon-active {
+  background: hsl(var(--primary) / 0.12);
+  border: 1px solid hsl(var(--primary) / 0.2);
+  box-shadow: 0 0 8px hsl(var(--primary) / 0.15);
+}
+
+/* PRO badge: light mode = soft pastel purple */
 .sidebar-pro-badge {
+  background: hsl(270 80% 96%);
+  color: hsl(270 60% 50%);
+  border: 1px solid hsl(270 60% 90%);
+}
+
+.dark .sidebar-pro-badge {
   background: linear-gradient(135deg, hsl(280 100% 65% / 0.15), hsl(280 100% 55% / 0.08));
   color: hsl(280 100% 70%);
   border: 1px solid hsl(280 100% 65% / 0.2);
 }
 
+/* PRO CTA: light mode = soft purple tint */
 .sidebar-pro-cta {
+  background: hsl(270 80% 97%);
+  border: 1px solid hsl(270 60% 92%);
+}
+
+.sidebar-pro-cta:hover {
+  background: hsl(270 80% 95%);
+  border-color: hsl(270 60% 86%);
+}
+
+.dark .sidebar-pro-cta {
   background: linear-gradient(135deg, hsl(280 100% 65% / 0.08), hsl(280 100% 55% / 0.04));
   border: 1px solid hsl(280 100% 65% / 0.12);
 }
 
-.sidebar-pro-cta:hover {
+.dark .sidebar-pro-cta:hover {
   background: linear-gradient(135deg, hsl(280 100% 65% / 0.14), hsl(280 100% 55% / 0.07));
   border-color: hsl(280 100% 65% / 0.2);
 }
 
+/* PRO icon/text color */
+.sidebar-pro-icon {
+  color: hsl(270 60% 52%);
+}
+
+.dark .sidebar-pro-icon {
+  color: hsl(280 100% 65%);
+}
+
+.sidebar-pro-text {
+  color: hsl(270 60% 42%);
+}
+
+.dark .sidebar-pro-text {
+  color: hsl(280 100% 70%);
+}
+
 .sidebar-tooltip {
-  background: hsl(var(--popover) / 0.95);
+  background: hsl(var(--popover) / 0.98);
   border: 1px solid hsl(var(--border));
+  box-shadow: 0 4px 12px hsl(0 0% 0% / 0.08);
+}
+
+.dark .sidebar-tooltip {
   backdrop-filter: blur(12px);
-  box-shadow: 0 4px 16px hsl(0 0% 0% / 0.15);
+  box-shadow: 0 4px 16px hsl(0 0% 0% / 0.25);
 }
 
 .sidebar-collapse-btn {
   color: hsl(var(--muted-foreground));
-  background: hsl(var(--muted));
+  background: hsl(0 0% 100%);
   border: 1px solid hsl(var(--border));
 }
 
@@ -338,12 +427,76 @@ main > div[class*="max-w-"] {
   border-color: hsl(var(--border));
 }
 
+.dark .sidebar-collapse-btn {
+  background: hsl(var(--muted));
+}
+
+.dark .sidebar-collapse-btn:hover {
+  background: hsl(var(--accent));
+}
+
 .sidebar-scrollbar {
   scrollbar-width: none;
 }
 
 .sidebar-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Glass Card: theme-aware ── */
+.glass-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  border-radius: 1rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.glass-card:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.dark .glass-card {
+  background: linear-gradient(180deg, hsl(210 20% 8% / 0.85), hsl(210 15% 6% / 0.9));
+  border: 1px solid hsl(0 0% 100% / 0.04);
+  backdrop-filter: blur(24px);
+  box-shadow: none;
+}
+
+.dark .glass-card:hover {
+  border-color: hsl(0 0% 100% / 0.08);
+  box-shadow: none;
+}
+
+/* ── Feature grid button: theme-aware ── */
+.feature-grid-btn {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border) / 0.6);
+  box-shadow: var(--shadow-card);
+}
+
+.feature-grid-btn:hover {
+  border-color: hsl(var(--border));
+}
+
+.dark .feature-grid-btn {
+  background: rgba(14, 17, 24, 0.8);
+  border-color: hsl(0 0% 100% / 0.06);
+  box-shadow: inset 0 1px 0 hsl(0 0% 100% / 0.03);
+}
+
+/* ── Overlay marketplace card: theme-aware ── */
+.overlay-market-card {
+  background: hsl(var(--card));
+  border: 1px solid hsl(var(--border));
+  box-shadow: var(--shadow-card);
+}
+
+.dark .overlay-market-card {
+  background: rgba(20, 25, 35, 0.65);
+  border-color: hsl(0 0% 100% / 0.04);
+  backdrop-filter: blur(20px);
+  box-shadow: none;
 }
 
 /* Stream Buddies animations */

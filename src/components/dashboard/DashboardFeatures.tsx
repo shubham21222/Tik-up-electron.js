@@ -141,26 +141,23 @@ const DashboardFeatures = () => {
                     toast.info(`Set up ${feature.label} first from Overlays`);
                   }
                 }}
-                className={`w-full rounded-2xl p-4 border transition-all duration-300 text-center ${
+                className={`w-full rounded-2xl p-4 border transition-all duration-300 text-center feature-grid-btn ${
                   active
                     ? "border-[hsl(var(--primary)/0.2)]"
-                    : "border-border/15 hover:border-border/30"
+                    : ""
                 } ${!configured ? "opacity-40" : ""}`}
-                style={{
-                  background: active
-                    ? `linear-gradient(160deg, hsl(${feature.color} / 0.08), hsl(${feature.color} / 0.02))`
-                    : "rgba(14,17,24,0.8)",
-                  boxShadow: active
-                    ? `0 4px 20px -4px hsl(${feature.color} / 0.15), inset 0 1px 0 hsl(${feature.color} / 0.08)`
-                    : "inset 0 1px 0 hsl(0 0% 100% / 0.03)",
-                }}
+                style={active ? {
+                  background: `linear-gradient(160deg, hsl(${feature.color} / 0.08), hsl(${feature.color} / 0.02))`,
+                  boxShadow: `0 4px 20px -4px hsl(${feature.color} / 0.15)`,
+                  borderColor: `hsl(${feature.color} / 0.2)`,
+                } : undefined}
               >
                 {/* Icon */}
                 <div
                   className="w-10 h-10 rounded-xl mx-auto mb-2.5 flex items-center justify-center transition-all duration-300"
                   style={{
-                    background: active ? `hsl(${feature.color} / 0.15)` : "hsl(0 0% 100% / 0.04)",
-                    border: `1px solid ${active ? `hsl(${feature.color} / 0.25)` : "hsl(0 0% 100% / 0.06)"}`,
+                    background: active ? `hsl(${feature.color} / 0.12)` : "hsl(var(--muted))",
+                    border: `1px solid ${active ? `hsl(${feature.color} / 0.25)` : "hsl(var(--border))"}`,
                     boxShadow: active ? `0 0 16px hsl(${feature.color} / 0.2)` : "none",
                   }}
                 >
@@ -187,7 +184,7 @@ const DashboardFeatures = () => {
                     : "text-muted-foreground/25"
                 }`}
                   style={{
-                    background: active ? `hsl(${feature.color} / 0.1)` : "hsl(0 0% 100% / 0.03)",
+                    background: active ? `hsl(${feature.color} / 0.1)` : "hsl(var(--muted))",
                   }}
                 >
                   <span className={`w-1.5 h-1.5 rounded-full ${
@@ -203,7 +200,7 @@ const DashboardFeatures = () => {
               {/* Settings link */}
               <Link
                 to={feature.link}
-                className="absolute top-2 right-2 w-6 h-6 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-[hsl(0_0%_100%/0.06)] hover:bg-[hsl(0_0%_100%/0.1)]"
+                className="absolute top-2 right-2 w-6 h-6 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-muted hover:bg-accent"
               >
                 <Settings size={10} className="text-muted-foreground" />
               </Link>

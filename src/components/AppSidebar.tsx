@@ -3,15 +3,17 @@ import { motion } from "framer-motion";
 import {
   LayoutDashboard, Gift, MessageCircle, Users, BarChart3, Timer,
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
-  Shield, BarChart, Link2, Palette, Settings,
+  Shield, Link2, Palette, Settings,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
-  Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2
+  Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2,
+  ChevronDown
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useIsMobile } from "@/hooks/use-mobile";
 import tikupLogo from "@/assets/tikup_logo.png";
+import { useState, useCallback } from "react";
 
 interface NavItem {
   id: string;
@@ -101,9 +103,16 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const { collapsed, toggle } = useSidebarState();
   const { isAdmin } = useIsAdmin();
   const isMobile = useIsMobile();
-
-  // On mobile the sidebar is always expanded inside the sheet
   const isCollapsed = isMobile ? false : collapsed;
+
+  // Initialize all sections as open
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>(() =>
+    Object.fromEntries(sections.map(s => [s.label, true]))
+  );
+
+  const toggleSection = useCallback((label: string) => {
+    setOpenSections(prev => ({ ...prev, [label]: !prev[label] }));
+  }, []);
 
   const handleClick = () => {
     if (onNavigate) onNavigate();
@@ -166,73 +175,102 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
       </div>
 
       {/* Nav sections */}
-      <nav className="flex-1 overflow-y-auto py-1 px-2 space-y-3" style={{ scrollbarWidth: "none" }}>
-        {sections.map((section) => (
-          <div key={section.label}>
-            <div className={cn("mb-1.5 mt-1", isCollapsed ? "flex justify-center" : "px-2")}>
-              <p className={cn(
-                "uppercase tracking-[0.14em] text-muted-foreground/60 font-extrabold flex items-center gap-1.5",
-                isCollapsed ? "text-[8px] text-center" : "text-[10px]"
-              )}>
+      <nav className="flex-1 overflow-y-auto py-1 px-2 space-y-1" style={{ scrollbarWidth: "none" }}>
+        {sections.map((section) => {
+          const isOpen = openSections[section.label] ?? true;
+          const visibleItems = section.items.filter(item => !item.adminOnly || isAdmin);
+          if (visibleItems.length === 0) return null;
+
+          return (
+            <div key={section.label}>
+              {/* Section header – clickable dropdown toggle */}
+              <button
+                onClick={() => !isCollapsed && toggleSection(section.label)}
+                className={cn(
+                  "w-full mb-0.5 mt-1 flex items-center gap-1.5 text-muted-foreground/60 hover:text-muted-foreground transition-colors",
+                  isCollapsed ? "justify-center px-0" : "px-2"
+                )}
+              >
                 {isCollapsed ? (
-                  <span>{section.emoji}</span>
+                  <span className="text-xs">{section.emoji}</span>
                 ) : (
                   <>
                     <span className="text-xs">{section.emoji}</span>
-                    {section.label}
+                    <span className="uppercase tracking-[0.14em] font-extrabold text-[10px] flex-1 text-left">
+                      {section.label}
+                    </span>
+                    <ChevronDown
+                      size={12}
+                      className={cn(
+                        "transition-transform duration-200 flex-shrink-0",
+                        !isOpen && "-rotate-90"
+                      )}
+                    />
                   </>
                 )}
-              </p>
-            </div>
-            <div className="space-y-0.5">
-              {section.items.filter(item => !item.adminOnly || isAdmin).map((item) => {
-                const isActive = location.pathname === item.id;
-                return (
-                  <Link
-                    key={item.id}
-                    to={item.id}
-                    onClick={handleClick}
-                    className={cn(
-                      "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
-                      isCollapsed ? "justify-center p-3" : "px-3 py-2.5",
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
-                    )}
-                  >
-                    {isActive && (
-                      <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
-                    )}
-                    <item.icon size={20} className={cn("flex-shrink-0", isActive && "drop-shadow-[0_0_6px_hsl(160,100%,50%)]")} />
-                    {!isCollapsed && (
-                      <>
-                        <span className="text-[13px] font-bold truncate">{item.label}</span>
-                        {item.pro && (
-                          <span
-                            className="ml-auto text-[8px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 inline-flex items-center gap-0.5"
-                            style={{
-                              background: "linear-gradient(135deg, hsl(280 100% 65% / 0.15), hsl(280 100% 55% / 0.08))",
-                              color: "hsl(280 100% 70%)",
-                              border: "1px solid hsl(280 100% 65% / 0.2)",
-                            }}
-                          >
-                            <Star size={7} />
-                            PRO
-                          </span>
+              </button>
+
+              {/* Collapsible items */}
+              <motion.div
+                initial={false}
+                animate={{
+                  height: isCollapsed || isOpen ? "auto" : 0,
+                  opacity: isCollapsed || isOpen ? 1 : 0,
+                }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-0.5">
+                  {visibleItems.map((item) => {
+                    const isActive = location.pathname === item.id;
+                    return (
+                      <Link
+                        key={item.id}
+                        to={item.id}
+                        onClick={handleClick}
+                        className={cn(
+                          "flex items-center gap-3 rounded-xl transition-all duration-200 group relative",
+                          isCollapsed ? "justify-center p-3" : "px-3 py-2.5",
+                          isActive
+                            ? "bg-primary/10 text-primary"
+                            : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
                         )}
-                      </>
-                    )}
-                    {isCollapsed && (
-                      <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-popover border border-border text-foreground text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[60] shadow-lg">
-                        {item.label}
-                      </div>
-                    )}
-                  </Link>
-                );
-              })}
+                      >
+                        {isActive && (
+                          <div className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-5 rounded-r-full bg-primary" />
+                        )}
+                        <item.icon size={20} className={cn("flex-shrink-0", isActive && "drop-shadow-[0_0_6px_hsl(160,100%,50%)]")} />
+                        {!isCollapsed && (
+                          <>
+                            <span className="text-[13px] font-bold truncate">{item.label}</span>
+                            {item.pro && (
+                              <span
+                                className="ml-auto text-[8px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 inline-flex items-center gap-0.5"
+                                style={{
+                                  background: "linear-gradient(135deg, hsl(280 100% 65% / 0.15), hsl(280 100% 55% / 0.08))",
+                                  color: "hsl(280 100% 70%)",
+                                  border: "1px solid hsl(280 100% 65% / 0.2)",
+                                }}
+                              >
+                                <Star size={7} />
+                                PRO
+                              </span>
+                            )}
+                          </>
+                        )}
+                        {isCollapsed && (
+                          <div className="absolute left-full ml-2 px-2.5 py-1.5 rounded-lg bg-popover border border-border text-foreground text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-[60] shadow-lg">
+                            {item.label}
+                          </div>
+                        )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              </motion.div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </nav>
 
       {/* Go Pro CTA */}

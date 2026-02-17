@@ -21,7 +21,11 @@ const ViewerCountRenderer = () => {
   useEffect(() => {
     if (!publicToken) return;
     const ch = supabase.channel(`viewer-count-${publicToken}`)
-      .on("broadcast", { event: "viewer_update" }, (msg) => { if (msg.payload?.count != null) setCount(msg.payload.count); })
+      .on("broadcast", { event: "viewer_update" }, (msg) => {
+        const p = msg.payload as any;
+        const v = p?.count ?? p?.viewer_count ?? p?.viewerCount;
+        if (v != null) setCount(Number(v));
+      })
       .on("broadcast", { event: "test_alert" }, () => setCount(prev => prev + 25))
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
     const db = supabase.channel(`viewer-db-${publicToken}`)

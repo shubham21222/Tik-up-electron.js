@@ -187,59 +187,27 @@ const RoomPreview = ({ bg, selected, onClick, isPro }: { bg: RoomBackground; sel
         : "rgba(12,14,20,0.85)",
     }}
   >
-    {/* Animated Preview Thumbnail */}
+    {/* Room Image Thumbnail */}
     <div className="relative h-36 overflow-hidden rounded-t-2xl">
-      <motion.div
-        className="absolute inset-0"
-        animate={{
-          background: [
-            `linear-gradient(0deg, ${bg.gradientColors[0]}, ${bg.gradientColors[1]})`,
-            `linear-gradient(120deg, ${bg.gradientColors[1]}, ${bg.gradientColors[2]})`,
-            `linear-gradient(240deg, ${bg.gradientColors[2]}, ${bg.gradientColors[0]})`,
-            `linear-gradient(360deg, ${bg.gradientColors[0]}, ${bg.gradientColors[1]})`,
-          ],
-        }}
-        transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+      <img
+        src={`/backgrounds/${bg.id}.jpg`}
+        alt={bg.title}
+        className="absolute inset-0 w-full h-full object-cover"
+        loading="lazy"
       />
-      {/* Simulated particles */}
-      {[...Array(8)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: 2 + Math.random() * 4,
-            height: 2 + Math.random() * 4,
-            background: `hsl(${bg.accentColor} / ${0.3 + Math.random() * 0.4})`,
-            left: `${10 + Math.random() * 80}%`,
-            top: `${10 + Math.random() * 80}%`,
-          }}
-          animate={{
-            y: [-10, 10, -10],
-            opacity: [0.3, 0.8, 0.3],
-            scale: [0.8, 1.2, 0.8],
-          }}
-          transition={{
-            duration: 2 + Math.random() * 3,
-            repeat: Infinity,
-            delay: Math.random() * 2,
-          }}
-        />
-      ))}
       {/* LED sign simulation */}
-      <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+      <div className="absolute top-3 left-1/2 -translate-x-1/2">
         <motion.div
           className="px-4 py-1.5 rounded-lg text-[11px] font-bold tracking-widest"
           style={{
-            background: `hsl(${bg.accentColor} / 0.15)`,
             color: `hsl(${bg.accentColor})`,
-            border: `1px solid hsl(${bg.accentColor} / 0.3)`,
-            textShadow: `0 0 8px hsl(${bg.accentColor} / 0.5)`,
+            textShadow: `0 0 10px hsl(${bg.accentColor} / 0.7), 0 0 20px hsl(${bg.accentColor} / 0.4)`,
           }}
           animate={{
             textShadow: [
-              `0 0 8px hsl(${bg.accentColor} / 0.3)`,
-              `0 0 16px hsl(${bg.accentColor} / 0.6)`,
-              `0 0 8px hsl(${bg.accentColor} / 0.3)`,
+              `0 0 8px hsl(${bg.accentColor} / 0.4)`,
+              `0 0 20px hsl(${bg.accentColor} / 0.8)`,
+              `0 0 8px hsl(${bg.accentColor} / 0.4)`,
             ],
           }}
           transition={{ duration: 2, repeat: Infinity }}
@@ -318,44 +286,12 @@ const LEDPreview = ({
 
   return (
     <div className="relative w-full h-64 rounded-2xl overflow-hidden" style={{ filter: `brightness(${brightness / 100})` }}>
-      {/* Animated room background */}
-      <motion.div
-        className="absolute inset-0"
-        animate={{
-          background: [
-            `linear-gradient(0deg, ${bg.gradientColors[0]}, ${bg.gradientColors[1]})`,
-            `linear-gradient(120deg, ${bg.gradientColors[1]}, ${bg.gradientColors[2]})`,
-            `linear-gradient(240deg, ${bg.gradientColors[2]}, ${bg.gradientColors[0]})`,
-            `linear-gradient(360deg, ${bg.gradientColors[0]}, ${bg.gradientColors[1]})`,
-          ],
-        }}
-        transition={{ duration: 8 / speed, repeat: Infinity, ease: "linear" }}
+      {/* Photorealistic room background */}
+      <img
+        src={`/backgrounds/${bg.id}.jpg`}
+        alt={bg.title}
+        className="absolute inset-0 w-full h-full object-cover"
       />
-
-      {/* Ambient Particles */}
-      {particles && [...Array(15)].map((_, i) => (
-        <motion.div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: 1.5 + Math.random() * 3,
-            height: 1.5 + Math.random() * 3,
-            background: `hsl(${color} / ${0.2 + Math.random() * 0.4})`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-          }}
-          animate={{
-            y: [-20, 20, -20],
-            x: [-10, 10, -10],
-            opacity: [0.2, 0.7, 0.2],
-          }}
-          transition={{
-            duration: (3 + Math.random() * 4) / speed,
-            repeat: Infinity,
-            delay: Math.random() * 3,
-          }}
-        />
-      ))}
 
       {/* LED Sign */}
       <div className="absolute inset-0 flex items-center justify-center">

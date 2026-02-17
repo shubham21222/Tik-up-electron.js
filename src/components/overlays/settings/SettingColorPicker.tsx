@@ -56,7 +56,7 @@ const SettingColorPicker = ({ value, onChange }: SettingColorPickerProps) => {
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="w-7 h-7 rounded-lg border border-white/[0.12] cursor-pointer transition-shadow hover:shadow-[0_0_12px_rgba(255,255,255,0.15)] flex-shrink-0"
+        className="w-7 h-7 rounded-lg border border-border cursor-pointer transition-shadow hover:shadow-md flex-shrink-0"
         style={{ background: hex }}
         title={value}
       />

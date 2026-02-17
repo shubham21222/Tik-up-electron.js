@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import ShareAlertPreview from "@/components/overlays/previews/ShareAlertPreview";
 
 const ShareAlertOverlay = () => {
@@ -102,6 +103,7 @@ const ShareAlertOverlay = () => {
                         <SettingRow label="Show Username"><SettingToggle checked={s.username_visible} onChange={v => set("username_visible", v)} /></SettingRow>
                         <SettingRow label="Batch Detection" description="Detect rapid shares"><SettingToggle checked={s.batch_detection} onChange={v => set("batch_detection", v)} /></SettingRow>
                         <SettingRow label="Batch Threshold"><SettingSlider value={s.batch_threshold} onChange={v => set("batch_threshold", v)} min={2} max={20} /></SettingRow>
+                        <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                       </div>
                     }
                     advancedSlot={

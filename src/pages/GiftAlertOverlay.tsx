@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import GiftAlertPreview from "@/components/overlays/previews/GiftAlertPreview";
 import { useNavigate } from "react-router-dom";
 
@@ -282,6 +283,9 @@ const GiftAlertOverlay = () => {
                         </SettingRow>
                         <SettingRow label="Loop Sound">
                           <SettingToggle checked={s.sound_loop} onChange={v => set("sound_loop", v)} />
+                        </SettingRow>
+                        <SettingRow label="Accent Color">
+                          <SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} />
                         </SettingRow>
                       </div>
                     }

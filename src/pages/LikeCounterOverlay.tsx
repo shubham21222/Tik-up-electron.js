@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import LikeCounterPreview from "@/components/overlays/previews/LikeCounterPreview";
 
 const LikeCounterOverlay = () => {
@@ -51,6 +52,7 @@ const LikeCounterOverlay = () => {
                   <SettingRow label="Animated Increment"><SettingToggle checked={s.animated_increment} onChange={v => set("animated_increment", v)} /></SettingRow>
                   <SettingRow label="Rolling Numbers"><SettingToggle checked={s.rolling_number} onChange={v => set("rolling_number", v)} /></SettingRow>
                   <SettingRow label="Smoothing"><SettingToggle checked={s.smoothing_effect} onChange={v => set("smoothing_effect", v)} /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Milestone Interval"><SettingSlider value={s.milestone_interval} onChange={v => set("milestone_interval", v)} min={100} max={10000} step={100} /></SettingRow>

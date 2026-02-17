@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import ViewerCountPreview from "@/components/overlays/previews/ViewerCountPreview";
 
 const ViewerCountOverlay = () => {
@@ -51,6 +52,7 @@ const ViewerCountOverlay = () => {
                   <SettingRow label="Pulse on Increase"><SettingToggle checked={s.pulse_on_increase} onChange={v => set("pulse_on_increase", v)} /></SettingRow>
                   <SettingRow label="Show Icon"><SettingToggle checked={s.icon_visible} onChange={v => set("icon_visible", v)} /></SettingRow>
                   <SettingRow label="Label Text"><input value={s.label_text} onChange={e => set("label_text", e.target.value)} className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 w-[120px]" /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Peak Tracker"><SettingToggle checked={s.peak_tracker} onChange={v => set("peak_tracker", v)} /></SettingRow>

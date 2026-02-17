@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import VideoCamFramePreview from "@/components/overlays/previews/VideoCamFramePreview";
 
 const VideoCamFrameOverlay = () => {
@@ -79,16 +80,7 @@ const VideoCamFrameOverlay = () => {
                     settingsSlot={
                       <div className="space-y-4">
                         <SettingRow label="Frame Color">
-                          <SettingSelect value={s.frame_color} onChange={v => set("frame_color", v)} options={[
-                            { value: "160 100% 45%", label: "Emerald" },
-                            { value: "200 100% 55%", label: "Cyan" },
-                            { value: "280 100% 65%", label: "Purple" },
-                            { value: "350 90% 55%", label: "Rose" },
-                            { value: "45 100% 55%", label: "Gold" },
-                            { value: "0 100% 60%", label: "Red" },
-                            { value: "180 100% 50%", label: "Teal" },
-                            { value: "120 60% 45%", label: "Green" },
-                          ]} />
+                          <SettingColorPicker value={s.frame_color} onChange={v => set("frame_color", v)} />
                         </SettingRow>
                         <SettingRow label="Position">
                           <SettingSelect value={s.position} onChange={v => set("position", v)} options={[

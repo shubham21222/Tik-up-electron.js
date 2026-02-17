@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 
 const TickerOverlay = () => {
   const { user } = useAuth();
@@ -73,6 +74,7 @@ const TickerOverlay = () => {
                   <SettingRow label="Background Blur"><SettingToggle checked={s.background_blur} onChange={v => set("background_blur", v)} /></SettingRow>
                   <SettingRow label="Separator"><SettingSelect value={s.separator_style} onChange={v => set("separator_style", v)} options={[
                     { value: "dot", label: "Dot •" }, { value: "pipe", label: "Pipe |" }, { value: "diamond", label: "Diamond ◆" }, { value: "star", label: "Star ★" }]} /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Max Items"><SettingSlider value={s.max_items} onChange={v => set("max_items", v)} min={5} max={50} /></SettingRow>

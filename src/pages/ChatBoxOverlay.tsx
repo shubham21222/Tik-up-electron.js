@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import ChatBoxPreview from "@/components/overlays/previews/ChatBoxPreview";
 
 const ChatBoxOverlay = () => {
@@ -132,6 +133,9 @@ const ChatBoxOverlay = () => {
                         </SettingRow>
                         <SettingRow label="Shadow Depth">
                           <SettingSlider value={s.shadow_depth} onChange={v => set("shadow_depth", v)} min={0} max={100} suffix="%" />
+                        </SettingRow>
+                        <SettingRow label="Accent Color">
+                          <SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} />
                         </SettingRow>
                       </div>
                     }

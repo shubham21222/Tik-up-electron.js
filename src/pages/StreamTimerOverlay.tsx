@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import StreamTimerPreview from "@/components/overlays/previews/StreamTimerPreview";
 
 const StreamTimerOverlay = () => {
@@ -53,6 +54,7 @@ const StreamTimerOverlay = () => {
                   <SettingRow label="Label Text"><input value={s.label_text} onChange={e => set("label_text", e.target.value)} className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 w-[120px]" /></SettingRow>
                   <SettingRow label="Glow"><SettingToggle checked={s.glow_animation} onChange={v => set("glow_animation", v)} /></SettingRow>
                   <SettingRow label="Glow Intensity"><SettingSlider value={s.glow_intensity} onChange={v => set("glow_intensity", v)} min={0} max={100} suffix="%" /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Start on Connect"><SettingToggle checked={s.start_on_connect} onChange={v => set("start_on_connect", v)} /></SettingRow>

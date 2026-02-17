@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 
 const SoundReactiveOverlay = () => {
   const { user } = useAuth();
@@ -79,6 +80,7 @@ const SoundReactiveOverlay = () => {
                     { value: "bottom", label: "Bottom" }, { value: "top", label: "Top" },
                     { value: "center", label: "Center" }, { value: "full", label: "Full" }]} /></SettingRow>
                   <SettingRow label="Height"><SettingSlider value={s.height_percent} onChange={v => set("height_percent", v)} min={10} max={100} suffix="%" /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Bar Gap"><SettingSlider value={s.bar_gap} onChange={v => set("bar_gap", v)} min={0} max={8} suffix="px" /></SettingRow>

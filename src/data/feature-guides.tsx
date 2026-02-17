@@ -169,7 +169,7 @@ export const featureGuides: Record<string, FeatureGuide> = {
   },
 
   overlays: {
-    title: "Effects Browser",
+    title: "Overlays",
     steps: [
       {
         icon: <Layers size={20} />, title: "All Your Overlays",

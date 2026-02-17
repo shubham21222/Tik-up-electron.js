@@ -54,7 +54,7 @@ const sections: SidebarSection[] = [
     items: [
       { id: "/tts", label: "Text-to-Speech", icon: Mic },
       { id: "/sound-alerts", label: "Sound Alerts", icon: Volume2 },
-      { id: "/overlays", label: "Effects Browser", icon: Layers },
+      { id: "/overlays", label: "Overlays", icon: Layers },
       { id: "/recent-activity", label: "Event Feed", icon: Activity },
       { id: "/sounds", label: "Spotify Integration", icon: Music, pro: true },
       { id: "/backgrounds", label: "Backgrounds", icon: Image, pro: true },

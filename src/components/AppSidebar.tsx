@@ -80,7 +80,7 @@ const sections: SidebarSection[] = [
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
       { id: "/gta-triggers", label: "GTA Interactive", icon: Gamepad2, pro: true },
-      { id: "/gift-browser", label: "Gift Browser", icon: Gift },
+      
     ],
   },
   {

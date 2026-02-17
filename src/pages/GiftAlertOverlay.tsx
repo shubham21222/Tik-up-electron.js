@@ -139,7 +139,7 @@ const GiftAlertOverlay = () => {
               </span>
             </div>
             <button
-              onClick={() => navigate("/gift-browser")}
+              onClick={() => navigate("/actions")}
               className="flex items-center gap-1.5 text-[11px] font-medium transition-colors"
               style={{ color: "hsl(280 100% 70%)" }}
             >

@@ -2,11 +2,14 @@ import AppLayout from "@/components/AppLayout";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import {
-  Gift, Search, Volume2, Play, X, HelpCircle,
+  Gift, Search, Volume2, Play, X,
   ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff,
-  Lock, Star, Crown, Copy, ExternalLink, Monitor
+  Lock, Copy, ExternalLink, Monitor, LayoutGrid, SlidersHorizontal, Check
 } from "lucide-react";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
+import { Switch } from "@/components/ui/switch";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import { useOverlayWidgets } from "@/hooks/use-overlay-widgets";
 import AnimationPreview from "@/components/actions/AnimationPreview";
 import FeatureGuideModal, { defaultAlertSteps } from "@/components/FeatureGuideModal";
@@ -67,7 +70,7 @@ const categoryLabels: Record<string, string> = {
 
 const Actions = () => {
   const { gifts, loading: giftsLoading } = useGiftCatalog();
-  const { triggers, toggleTrigger, updateTrigger } = useUserGiftTriggers();
+  const { triggers, toggleTrigger, updateTrigger, bulkEnable } = useUserGiftTriggers();
   const { widgets } = useOverlayWidgets("gift_alert");
   const [search, setSearch] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -76,6 +79,9 @@ const Actions = () => {
   const [showGuide, setShowGuide] = useState(false);
   const [hideAlertBg, setHideAlertBg] = useState(false);
   const [hideAlertBorder, setHideAlertBorder] = useState(false);
+  const [viewMode, setViewMode] = useState<"carousel" | "grid">("carousel");
+  const [bulkMinValue, setBulkMinValue] = useState<number | null>(null);
+  
 
   const giftAlertWidget = widgets[0]; // first gift_alert overlay if exists
   const obsUrl = giftAlertWidget ? `${getOverlayBaseUrl()}/overlay/gift-alert/${giftAlertWidget.public_token}` : null;
@@ -140,7 +146,7 @@ const Actions = () => {
 
   return (
     <AppLayout>
-      <div className="max-w-2xl mx-auto relative z-10 pb-12">
+      <div className={`mx-auto relative z-10 pb-12 ${viewMode === "grid" ? "max-w-6xl" : "max-w-2xl"}`}>
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
           <div className="flex items-center justify-center gap-3">
@@ -173,8 +179,42 @@ const Actions = () => {
                   {f.label}
                 </button>
               ))}
+              <div className="w-px h-5 bg-border/30 mx-1" />
+              <button onClick={() => setViewMode("carousel")}
+                className={`p-1.5 rounded-lg transition-all ${viewMode === "carousel" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                <SlidersHorizontal size={14} />
+              </button>
+              <button onClick={() => setViewMode("grid")}
+                className={`p-1.5 rounded-lg transition-all ${viewMode === "grid" ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground"}`}>
+                <LayoutGrid size={14} />
+              </button>
             </div>
           </div>
+
+          {/* Bulk enable (grid mode) */}
+          {viewMode === "grid" && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Check size={12} className="text-primary" />
+                {triggers.filter(t => t.is_enabled).length} active
+              </div>
+              <div className="flex-1" />
+              <Input
+                type="number"
+                placeholder="Min coins"
+                className="w-[100px] h-8 text-xs bg-muted/30 border-border/50"
+                value={bulkMinValue ?? ""}
+                onChange={e => setBulkMinValue(e.target.value ? Number(e.target.value) : null)}
+              />
+              <button
+                onClick={() => { if (bulkMinValue !== null) { bulkEnable(gifts.filter(g => g.coin_value >= bulkMinValue).map(g => g.gift_id)); setBulkMinValue(null); } }}
+                disabled={bulkMinValue === null}
+                className="px-3 py-1.5 rounded-lg text-[11px] font-medium bg-primary/10 text-primary disabled:opacity-40 transition-all"
+              >
+                Bulk Enable
+              </button>
+            </div>
+          )}
         </motion.div>
 
         {giftsLoading ? (
@@ -183,6 +223,60 @@ const Actions = () => {
           <div className="flex flex-col items-center justify-center py-20 text-center">
             <Gift size={32} className="text-muted-foreground/40 mb-3" />
             <p className="text-muted-foreground text-sm">No gifts found</p>
+          </div>
+        ) : viewMode === "grid" ? (
+          /* ── Grid View (from Gift Browser) ── */
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
+            <AnimatePresence mode="popLayout">
+              {filtered.map((gift, i) => {
+                const trigger = triggers.find(t => t.gift_id === gift.gift_id);
+                const isEnabled = trigger?.is_enabled ?? false;
+                return (
+                  <motion.div
+                    key={gift.gift_id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ delay: i * 0.02, duration: 0.25 }}
+                    className={`relative rounded-xl border transition-all duration-200 cursor-pointer group ${
+                      isEnabled
+                        ? "border-primary/30 bg-primary/5 shadow-[0_0_20px_hsl(160_100%_45%/0.06)]"
+                        : "border-border/30 bg-card/40 hover:border-border/60"
+                    }`}
+                    onClick={() => { const idx = filtered.findIndex(g => g.gift_id === gift.gift_id); setCurrentIndex(idx); setViewMode("carousel"); }}
+                  >
+                    <div className="absolute top-2 right-2 z-10" onClick={e => e.stopPropagation()}>
+                      <Switch
+                        checked={isEnabled}
+                        onCheckedChange={v => toggleTrigger(gift.gift_id, v)}
+                        className="scale-75"
+                      />
+                    </div>
+                    <div className="flex items-center justify-center pt-4 pb-2 px-4">
+                      <div className="w-16 h-16 rounded-full bg-muted/30 flex items-center justify-center overflow-hidden">
+                        {gift.image_url ? (
+                          <img src={gift.image_url} alt={gift.name} className="w-12 h-12 object-contain"
+                            onError={e => { (e.target as HTMLImageElement).src = "/placeholder.svg"; }} />
+                        ) : (
+                          <Gift size={24} className="text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                    <div className="px-3 pb-3 text-center">
+                      <p className="text-sm font-semibold text-foreground truncate">{gift.name}</p>
+                      <div className="flex items-center justify-center gap-1 mt-1">
+                        <Coins size={11} className="text-yellow-500" />
+                        <span className="text-xs font-mono text-muted-foreground">{gift.coin_value.toLocaleString()}</span>
+                      </div>
+                      {trigger?.animation_effect && trigger.animation_effect !== "tikup_signature" && (
+                        <Badge variant="secondary" className="mt-1.5 text-[9px] px-1.5 py-0">{trigger.animation_effect}</Badge>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
         ) : (
           <>

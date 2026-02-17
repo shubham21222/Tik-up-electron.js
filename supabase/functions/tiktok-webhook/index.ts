@@ -584,9 +584,9 @@ Deno.serve(async (req) => {
       tiktok_username = parsed.tiktok_username;
       events = parsed.events;
     } else {
-      // Bridge format: validate shared secret (REQUIRED when configured)
+    // Bridge format: validate shared secret (REQUIRED when configured)
       if (bridgeWebhookSecret) {
-        // Support both HMAC signature and shared secret header
+        // Support multiple authentication methods
         let authenticated = false;
 
         // Method 1: HMAC signature verification
@@ -594,7 +594,7 @@ Deno.serve(async (req) => {
           authenticated = await validateWebhookSignature(rawBody, webhookSignature);
         }
 
-        // Method 2: Shared secret header
+        // Method 2: Shared secret header (x-webhook-secret)
         if (!authenticated && webhookSecret) {
           // Constant-time comparison
           if (webhookSecret.length === bridgeWebhookSecret.length) {
@@ -603,6 +603,15 @@ Deno.serve(async (req) => {
               diff |= webhookSecret.charCodeAt(i) ^ bridgeWebhookSecret.charCodeAt(i);
             }
             authenticated = diff === 0;
+          }
+        }
+
+        // Method 3: Service role key via Authorization header (bridge fallback)
+        if (!authenticated) {
+          const authHeader = req.headers.get("authorization") || "";
+          const bearerToken = authHeader.replace(/^Bearer\s+/i, "");
+          if (bearerToken && bearerToken === serviceRoleKey) {
+            authenticated = true;
           }
         }
 

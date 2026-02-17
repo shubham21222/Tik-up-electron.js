@@ -197,7 +197,9 @@ async function broadcast(channel: string, event: string, payload: Record<string,
   });
   const resText = await res.text();
   if (!res.ok) {
-    console.error(`Broadcast failed for ${channel}: ${resText}`);
+    console.error(`❌ Broadcast failed for ${channel}/${event}: ${resText}`);
+  } else {
+    console.log(`📡 Broadcast OK → ${channel} / ${event}`);
   }
 }
 
@@ -877,6 +879,7 @@ Deno.serve(async (req) => {
       if (widgets) {
         let triggerOverrides: Record<string, unknown> = {};
         let giftImageUrl: string | null = null;
+        let hasMatchedTrigger = false;
         if (event.type === "gift" && giftTriggers) {
           // Handle both camelCase (EulerStream) and snake_case (bridge) field names
           const rawGiftName = (event.data.giftName as string) || (event.data.gift_name as string) || "";
@@ -888,6 +891,7 @@ Deno.serve(async (req) => {
             (t: any) => t.gift_id === normalizedGiftName || t.gift_id === rawGiftId || t.gift_id === rawGiftName.toLowerCase()
           );
           if (matchedTrigger) {
+            hasMatchedTrigger = true;
             triggerOverrides = {
               animation_effect: matchedTrigger.animation_effect,
               alert_sound_url: matchedTrigger.alert_sound_url,
@@ -915,6 +919,8 @@ Deno.serve(async (req) => {
               giftImageUrl = catalogMatch.image_url;
             }
           }
+          
+          console.log(`🎁 Gift: "${rawGiftName}" (id=${rawGiftId}), trigger=${hasMatchedTrigger}, img=${!!giftImageUrl}`);
         }
 
         for (const widget of widgets) {
@@ -926,6 +932,7 @@ Deno.serve(async (req) => {
               ...triggerOverrides,
               ...(giftImageUrl ? { giftImageUrl, gift_image_url: giftImageUrl } : {}),
             };
+            console.log(`📡 → ${channelName} / ${broadcastEvent.event}`);
             await broadcast(channelName, broadcastEvent.event, enrichedPayload);
           }
         }

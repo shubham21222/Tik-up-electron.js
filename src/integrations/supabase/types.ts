@@ -296,6 +296,36 @@ export type Database = {
           },
         ]
       }
+      feature_flags: {
+        Row: {
+          created_at: string
+          feature_key: string
+          id: string
+          is_visible: boolean
+          label: string
+          section: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          feature_key: string
+          id?: string
+          is_visible?: boolean
+          label: string
+          section?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          feature_key?: string
+          id?: string
+          is_visible?: boolean
+          label?: string
+          section?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       game_triggers: {
         Row: {
           action_params: Json

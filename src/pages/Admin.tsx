@@ -3,10 +3,11 @@ import { useAuth } from "@/hooks/use-auth";
 import { useIsAdmin, useAdminUsers, useAdminAnalytics, useAdminLogs, useAdminAuditLogs } from "@/hooks/use-admin";
 import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown, Gauge, AlertTriangle, Megaphone, Send, Trash2, Link2, FileSearch } from "lucide-react";
+import { Shield, Users, BarChart3, ScrollText, CreditCard, RefreshCw, Crown, Gauge, AlertTriangle, Megaphone, Send, Trash2, Link2, FileSearch, ToggleRight } from "lucide-react";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 const StatCard = ({ label, value, icon: Icon, color }: { label: string; value: number | string; icon: any; color: string }) => (
   <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
@@ -26,7 +27,7 @@ const Admin = () => {
   const { user } = useAuth();
   const { isAdmin, loading: roleLoading } = useIsAdmin();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses" | "ratelimits" | "announcements" | "tiktok" | "audit">("analytics");
+  const [tab, setTab] = useState<"analytics" | "users" | "logs" | "licenses" | "ratelimits" | "announcements" | "tiktok" | "audit" | "features">("analytics");
 
   useEffect(() => {
     if (!roleLoading && !isAdmin) {
@@ -45,6 +46,7 @@ const Admin = () => {
     { id: "announcements" as const, label: "Announcements", icon: Megaphone },
     { id: "logs" as const, label: "System Logs", icon: ScrollText },
     { id: "audit" as const, label: "Audit Log", icon: FileSearch },
+    { id: "features" as const, label: "Features", icon: ToggleRight },
     { id: "licenses" as const, label: "Licenses", icon: CreditCard },
     { id: "ratelimits" as const, label: "API Limits", icon: Gauge },
   ];
@@ -78,6 +80,7 @@ const Admin = () => {
         {tab === "announcements" && <AnnouncementsTab />}
         {tab === "logs" && <LogsTab />}
         {tab === "audit" && <AuditLogTab />}
+        {tab === "features" && <FeatureFlagsTab />}
         {tab === "licenses" && <LicensesTab />}
         {tab === "ratelimits" && <RateLimitsTab />}
       </div>
@@ -629,6 +632,55 @@ const RateLimitsTab = () => {
           </p>
         </div>
       )}
+    </div>
+  );
+};
+
+const FeatureFlagsTab = () => {
+  const { flags, toggleFlag } = useFeatureFlags();
+
+  // Group flags by section
+  const grouped = flags.reduce<Record<string, typeof flags>>((acc, f) => {
+    (acc[f.section] = acc[f.section] || []).push(f);
+    return acc;
+  }, {});
+
+  const sectionOrder = ["Live Studio", "Engagement", "Growth", "Creator Tools", "Enterprise", "Settings"];
+
+  return (
+    <div className="space-y-6">
+      <p className="text-sm text-muted-foreground">Toggle features on/off globally. Hidden features appear greyed out with a "Coming Soon" badge for all users.</p>
+      {sectionOrder.map(section => {
+        const items = grouped[section];
+        if (!items?.length) return null;
+        return (
+          <div key={section} className="rounded-2xl border border-white/[0.06] p-5 bg-muted/5">
+            <h3 className="text-sm font-heading font-bold text-foreground mb-4">{section}</h3>
+            <div className="space-y-2">
+              {items.map(flag => (
+                <div key={flag.id} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-white/[0.03] transition-colors">
+                  <div>
+                    <span className="text-sm font-medium text-foreground">{flag.label}</span>
+                    <span className="text-[10px] text-muted-foreground/50 ml-2 font-mono">{flag.feature_key}</span>
+                  </div>
+                  <button
+                    onClick={() => toggleFlag(flag.feature_key)}
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                      flag.is_visible ? "bg-primary" : "bg-muted/40"
+                    }`}
+                  >
+                    <motion.div
+                      className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm"
+                      animate={{ left: flag.is_visible ? 22 : 2 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };

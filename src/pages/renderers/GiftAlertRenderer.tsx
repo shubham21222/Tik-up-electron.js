@@ -155,7 +155,14 @@ const GiftAlertRenderer = () => {
         };
         
         console.log(`[GiftAlert] Received gift: ${giftName} from ${event.user}`);
-        setAlerts(prev => [...prev, event]);
+        setAlerts(prev => {
+          // Deduplicate: if same user+gift within 500ms, update count instead of adding
+          const recent = prev.find(a => a.user === event.user && a.gift === event.gift && (Date.now() - a.id) < 500);
+          if (recent) {
+            return prev.map(a => a.id === recent.id ? { ...a, count: Math.max(a.count, event.count) } : a);
+          }
+          return [...prev, event];
+        });
         
         // Play sound
         playSound(soundUrl);
@@ -192,11 +199,12 @@ const GiftAlertRenderer = () => {
     };
   }, [publicToken, playSound]);
 
-  // Auto-remove alerts after duration
+  // Auto-remove alerts after duration — each alert gets its own timer
   useEffect(() => {
     if (alerts.length === 0) return;
+    const oldest = alerts[0];
     const timer = setTimeout(() => {
-      setAlerts(prev => prev.slice(1));
+      setAlerts(prev => prev.filter(a => a.id !== oldest.id));
     }, settings.duration * 1000);
     return () => clearTimeout(timer);
   }, [alerts, settings.duration]);
@@ -215,7 +223,7 @@ const GiftAlertRenderer = () => {
       </div>
 
       <AnimatePresence>
-        {alerts.slice(0, s.max_on_screen).map(alert => {
+        {alerts.slice(0, 1).map(alert => {
           const activeAnimation = alert.animationOverride || s.animation_style;
           const variants = getEntryVariants(activeAnimation);
 

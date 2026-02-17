@@ -256,9 +256,13 @@ async function flushEvents(username) {
   const events = state.buffer.splice(0, state.buffer.length);
 
   try {
+    const webhookSecret = process.env.EULER_ALERT_WEB_KEY || process.env.WEBHOOK_SECRET || "";
     const res = await fetch(WEBHOOK_URL, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(webhookSecret ? { "x-webhook-secret": webhookSecret } : {}),
+      },
       body: JSON.stringify({
         tiktok_username: username,
         events,

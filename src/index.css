@@ -175,7 +175,7 @@ main > div[class*="max-w-"] {
   }
 }
 
-.sidebar-section-label {
+.sidebar-section-label, .sidebar-section-icon {
   background: linear-gradient(
     90deg,
     hsl(160 100% 45%),
@@ -188,6 +188,11 @@ main > div[class*="max-w-"] {
   -webkit-text-fill-color: transparent;
   background-clip: text;
   animation: sidebarTextGlow 3s ease-in-out infinite;
+}
+
+.sidebar-section-icon {
+  -webkit-text-fill-color: initial;
+  color: transparent;
 }
 
 /* ── Premium Sidebar Styles ── */

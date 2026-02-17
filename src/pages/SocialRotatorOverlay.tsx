@@ -16,14 +16,15 @@ import SocialPlatformIcon from "@/components/overlays/SocialPlatformIcon";
 import { toast } from "sonner";
 
 const platforms = [
-  { id: "tiktok", name: "TikTok", color: "350 90% 55%" },
-  { id: "instagram", name: "Instagram", color: "320 80% 55%" },
-  { id: "twitter", name: "Twitter/X", color: "200 90% 55%" },
-  { id: "youtube", name: "YouTube", color: "0 80% 50%" },
-  { id: "twitch", name: "Twitch", color: "260 80% 60%" },
+  { id: "tiktok", name: "TikTok", color: "180 100% 45%" },
+  { id: "instagram", name: "Instagram", color: "330 80% 55%" },
+  { id: "twitter", name: "Twitter/X", color: "0 0% 100%" },
+  { id: "youtube", name: "YouTube", color: "0 100% 50%" },
+  { id: "twitch", name: "Twitch", color: "262 70% 60%" },
   { id: "discord", name: "Discord", color: "235 86% 65%" },
-  { id: "kick", name: "Kick", color: "160 100% 45%" },
+  { id: "kick", name: "Kick", color: "101 100% 45%" },
 ];
+
 
 const SocialRotatorOverlay = () => {
   const { user } = useAuth();

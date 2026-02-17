@@ -10,9 +10,11 @@ const defaultSocials = [
   { id: "youtube", icon: "youtube", label: "YouTube", handle: "@streamer", color: "0 100% 50%" },
   { id: "instagram", icon: "instagram", label: "Instagram", handle: "@streamer", color: "330 80% 55%" },
   { id: "tiktok", icon: "tiktok", label: "TikTok", handle: "@streamer", color: "180 100% 45%" },
-  { id: "twitter", icon: "twitter", label: "Twitter", handle: "@streamer", color: "200 100% 55%" },
+  { id: "twitter", icon: "twitter", label: "Twitter/X", handle: "@streamer", color: "0 0% 100%" },
   { id: "discord", icon: "discord", label: "Discord", handle: "discord.gg/stream", color: "235 86% 65%" },
+  { id: "kick", icon: "kick", label: "Kick", handle: "kick.com/streamer", color: "101 100% 45%" },
 ];
+
 
 const SocialRotatorRenderer = () => {
   useOverlayBody();

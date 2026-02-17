@@ -46,8 +46,41 @@ interface SocialPlatformIconProps {
 
 const SocialPlatformIcon = ({ platform, size = 24, className }: SocialPlatformIconProps) => {
   const Icon = icons[platform];
-  if (!Icon) return <span className={className}>●</span>;
-  return <Icon size={size} className={className} />;
+  
+  if (Icon) return <Icon size={size} className={className} />;
+
+  // Support for custom image icons
+  const iconMap: Record<string, string> = {
+    kick: "/social-icons/kick.png",
+    twitch: "/social-icons/twitch.png",
+    discord: "/social-icons/discord.png",
+    twitter: "/social-icons/twitter.webp",
+    instagram: "/social-icons/instagram.png",
+    x: "/social-icons/twitter.webp",
+  };
+
+  const imageSrc = iconMap[platform] || (platform.startsWith("/") || platform.startsWith("http") ? platform : null);
+
+  if (imageSrc) {
+    return (
+      <img 
+        src={imageSrc} 
+        alt={platform} 
+        style={{ 
+          width: size || "100%", 
+          height: size || "100%", 
+          objectFit: "contain",
+          borderRadius: platform === "kick" || platform === "discord" || platform === "instagram" ? "4px" : "0"
+        }} 
+        className={className} 
+      />
+
+
+    );
+  }
+
+  return <span className={className}>●</span>;
+
 };
 
 export default SocialPlatformIcon;

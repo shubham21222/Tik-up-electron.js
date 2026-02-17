@@ -6,9 +6,11 @@ const socials = [
   { id: "youtube", label: "YouTube", handle: "@streamer", color: "0 100% 50%" },
   { id: "instagram", label: "Instagram", handle: "@streamer", color: "330 80% 55%" },
   { id: "tiktok", label: "TikTok", handle: "@streamer", color: "180 100% 45%" },
-  { id: "twitter", label: "Twitter", handle: "@streamer", color: "200 100% 55%" },
+  { id: "twitter", label: "Twitter/X", handle: "@streamer", color: "0 0% 100%" },
   { id: "discord", label: "Discord", handle: "discord.gg/stream", color: "235 86% 65%" },
+  { id: "kick", label: "Kick", handle: "kick.com/streamer", color: "101 100% 45%" },
 ];
+
 
 const SocialRotatorPreview = () => {
   const [index, setIndex] = useState(0);

@@ -17,6 +17,7 @@ interface AlertEvent {
   giftImageUrl?: string;
   animationOverride?: string;
   soundUrl?: string;
+  message?: string;
 }
 
 interface GiftTrigger {
@@ -131,9 +132,11 @@ const GiftAlertRenderer = () => {
           t.gift_id === normalizedName || t.gift_id === String(giftId) || t.gift_id === giftName.toLowerCase()
         );
 
-        // Sound: prefer webhook-injected, then client trigger, then global setting
+        // Sound: prefer webhook-injected, then client trigger, then global setting, then fallback
         const s = settingsRef.current;
-        const soundUrl = p.alert_sound_url || trigger?.alert_sound_url || s.sound_url || undefined;
+        const DEFAULT_CHIME = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
+        const soundUrl = p.alert_sound_url || trigger?.alert_sound_url || s.sound_url || DEFAULT_CHIME;
+        
         // Animation: prefer webhook-injected, then client trigger
         const animOverride = p.animation_effect || trigger?.animation_effect || undefined;
         
@@ -148,6 +151,7 @@ const GiftAlertRenderer = () => {
           giftImageUrl: p.giftImageUrl || p.gift_image_url || undefined,
           animationOverride: animOverride,
           soundUrl,
+          message: p.comment || p.message || undefined,
         };
         
         console.log(`[GiftAlert] Received gift: ${giftName} from ${event.user}`);
@@ -282,19 +286,26 @@ const GiftAlertRenderer = () => {
                 </p>
                 <p className="text-base text-white/60 mt-1 font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">sent a gift!</p>
                 <p className="text-xl font-bold mt-2 drop-shadow-[0_0_12px_hsl(280_100%_65%/0.6)]" style={{ color: "hsl(280 100% 70%)" }}>{alert.gift}</p>
+                
+                {alert.message && (
+                  <p className="text-lg italic text-white/90 mt-2 bg-black/40 px-4 py-1 rounded-full border border-white/10 drop-shadow-lg max-w-[450px] mx-auto">
+                    "{alert.message}"
+                  </p>
+                )}
+
                 {alert.count > 1 && (
                   <motion.p
                     key={alert.count}
-                    className="text-3xl font-black mt-2 tracking-tight"
+                    className="text-4xl font-black mt-3 tracking-tight"
                     style={{ color: "hsl(45 100% 60%)", textShadow: "0 0 20px hsl(45 100% 55% / 0.6), 0 0 40px hsl(45 100% 55% / 0.3)" }}
-                    initial={{ scale: 1.8 }}
+                    initial={{ scale: 2 }}
                     animate={{ scale: 1 }}
                     transition={{ type: "spring", stiffness: 400 }}
                   >
                     ×{alert.count}
                   </motion.p>
                 )}
-                {alert.value > 0 && <p className="text-sm text-white/50 mt-1 font-medium">🪙 {alert.value}</p>}
+                {alert.value > 0 && <p className="text-sm text-white/50 mt-2 font-medium">🪙 {alert.value}</p>}
               </div>
             </motion.div>
           );

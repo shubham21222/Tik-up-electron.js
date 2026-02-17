@@ -1,8 +1,8 @@
 import AppLayout from "@/components/AppLayout";
-import { Crown, Check, BarChart3, ArrowRight, Loader2, Settings } from "lucide-react";
+import { Crown, Check, X, BarChart3, ArrowRight, Loader2, Settings } from "lucide-react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { useSubscription, TIKUP_PRO } from "@/hooks/use-subscription";
+import { useSubscription, TIKUP_PRO, FEATURE_COMPARISON } from "@/hooks/use-subscription";
 import { useAuth } from "@/hooks/use-auth";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -13,15 +13,7 @@ const plans = [
     name: "Free",
     price: "$0",
     period: "forever",
-    description: "Get started with basic features",
-    features: [
-      "5 Overlay Widgets",
-      "Basic TTS Voices",
-      "Standard Sound Alerts",
-      "Chat Overlay",
-      "Community Support",
-      "TikUp Watermark",
-    ],
+    description: "Everything you need to get started",
     highlight: false,
     planKey: "free" as const,
   },
@@ -29,40 +21,14 @@ const plans = [
     name: "Pro",
     price: "$9.99",
     period: "/month",
-    description: "For serious streamers",
-    features: [
-      "Unlimited Overlays",
-      "Premium TTS Voices",
-      "Custom Sound Alerts",
-      "Advanced Chat Moderation",
-      "Priority Support",
-      "No Watermark",
-      "Custom Branding",
-      "Advanced Analytics",
-      "Premium Alert Animations",
-      "Game Integrations",
-    ],
+    description: "For serious streamers who want it all",
     highlight: true,
     badge: "Most Popular",
     planKey: "pro" as const,
   },
 ];
 
-const featureComparison = [
-  { feature: "Overlay Widgets", free: "5", pro: "Unlimited" },
-  { feature: "TTS Voices", free: "2", pro: "15+" },
-  { feature: "Sound Alerts", free: "10", pro: "Unlimited" },
-  { feature: "Chat Commands", free: "5", pro: "Unlimited" },
-  { feature: "Alert Animations", free: "1 (TikUp Signature)", pro: "8+ Premium" },
-  { feature: "Game Integrations", free: "—", pro: "✓" },
-  { feature: "OBS Control", free: "—", pro: "✓" },
-  { feature: "Analytics", free: "Basic", pro: "Advanced" },
-  { feature: "Custom Branding", free: "—", pro: "✓" },
-  { feature: "Support", free: "Community", pro: "Priority" },
-];
-
 const Pro = () => {
-  const [billing, setBilling] = useState<"monthly" | "yearly">("monthly");
   const [checkoutLoading, setCheckoutLoading] = useState(false);
   const [portalLoading, setPortalLoading] = useState(false);
   const { isPro, isAdmin, loading, refetch } = useSubscription();
@@ -124,7 +90,7 @@ const Pro = () => {
             </h1>
           </div>
           <p className="text-muted-foreground text-sm max-w-xl mx-auto">
-            Unlock the full power of TikUp. Premium overlays, advanced analytics, and priority support.
+            Same features. More power. Unlock unlimited access and priority everything.
           </p>
 
           {isAdmin && (
@@ -151,7 +117,7 @@ const Pro = () => {
           )}
         </div>
 
-        {/* Plans */}
+        {/* Plans Side-by-Side */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12 max-w-2xl mx-auto">
           {plans.map((plan) => {
             const isCurrent = (isPro && plan.planKey === "pro") || (!isPro && plan.planKey === "free");
@@ -180,19 +146,12 @@ const Pro = () => {
                   <span className="text-3xl font-heading font-bold text-foreground">{plan.price}</span>
                   <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
                 </div>
-                <ul className="space-y-2.5 flex-1 mb-6">
-                  {plan.features.map((f) => (
-                    <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Check size={14} className={plan.highlight ? "text-secondary" : "text-primary"} />
-                      {f}
-                    </li>
-                  ))}
-                </ul>
+
                 {plan.planKey === "pro" && !isPro && (
                   <button
                     onClick={handleCheckout}
                     disabled={checkoutLoading || loading}
-                    className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-secondary text-secondary-foreground hover:opacity-90 disabled:opacity-50"
+                    className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-secondary text-secondary-foreground hover:opacity-90 disabled:opacity-50 mt-auto"
                   >
                     {checkoutLoading ? (
                       <Loader2 size={14} className="animate-spin" />
@@ -202,12 +161,12 @@ const Pro = () => {
                   </button>
                 )}
                 {plan.planKey === "free" && (
-                  <div className="w-full py-2.5 rounded-lg font-semibold text-sm text-center bg-muted text-muted-foreground cursor-not-allowed">
+                  <div className="w-full py-2.5 rounded-lg font-semibold text-sm text-center bg-muted text-muted-foreground cursor-not-allowed mt-auto">
                     {isCurrent ? "Current Plan" : "Free Tier"}
                   </div>
                 )}
                 {plan.planKey === "pro" && isPro && (
-                  <div className="w-full py-2.5 rounded-lg font-semibold text-sm text-center bg-primary/10 text-primary">
+                  <div className="w-full py-2.5 rounded-lg font-semibold text-sm text-center bg-primary/10 text-primary mt-auto">
                     ✓ Active
                   </div>
                 )}
@@ -216,12 +175,15 @@ const Pro = () => {
           })}
         </div>
 
-        {/* Comparison Table */}
+        {/* Unified Feature Comparison Table */}
         <div className="rounded-xl border border-border bg-card overflow-hidden">
           <div className="px-5 py-4 border-b border-border">
-            <h3 className="font-heading font-semibold text-primary flex items-center gap-2">
-              <BarChart3 size={16} /> Feature Comparison
+            <h3 className="font-heading font-semibold text-foreground flex items-center gap-2">
+              <BarChart3 size={16} className="text-secondary" /> Full Feature Comparison
             </h3>
+            <p className="text-xs text-muted-foreground mt-1">
+              Both plans include every feature — Pro unlocks unlimited & premium access
+            </p>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -233,11 +195,23 @@ const Pro = () => {
                 </tr>
               </thead>
               <tbody>
-                {featureComparison.map((row) => (
-                  <tr key={row.feature} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
-                    <td className="px-5 py-3 text-foreground font-medium">{row.feature}</td>
-                    <td className="text-center px-5 py-3 text-muted-foreground">{row.free}</td>
-                    <td className="text-center px-5 py-3 text-foreground font-medium">{row.pro}</td>
+                {FEATURE_COMPARISON.map((row) => (
+                  <tr key={row.label} className="border-b border-border last:border-0 hover:bg-muted/20 transition-colors">
+                    <td className="px-5 py-3 text-foreground font-medium">{row.label}</td>
+                    <td className="text-center px-5 py-3">
+                      {typeof row.free === "boolean"
+                        ? row.free
+                          ? <Check size={16} className="inline text-primary" />
+                          : <X size={16} className="inline text-muted-foreground/40" />
+                        : <span className="text-muted-foreground">{row.free}</span>}
+                    </td>
+                    <td className="text-center px-5 py-3">
+                      {typeof row.pro === "boolean"
+                        ? row.pro
+                          ? <Check size={16} className="inline text-secondary" />
+                          : <X size={16} className="inline text-muted-foreground/40" />
+                        : <span className="font-semibold text-foreground">{row.pro}</span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>

@@ -1,24 +1,12 @@
 import { motion } from "framer-motion";
 import { Crown, Lock, Sparkles, Check, X } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useSubscription } from "@/hooks/use-subscription";
+import { useSubscription, FEATURE_COMPARISON } from "@/hooks/use-subscription";
 
 interface ProGateProps {
   children: React.ReactNode;
   feature?: string;
 }
-
-const comparisonRows = [
-  { label: "Overlays", free: "5", pro: "Unlimited" },
-  { label: "Alert styles", free: "Basic", pro: "All styles" },
-  { label: "Text-to-Speech", free: false, pro: true },
-  { label: "Custom CSS", free: false, pro: true },
-  { label: "Custom branding", free: false, pro: true },
-  { label: "Sound alerts", free: "10", pro: "Unlimited" },
-  { label: "Chat commands", free: "5", pro: "Unlimited" },
-  { label: "Advanced analytics", free: false, pro: true },
-  { label: "Priority support", free: false, pro: true },
-];
 
 const ProGate = ({ children, feature }: ProGateProps) => {
   const { isPro, loading } = useSubscription();
@@ -39,7 +27,7 @@ const ProGate = ({ children, feature }: ProGateProps) => {
           initial={{ opacity: 0, scale: 0.92, y: 10 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.3, ease: "easeOut" }}
-          className="relative rounded-2xl p-8 max-w-lg w-full mx-4 text-center border overflow-hidden"
+          className="relative rounded-2xl p-8 max-w-lg w-full mx-4 text-center border overflow-hidden max-h-[85vh] overflow-y-auto"
           style={{
             background: "linear-gradient(135deg, hsl(var(--card)) 0%, hsl(280 30% 6% / 0.98) 100%)",
             borderColor: "hsl(280 100% 65% / 0.25)",
@@ -87,7 +75,7 @@ const ProGate = ({ children, feature }: ProGateProps) => {
               <span className="text-center" style={{ color: "hsl(280 100% 70%)" }}>Pro</span>
             </div>
             {/* Rows */}
-            {comparisonRows.map((row, i) => (
+            {FEATURE_COMPARISON.map((row, i) => (
               <div key={row.label} className="grid grid-cols-3 items-center px-4 py-2 text-xs"
                 style={{ background: i % 2 === 0 ? "transparent" : "hsl(0 0% 100% / 0.015)", borderTop: "1px solid hsl(0 0% 100% / 0.04)" }}>
                 <span className="text-left text-muted-foreground">{row.label}</span>

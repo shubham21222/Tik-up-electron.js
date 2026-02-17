@@ -205,7 +205,8 @@ const GiftAlertRenderer = () => {
       .on("broadcast", { event: "test_alert" }, () => {
         const s = settingsRef.current;
         const testEvent: AlertEvent = {
-          id: Date.now(), user: "TestUser", gift: "Rose", emoji: "🌹", value: 1, count: 5,
+          id: Date.now(), user: "Tikup_User", gift: "Rose", emoji: "🌹", value: 1, count: 5,
+          giftImageUrl: "/gifts/rose.png",
           soundUrl: s.sound_url || undefined,
         };
         setAlerts(prev => [...prev, testEvent]);

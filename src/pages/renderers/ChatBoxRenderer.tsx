@@ -18,10 +18,23 @@ const userColors = [
   "hsl(350 90% 60%)", "hsl(45 100% 60%)", "hsl(120 80% 55%)",
 ];
 
+const badgeMap: Record<string, string> = {
+  gift: "🎁",
+  follow: "⭐",
+  like: "❤️",
+};
+
+const fontFamilyMap: Record<string, string> = {
+  sans: "ui-sans-serif, system-ui, sans-serif",
+  mono: "ui-monospace, SFMono-Regular, monospace",
+  heading: "'Space Grotesk', sans-serif",
+};
+
 const getAnimVariants = (style: string) => {
   switch (style) {
     case "fade": return { initial: { opacity: 0 }, animate: { opacity: 1 } };
     case "pop": return { initial: { opacity: 0, scale: 0.8 }, animate: { opacity: 1, scale: 1 } };
+    case "typewriter": return { initial: { opacity: 0, x: -10, scaleX: 0.9 }, animate: { opacity: 1, x: 0, scaleX: 1 } };
     default: return { initial: { opacity: 0, x: -30 }, animate: { opacity: 1, x: 0 } };
   }
 };
@@ -91,6 +104,13 @@ const ChatBoxRenderer = () => {
 
   const variants = getAnimVariants(settings.message_animation);
   const mode = settings.display_mode;
+  const fontFamily = fontFamilyMap[settings.font_family] || fontFamilyMap.sans;
+  const emoteScale = settings.emote_scale || 1.2;
+  const showBadges = settings.show_badges !== false;
+  const shadowDepth = settings.shadow_depth ?? 20;
+  const accentColor = settings.accent_color || "160 100% 45%";
+  const accentHsl = `hsl(${accentColor})`;
+  const shadowStyle = shadowDepth > 0 ? `0 ${Math.round(shadowDepth / 10)}px ${Math.round(shadowDepth / 3)}px rgba(0,0,0,${shadowDepth / 100})` : "none";
 
   const getBg = (type: string) => {
     if (mode === "minimal") return "bg-black/30";
@@ -100,6 +120,16 @@ const ChatBoxRenderer = () => {
     return "bg-[rgba(0,0,0,0.55)] backdrop-blur-lg border-white/[0.06]";
   };
 
+  // Inject custom CSS
+  useEffect(() => {
+    if (!settings.custom_css) return;
+    const style = document.createElement("style");
+    style.id = "chatbox-custom-css";
+    style.textContent = settings.custom_css;
+    document.head.appendChild(style);
+    return () => { style.remove(); };
+  }, [settings.custom_css]);
+
   return (
     <div className={`w-screen h-screen overflow-hidden flex items-end justify-start p-6 ${settings.transparent_bg ? "bg-transparent" : "bg-black"}`}>
       <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-20">
@@ -107,7 +137,7 @@ const ChatBoxRenderer = () => {
         <span className="text-[9px] text-white/50 font-mono">{connected ? "Live" : "..."}</span>
       </div>
 
-      <div className="w-[360px] flex flex-col gap-1.5">
+      <div className="w-[360px] flex flex-col gap-1.5" style={{ fontFamily }}>
         <AnimatePresence initial={false}>
           {messages.map(msg => (
             <motion.div
@@ -118,10 +148,17 @@ const ChatBoxRenderer = () => {
               exit={{ opacity: 0, scale: 0.95 }}
               transition={{ duration: 0.3 }}
             >
-              <div className={`flex items-start gap-2 px-3.5 py-2 rounded-2xl border ${getBg(msg.type)}`}
-                style={{ fontSize: settings.font_size }}>
+              <div
+                className={`flex items-start gap-2 px-3.5 py-2 rounded-2xl border ${getBg(msg.type)}`}
+                style={{ fontSize: settings.font_size, boxShadow: shadowStyle }}
+              >
+                {showBadges && badgeMap[msg.type] && (
+                  <span className="flex-shrink-0" style={{ fontSize: settings.font_size * emoteScale }}>
+                    {badgeMap[msg.type]}
+                  </span>
+                )}
                 <span className="font-semibold flex-shrink-0" style={{
-                  color: settings.username_color_auto ? userColors[msg.user.length % userColors.length] : "hsl(280 100% 70%)",
+                  color: settings.username_color_auto ? userColors[msg.user.length % userColors.length] : accentHsl,
                   fontSize: settings.font_size - 2,
                 }}>
                   {msg.user}
@@ -140,8 +177,6 @@ const ChatBoxRenderer = () => {
           <p className="text-white/10 text-xs font-mono">Waiting for chat messages...</p>
         </div>
       )}
-
-      
     </div>
   );
 };

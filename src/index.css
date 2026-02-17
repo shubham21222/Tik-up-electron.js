@@ -235,10 +235,10 @@ main > div[class*="max-w-"] {
 .dark .sidebar-section-label, .dark .sidebar-section-icon {
   background: linear-gradient(
     90deg,
-    hsl(160 100% 45%),
-    hsl(180 100% 50%),
-    hsl(140 100% 50%),
-    hsl(160 100% 45%)
+    hsl(280 100% 65%),
+    hsl(300 100% 60%),
+    hsl(260 100% 60%),
+    hsl(280 100% 65%)
   );
   background-size: 200% 100%;
   -webkit-background-clip: text;
@@ -314,18 +314,18 @@ main > div[class*="max-w-"] {
 }
 
 .sidebar-nav-active {
-  color: hsl(var(--primary));
+  color: hsl(var(--secondary));
 }
 
 /* Light mode active: soft pill with no heavy glow */
 .sidebar-nav-active::before {
   opacity: 1;
-  background: hsl(var(--primary) / 0.08);
+  background: hsl(var(--secondary) / 0.08);
 }
 
 .dark .sidebar-nav-active::before {
   opacity: 1;
-  background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--primary) / 0.03));
+  background: linear-gradient(135deg, hsl(var(--secondary) / 0.1), hsl(var(--secondary) / 0.03));
 }
 
 /* Light mode icon glass: soft white */
@@ -342,15 +342,15 @@ main > div[class*="max-w-"] {
 }
 
 .sidebar-icon-active {
-  background: hsl(var(--primary) / 0.1);
-  border: 1px solid hsl(var(--primary) / 0.18);
-  color: hsl(var(--primary));
+  background: hsl(var(--secondary) / 0.1);
+  border: 1px solid hsl(var(--secondary) / 0.18);
+  color: hsl(var(--secondary));
 }
 
 .dark .sidebar-icon-active {
-  background: hsl(var(--primary) / 0.12);
-  border: 1px solid hsl(var(--primary) / 0.2);
-  box-shadow: 0 0 8px hsl(var(--primary) / 0.15);
+  background: hsl(var(--secondary) / 0.12);
+  border: 1px solid hsl(var(--secondary) / 0.2);
+  box-shadow: 0 0 8px hsl(var(--secondary) / 0.15);
 }
 
 /* PRO badge: light mode = soft pastel purple */

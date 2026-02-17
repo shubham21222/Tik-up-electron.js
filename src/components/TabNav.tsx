@@ -16,7 +16,7 @@ const TabNav = ({ tabs, activeTab, onTabChange, rightAction }: TabNavProps) => (
         className={cn(
           "px-4 py-2 md:py-1.5 rounded-md text-sm font-medium transition-colors whitespace-nowrap min-h-[44px] md:min-h-0",
           activeTab === tab
-            ? "bg-primary/10 text-primary"
+            ? "bg-secondary/10 text-secondary"
             : "text-muted-foreground hover:text-foreground hover:bg-muted"
         )}
       >

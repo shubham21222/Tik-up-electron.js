@@ -137,8 +137,8 @@ const SidebarNavItem = ({
       {isActive && (
         <motion.div
           layoutId="sidebar-active-bar"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-r-full bg-primary"
-          style={{ boxShadow: "0 0 8px hsl(var(--primary) / 0.6)" }}
+          className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-r-full bg-secondary"
+          style={{ boxShadow: "0 0 8px hsl(var(--secondary) / 0.6)" }}
           initial={{ opacity: 0, scaleY: 0 }}
           animate={{ opacity: 1, scaleY: 1 }}
           exit={{ opacity: 0, scaleY: 0 }}
@@ -295,7 +295,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
           <motion.div
             className="absolute inset-0 rounded-2xl"
             style={{
-              background: "radial-gradient(circle, hsl(var(--primary) / 0.12) 0%, transparent 70%)",
+              background: "radial-gradient(circle, hsl(var(--secondary) / 0.12) 0%, transparent 70%)",
             }}
             animate={{
               scale: [1, 1.15, 1],
@@ -307,7 +307,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
             src={tikupLogo}
             alt="TikUp"
             className={cn(
-              "relative z-10 drop-shadow-[0_0_10px_hsl(var(--primary)/0.3)]",
+              "relative z-10 drop-shadow-[0_0_10px_hsl(var(--secondary)/0.3)]",
               isCollapsed ? "w-9 h-9" : "w-20 h-20"
             )}
             style={{ objectFit: "contain" }}
@@ -337,8 +337,8 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
             {location.pathname === "/dashboard" && (
               <motion.div
                 layoutId="sidebar-active-bar"
-                className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-r-full bg-primary"
-                style={{ boxShadow: "0 0 8px hsl(var(--primary) / 0.6)" }}
+                className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-r-full bg-secondary"
+                style={{ boxShadow: "0 0 8px hsl(var(--secondary) / 0.6)" }}
                 initial={{ opacity: 0, scaleY: 0 }}
                 animate={{ opacity: 1, scaleY: 1 }}
                 exit={{ opacity: 0, scaleY: 0 }}

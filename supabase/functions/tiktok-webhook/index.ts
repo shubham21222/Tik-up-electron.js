@@ -654,6 +654,7 @@ Deno.serve(async (req) => {
       { data: bannedWords },
       { data: bannedUsers },
       { data: pointsConfig },
+      { data: giftCatalog },
     ] = await Promise.all([
       supabase.from("overlay_widgets").select("public_token, widget_type").eq("user_id", userId).eq("is_active", true),
       supabase.from("user_gift_triggers").select("*").eq("user_id", userId).eq("is_enabled", true),
@@ -663,6 +664,7 @@ Deno.serve(async (req) => {
       supabase.from("banned_words").select("*").eq("user_id", userId),
       supabase.from("banned_users").select("*").eq("user_id", userId),
       supabase.from("points_config").select("*").eq("user_id", userId).maybeSingle(),
+      supabase.from("tiktok_gifts").select("gift_id, name, image_url").eq("is_active", true),
     ]);
 
     let ttsTriggered = 0;
@@ -847,11 +849,16 @@ Deno.serve(async (req) => {
       // Broadcast to overlay widgets via REST API
       if (widgets) {
         let triggerOverrides: Record<string, unknown> = {};
+        let giftImageUrl: string | null = null;
         if (event.type === "gift" && giftTriggers) {
-          const giftName = ((event.data.giftName as string) || "").toLowerCase().replace(/\s+/g, "_");
-          const giftId = (event.data.giftId as string) || giftName;
+          // Handle both camelCase (EulerStream) and snake_case (bridge) field names
+          const rawGiftName = (event.data.giftName as string) || (event.data.gift_name as string) || "";
+          const normalizedGiftName = rawGiftName.toLowerCase().replace(/\s+/g, "_");
+          const rawGiftId = String(event.data.giftId || event.data.gift_id || "");
+          
+          // Match trigger by: name-based gift_id, numeric gift_id, or normalized name
           const matchedTrigger = giftTriggers.find(
-            (t: any) => t.gift_id === giftId || t.gift_id === giftName
+            (t: any) => t.gift_id === normalizedGiftName || t.gift_id === rawGiftId || t.gift_id === rawGiftName.toLowerCase()
           );
           if (matchedTrigger) {
             triggerOverrides = {
@@ -864,11 +871,21 @@ Deno.serve(async (req) => {
             const cc = matchedTrigger.custom_config as any;
             if (cc?.keystrokes || cc?.keystroke) {
               await broadcast(`keystroke_agent_${userId}`, "fire_keystroke", {
-                gift_id: giftId,
-                gift_name: event.data.giftName,
+                gift_id: rawGiftId,
+                gift_name: rawGiftName,
                 username: event.username,
                 ...event.data,
               });
+            }
+          }
+
+          // Look up gift image from catalog
+          if (giftCatalog) {
+            const catalogMatch = (giftCatalog as any[]).find(
+              (g: any) => g.gift_id === normalizedGiftName || g.gift_id === rawGiftId || g.name?.toLowerCase() === rawGiftName.toLowerCase()
+            );
+            if (catalogMatch?.image_url) {
+              giftImageUrl = catalogMatch.image_url;
             }
           }
         }
@@ -877,7 +894,11 @@ Deno.serve(async (req) => {
           const channelName = `${widgetChannelName(widget.widget_type)}-${widget.public_token}`;
           const broadcastEvent = mapEventToOverlay(event, widget.widget_type);
           if (broadcastEvent) {
-            const enrichedPayload = { ...broadcastEvent.payload, ...triggerOverrides };
+            const enrichedPayload = {
+              ...broadcastEvent.payload,
+              ...triggerOverrides,
+              ...(giftImageUrl ? { giftImageUrl, gift_image_url: giftImageUrl } : {}),
+            };
             await broadcast(channelName, broadcastEvent.event, enrichedPayload);
           }
         }

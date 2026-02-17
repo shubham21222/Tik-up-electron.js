@@ -4,9 +4,9 @@ import {
   LayoutDashboard, Gift, MessageCircle, Users, BarChart3, Timer,
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, Link2, Palette, Settings, CreditCard, SlidersHorizontal,
-  ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
+  ChevronLeft, ChevronRight, Crown, Layers,
   Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2, Music,
-  ChevronDown, Monitor
+  Monitor, Clock
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -106,9 +106,29 @@ const sections: SidebarSection[] = [
   },
 ];
 
-/* ── Separate core vs bottom sections ── */
-const coreSections = sections.filter(s => !["Enterprise", "Settings"].includes(s.label));
-const bottomSections = sections.filter(s => ["Enterprise", "Settings"].includes(s.label));
+/* ── Build filtered sections + coming soon bucket ── */
+
+/* ── Build filtered sections + coming soon bucket ── */
+function buildFilteredSections(
+  allSections: SidebarSection[],
+  isVisible: (key: string) => boolean,
+  isAdmin: boolean,
+): { filtered: SidebarSection[]; comingSoon: NavItem[] } {
+  const comingSoon: NavItem[] = [];
+  const filtered = allSections.map(section => {
+    const visible: NavItem[] = [];
+    for (const item of section.items) {
+      if (item.adminOnly && !isAdmin) continue;
+      if (!isVisible(item.id)) {
+        comingSoon.push(item);
+      } else {
+        visible.push(item);
+      }
+    }
+    return { ...section, items: visible };
+  }).filter(s => s.items.length > 0);
+  return { filtered, comingSoon };
+}
 
 /* ── Nav item component ── */
 const SidebarNavItem = ({
@@ -225,21 +245,19 @@ const SidebarSectionGroup = ({
   isOpen,
   isCollapsed,
   onToggle,
-  isAdmin,
   onNavigate,
   location,
-  isVisible,
 }: {
   section: SidebarSection;
   isOpen: boolean;
   isCollapsed: boolean;
   onToggle: () => void;
-  isAdmin: boolean;
   onNavigate: () => void;
   location: ReturnType<typeof useLocation>;
-  isVisible: (key: string) => boolean;
+  isAdmin?: boolean;
+  isVisible?: (key: string) => boolean;
 }) => {
-  const visibleItems = section.items.filter(item => !item.adminOnly || isAdmin);
+  const visibleItems = section.items;
   if (visibleItems.length === 0) return null;
 
   return (
@@ -289,7 +307,7 @@ const SidebarSectionGroup = ({
               isActive={location.pathname === item.id}
               isCollapsed={isCollapsed}
               onClick={onNavigate}
-              isHidden={!isVisible(item.id)}
+              isHidden={false}
             />
           ))}
         </div>
@@ -297,6 +315,31 @@ const SidebarSectionGroup = ({
     </div>
   );
 };
+
+/* ── Coming Soon item (simplified) ── */
+const ComingSoonItem = ({ item, isCollapsed }: { item: NavItem; isCollapsed: boolean }) => (
+  <div
+    className={cn(
+      "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200 opacity-40 cursor-not-allowed select-none",
+      isCollapsed ? "justify-center p-2.5" : "px-3 py-2",
+    )}
+  >
+    <div className={cn(
+      "flex items-center justify-center rounded-lg flex-shrink-0 sidebar-icon-glass opacity-50",
+      isCollapsed ? "w-8 h-8" : "w-7 h-7",
+    )}>
+      <item.icon size={isCollapsed ? 17 : 15} className="flex-shrink-0" />
+    </div>
+    {!isCollapsed && (
+      <span className="text-[12.5px] font-semibold tracking-wide truncate text-muted-foreground/50">{item.label}</span>
+    )}
+    {isCollapsed && (
+      <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
+        {item.label} (Coming Soon)
+      </div>
+    )}
+  </div>
+);
 
 /* ── Main Sidebar ── */
 const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
@@ -308,12 +351,21 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const isCollapsed = isMobile ? false : collapsed;
 
   const [openSections, setOpenSections] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(sections.map(s => [s.label, true]))
+    Object.fromEntries([...sections, { label: "Coming Soon" }].map(s => [s.label, true]))
   );
 
   const toggleSection = useCallback((label: string) => {
     setOpenSections(prev => ({ ...prev, [label]: !prev[label] }));
   }, []);
+
+  // Build filtered sections and collect coming soon items
+  const { filtered: filteredCore, comingSoon: comingSoonCore } = buildFilteredSections(
+    sections.filter(s => !["Enterprise", "Settings"].includes(s.label)), isVisible, isAdmin
+  );
+  const { filtered: filteredBottom, comingSoon: comingSoonBottom } = buildFilteredSections(
+    sections.filter(s => ["Enterprise", "Settings"].includes(s.label)), isVisible, isAdmin
+  );
+  const comingSoonItems = [...comingSoonCore, ...comingSoonBottom];
 
   const handleClick = () => {
     if (onNavigate) onNavigate();
@@ -408,36 +460,81 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
 
       {/* ── Core nav sections ── */}
       <nav className="flex-1 overflow-y-auto py-1 px-2 space-y-2 sidebar-scrollbar">
-        {coreSections.map((section) => (
+        {filteredCore.map((section) => (
           <SidebarSectionGroup
             key={section.label}
             section={section}
             isOpen={openSections[section.label] ?? true}
             isCollapsed={isCollapsed}
             onToggle={() => toggleSection(section.label)}
-            isAdmin={isAdmin}
             onNavigate={handleClick}
             location={location}
-            isVisible={isVisible}
           />
         ))}
 
         {/* Separator before bottom sections */}
         <div className="mx-1 h-px sidebar-separator my-2" />
 
-        {bottomSections.map((section) => (
+        {filteredBottom.map((section) => (
           <SidebarSectionGroup
             key={section.label}
             section={section}
             isOpen={openSections[section.label] ?? true}
             isCollapsed={isCollapsed}
             onToggle={() => toggleSection(section.label)}
-            isAdmin={isAdmin}
             onNavigate={handleClick}
             location={location}
-            isVisible={isVisible}
           />
         ))}
+
+        {/* ── Coming Soon section ── */}
+        {comingSoonItems.length > 0 && (
+          <>
+            <div className="mx-1 h-px sidebar-separator my-2" />
+            <div className="space-y-0.5">
+              <button
+                onClick={() => !isCollapsed && toggleSection("Coming Soon")}
+                className={cn(
+                  "sidebar-section-header w-full flex items-center gap-2.5 rounded-lg transition-all duration-200",
+                  isCollapsed ? "justify-center p-2" : "px-3 py-2",
+                  "text-muted-foreground/60 hover:text-muted-foreground/90 hover:bg-[hsl(0_0%_100%/0.03)]"
+                )}
+              >
+                {isCollapsed ? (
+                  <Clock size={16} className="sidebar-section-icon flex-shrink-0 opacity-80" />
+                ) : (
+                  <>
+                    <Clock size={14} className="sidebar-section-icon flex-shrink-0 opacity-80" />
+                    <span className="sidebar-section-label uppercase tracking-[0.14em] font-bold text-[10px] flex-1 text-left">
+                      Coming Soon
+                    </span>
+                    <motion.div
+                      animate={{ rotate: (openSections["Coming Soon"] ?? true) ? 0 : -90 }}
+                      transition={{ duration: 0.2, ease: "easeInOut" }}
+                    >
+                      <ChevronRight size={12} className="flex-shrink-0 opacity-40" />
+                    </motion.div>
+                  </>
+                )}
+              </button>
+              <motion.div
+                initial={false}
+                animate={{
+                  height: isCollapsed || (openSections["Coming Soon"] ?? true) ? "auto" : 0,
+                  opacity: isCollapsed || (openSections["Coming Soon"] ?? true) ? 1 : 0,
+                }}
+                transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                className="overflow-hidden"
+              >
+                <div className="space-y-px">
+                  {comingSoonItems.map((item) => (
+                    <ComingSoonItem key={item.id} item={item} isCollapsed={isCollapsed} />
+                  ))}
+                </div>
+              </motion.div>
+            </div>
+          </>
+        )}
       </nav>
 
       {/* ── Go Pro CTA ── */}

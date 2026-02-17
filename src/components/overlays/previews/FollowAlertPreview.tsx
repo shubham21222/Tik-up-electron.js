@@ -1,64 +1,69 @@
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import tikupLogo from "@/assets/tikup_logo.png";
 
 const mockFollows = [
   { user: "Tikup_User", avatar: "🧑‍🎤" },
-  { user: "Tikup_User", avatar: "🎮" },
-  { user: "Tikup_User", avatar: "🌙" },
-  { user: "Tikup_User", avatar: "🎨" },
-  { user: "Tikup_User", avatar: "🎵" },
 ];
 
 interface FollowAlertPreviewProps {
   settings?: Record<string, any>;
+  testTrigger?: number;
 }
 
-const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
+const FollowAlertPreview = ({ settings = {}, testTrigger = 0 }: FollowAlertPreviewProps) => {
   const [currentIdx, setCurrentIdx] = useState(0);
   const [visible, setVisible] = useState(true);
   const [streak, setStreak] = useState(1);
   const duration = settings.duration || 5;
   const style = settings.animation_style || "spotlight";
-  const iconSize = settings.icon_size || 68;
+  // Increased base icon size for better preview visibility
+  const iconSize = (settings.icon_size || 68) * 1.2;
   const glowIntensity = (settings.glow_intensity || 50) / 100;
   const cardStyle = settings.card_style || "glass";
   const accentColor = settings.accent_color || "160 100% 45%";
   const showAvatar = settings.show_avatar ?? true;
 
+  const triggerNext = useCallback(() => {
+    setVisible(false);
+    setTimeout(() => {
+      setStreak(prev => prev < 4 ? prev + 1 : 1);
+      setVisible(true);
+    }, 500);
+  }, []);
+
+  useEffect(() => {
+    if (testTrigger > 0) triggerNext();
+  }, [testTrigger, triggerNext]);
+
   useEffect(() => {
     const cycle = setInterval(() => {
-      setVisible(false);
-      setTimeout(() => {
-        setCurrentIdx(prev => (prev + 1) % mockFollows.length);
-        setStreak(prev => prev < 4 ? prev + 1 : 1);
-        setVisible(true);
-      }, 700);
-    }, duration * 1000);
+      triggerNext();
+    }, duration * 1000 + 1000);
     return () => clearInterval(cycle);
-  }, [duration]);
+  }, [duration, triggerNext]);
 
-  const follow = mockFollows[currentIdx];
+  const follow = mockFollows[currentIdx % mockFollows.length];
   const isStreak = settings.streak_detection && streak >= (settings.streak_threshold || 3);
 
   const getAnimation = () => {
     switch (style) {
-      case "badge_drop": return { initial: { y: -80, opacity: 0, rotate: -10 }, animate: { y: 0, opacity: 1, rotate: 0 } };
-      case "neon_slide": return { initial: { x: -120, opacity: 0 }, animate: { x: 0, opacity: 1 } };
-      case "hologram": return { initial: { scaleY: 0, opacity: 0 }, animate: { scaleY: 1, opacity: 1 } };
-      case "portal": return { initial: { scale: 0, rotate: 180, opacity: 0 }, animate: { scale: 1, rotate: 0, opacity: 1 } };
-      case "glitch_in": return { initial: { x: [-4, 4, -2, 0], opacity: 0, skewX: 10 }, animate: { x: 0, opacity: 1, skewX: 0 } };
-      default: return { initial: { scale: 0.6, opacity: 0, y: 20 }, animate: { scale: 1, opacity: 1, y: 0 } };
+      case "badge_drop": return { initial: { y: -100, opacity: 0, rotate: -15 }, animate: { y: 0, opacity: 1, rotate: 0 } };
+      case "neon_slide": return { initial: { x: -150, opacity: 0 }, animate: { x: 0, opacity: 1 } };
+      case "hologram": return { initial: { scaleY: 0, opacity: 0, filter: "blur(10px)" }, animate: { scaleY: 1, opacity: 1, filter: "blur(0px)" } };
+      case "portal": return { initial: { scale: 0, rotate: 270, opacity: 0 }, animate: { scale: 1, rotate: 0, opacity: 1 } };
+      case "glitch_in": return { initial: { x: [-10, 10, -5, 0], opacity: 0, skewX: 15 }, animate: { x: 0, opacity: 1, skewX: 0 } };
+      default: return { initial: { scale: 0.5, opacity: 0, y: 30 }, animate: { scale: 1, opacity: 1, y: 0 } };
     }
   };
 
   const getCardBg = () => {
     switch (cardStyle) {
-      case "solid": return { background: "rgba(20,20,30,0.95)", border: `1px solid hsl(${accentColor} / 0.15)` };
-      case "neon_border": return { background: "rgba(0,0,0,0.7)", border: `2px solid hsl(${accentColor} / 0.5)`, boxShadow: `0 0 20px hsl(${accentColor} / 0.15), inset 0 0 20px hsl(${accentColor} / 0.05)` };
-      case "gradient": return { background: `linear-gradient(135deg, hsl(${accentColor} / 0.15), rgba(0,0,0,0.8))`, border: "1px solid rgba(255,255,255,0.06)" };
+      case "solid": return { background: "rgba(15,15,25,0.98)", border: `1px solid hsl(${accentColor} / 0.2)` };
+      case "neon_border": return { background: "rgba(0,0,0,0.8)", border: `2px solid hsl(${accentColor} / 0.6)`, boxShadow: `0 0 30px hsl(${accentColor} / 0.2), inset 0 0 20px hsl(${accentColor} / 0.05)` };
+      case "gradient": return { background: `linear-gradient(135deg, hsl(${accentColor} / 0.2), rgba(0,0,0,0.85))`, border: "1px solid rgba(255,255,255,0.08)" };
       case "minimal": return { background: "transparent", border: "none" };
-      default: return { background: "rgba(0,0,0,0.55)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.06)" };
+      default: return { background: "rgba(0,0,0,0.6)", backdropFilter: "blur(24px)", border: "1px solid rgba(255,255,255,0.08)" };
     }
   };
 
@@ -66,74 +71,77 @@ const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {visible && (
           <motion.div
-            key={currentIdx}
+            key={`${currentIdx}-${testTrigger}`}
             className="relative"
             initial={anim.initial}
             animate={anim.animate}
-            exit={{ opacity: 0, scale: 0.9, y: -10 }}
-            transition={{ duration: 0.5 / (settings.animation_speed || 1), ease: [0.16, 1, 0.3, 1] }}
+            exit={{ opacity: 0, scale: 0.8, y: -20 }}
+            transition={{ duration: 0.6 / (settings.animation_speed || 1), ease: [0.16, 1, 0.3, 1] }}
           >
             {/* Spotlight effect */}
             {style === "spotlight" && (
               <motion.div
-                className="absolute -inset-8 rounded-full"
-                style={{ background: `radial-gradient(circle, hsl(${accentColor} / ${0.1 * glowIntensity}), transparent 70%)` }}
-                animate={{ opacity: [0.5, 1, 0.5] }}
+                className="absolute -inset-12 rounded-full"
+                style={{ background: `radial-gradient(circle, hsl(${accentColor} / ${0.15 * glowIntensity}), transparent 70%)` }}
+                animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.8, 0.4] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
             )}
 
             {/* Card */}
-            <div className="relative rounded-2xl px-8 py-5 flex items-center gap-5 min-w-[300px]" style={getCardBg()}>
+            <div className="relative rounded-2xl px-10 py-6 flex items-center gap-6 min-w-[340px]" style={getCardBg()}>
               {/* Streak indicator */}
               {isStreak && (
                 <motion.div
-                  className="absolute -top-2 -right-2 px-2 py-0.5 rounded-full text-[9px] font-bold"
-                  style={{ background: `hsl(${accentColor})`, color: "black" }}
-                  animate={{ scale: [1, 1.1, 1] }}
-                  transition={{ duration: 0.6, repeat: Infinity }}
+                  className="absolute -top-3 -right-3 px-3 py-1 rounded-full text-[10px] font-black"
+                  style={{ background: `hsl(${accentColor})`, color: "black", boxShadow: `0 0 15px hsl(${accentColor} / 0.5)` }}
+                  initial={{ scale: 0 }}
+                  animate={{ scale: [0, 1.2, 1] }}
+                  transition={{ type: "spring" }}
                 >
                   🔥 x{streak}
                 </motion.div>
               )}
 
-              {/* Logo */}
-              <motion.div
-                className="flex-shrink-0 rounded-full flex items-center justify-center overflow-hidden"
-                style={{
-                  width: iconSize, height: iconSize,
-                  background: `linear-gradient(135deg, hsl(${accentColor} / 0.2), hsl(${accentColor} / 0.05))`,
-                  border: `2px solid hsl(${accentColor} / 0.3)`,
-                  boxShadow: `0 0 ${15 * glowIntensity}px hsl(${accentColor} / 0.15)`,
-                  borderRadius: settings.avatar_style === "hexagon" ? "30% 70% 70% 30% / 30% 30% 70% 70%" : settings.avatar_style === "rounded_square" ? "20%" : "50%",
-                }}
-                animate={{
-                  boxShadow: [
-                    `0 0 ${10 * glowIntensity}px hsl(${accentColor} / 0.1)`,
-                    `0 0 ${25 * glowIntensity}px hsl(${accentColor} / 0.25)`,
-                    `0 0 ${10 * glowIntensity}px hsl(${accentColor} / 0.1)`,
-                  ],
-                }}
-                transition={{ duration: 2, repeat: Infinity }}
-              >
-                <img src={tikupLogo} alt="TikUp" className="w-[70%] h-[70%] object-contain" />
-              </motion.div>
+              {/* Logo/Avatar */}
+              {showAvatar && (
+                <motion.div
+                  className="flex-shrink-0 rounded-full flex items-center justify-center overflow-hidden"
+                  style={{
+                    width: iconSize, height: iconSize,
+                    background: `linear-gradient(135deg, hsl(${accentColor} / 0.25), hsl(${accentColor} / 0.05))`,
+                    border: `2px solid hsl(${accentColor} / 0.4)`,
+                    boxShadow: `0 0 25px hsl(${accentColor} / 0.2)`,
+                    borderRadius: settings.avatar_style === "hexagon" ? "30% 70% 70% 30% / 30% 30% 70% 70%" : settings.avatar_style === "rounded_square" ? "24%" : "50%",
+                  }}
+                  animate={{
+                    boxShadow: [
+                      `0 0 15px hsl(${accentColor} / 0.15)`,
+                      `0 0 35px hsl(${accentColor} / 0.35)`,
+                      `0 0 15px hsl(${accentColor} / 0.15)`,
+                    ],
+                  }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                >
+                  <img src={tikupLogo} alt="TikUp" className="w-[75%] h-[75%] object-contain drop-shadow-md" />
+                </motion.div>
+              )}
 
               {/* Text */}
-              <div>
+              <div className="flex-1">
                 <motion.p
-                  className={`text-base font-bold text-white ${settings.username_font === "mono" ? "font-mono" : settings.username_font === "heading" ? "font-heading" : ""}`}
-                  initial={{ opacity: 0, x: 10 }}
+                  className={`text-xl font-black text-white tracking-tight ${settings.username_font === "mono" ? "font-mono" : settings.username_font === "heading" ? "font-heading" : ""}`}
+                  initial={{ opacity: 0, x: 15 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.15 }}
                 >
                   {follow.user}
                 </motion.p>
                 <motion.p
-                  className="text-xs mt-0.5"
+                  className="text-sm font-semibold mt-0.5 opacity-90"
                   style={{ color: `hsl(${accentColor})` }}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -146,10 +154,11 @@ const FollowAlertPreview = ({ settings = {} }: FollowAlertPreviewProps) => {
               {/* Follow icon */}
               <motion.div
                 className="ml-auto"
-                animate={{ scale: [1, 1.2, 1] }}
-                transition={{ duration: 1, repeat: 2, delay: 0.3 }}
+                initial={{ scale: 0, rotate: -20 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", delay: 0.3 }}
               >
-                <span className="text-xl">👋</span>
+                <span className="text-3xl filter drop-shadow-md">👋</span>
               </motion.div>
             </div>
           </motion.div>

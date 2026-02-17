@@ -15,6 +15,7 @@ import ShareAlertPreview from "@/components/overlays/previews/ShareAlertPreview"
 const ShareAlertOverlay = () => {
   const { user } = useAuth();
   const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("share_alert");
+  const [testTrigger, setTestTrigger] = useState(0);
 
   const handleCreate = () => createWidget("share_alert", `Share Alert ${widgets.length + 1}`);
   const updateSetting = useCallback((id: string, cur: Record<string, any>, key: string, val: any) => {
@@ -74,8 +75,8 @@ const ShareAlertOverlay = () => {
                     onDelete={() => deleteWidget(widget.id)}
                     onReset={() => updateSettings(widget.id, defaultShareAlertSettings)}
                     onToggleActive={() => toggleActive(widget.id)}
-                    onTest={() => {}}
-                    previewSlot={<Suspense fallback={null}><ShareAlertPreview settings={s} /></Suspense>}
+                    onTest={() => setTestTrigger(prev => prev + 1)}
+                    previewSlot={<Suspense fallback={null}><ShareAlertPreview settings={s} testTrigger={testTrigger} /></Suspense>}
                     settingsSlot={
                       <div className="space-y-4">
                         <SettingRow label="Animation Style" description="Visual effect when shares happen">

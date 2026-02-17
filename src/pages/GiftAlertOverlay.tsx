@@ -1,5 +1,5 @@
 import AppLayout from "@/components/AppLayout";
-import { useCallback, Suspense } from "react";
+import { useCallback, Suspense, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Plus, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -21,6 +21,7 @@ const GiftAlertOverlay = () => {
   const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("gift_alert");
   const { gifts } = useGiftCatalog();
   const { triggers } = useUserGiftTriggers();
+  const [testTrigger, setTestTrigger] = useState(0);
 
   const enabledTriggers = triggers.filter(t => t.is_enabled);
   const enabledGifts = gifts.filter(g => enabledTriggers.some(t => t.gift_id === g.gift_id));
@@ -196,10 +197,10 @@ const GiftAlertOverlay = () => {
                     onDelete={() => deleteWidget(widget.id)}
                     onReset={() => updateSettings(widget.id, defaultGiftAlertSettings)}
                     onToggleActive={() => toggleActive(widget.id)}
-                    onTest={() => {/* broadcast test event */}}
+                    onTest={() => setTestTrigger(prev => prev + 1)}
                     previewSlot={
                       <Suspense fallback={null}>
-                        <GiftAlertPreview settings={s} />
+                        <GiftAlertPreview settings={s} testTrigger={testTrigger} />
                       </Suspense>
                     }
                     settingsSlot={

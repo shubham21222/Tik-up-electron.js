@@ -84,8 +84,6 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Pac-Man LIVE": PacManPreview,
 };
 
-const glassGradient = { background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" };
-const glassInnerStyle = { background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" };
 
 interface OverlayItem {
   title: string;
@@ -265,10 +263,9 @@ const Overlays = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.04, duration: 0.4 }}
                 whileHover={{ y: -4, transition: { duration: 0.25 } }}
-                className="group rounded-2xl p-[1px] cursor-default"
-                style={glassGradient}
+                className="group rounded-2xl cursor-default overlay-market-card"
               >
-                <div className="rounded-2xl overflow-hidden transition-shadow duration-300 group-hover:shadow-[0_0_40px_hsl(160_100%_45%/0.08)]" style={glassInnerStyle}>
+                <div className="rounded-2xl overflow-hidden">
                   <div className="relative h-[280px] overflow-hidden">
                     <div className="absolute inset-0 opacity-[0.03]"
                       style={{ backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)", backgroundSize: "24px 24px" }} />

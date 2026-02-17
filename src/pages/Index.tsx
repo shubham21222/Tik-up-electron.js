@@ -157,12 +157,8 @@ function formatDuration(startTime: number): string {
 /* ── Glass card wrapper ── */
 const GlassCard = ({ children, className = "", style = {}, ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
-    className={`rounded-2xl border border-[hsl(0_0%_100%/0.04)] ${className}`}
-    style={{
-      background: "linear-gradient(180deg, hsl(210 20% 8% / 0.85), hsl(210 15% 6% / 0.9))",
-      backdropFilter: "blur(24px)",
-      ...style,
-    }}
+    className={`glass-card ${className}`}
+    style={style}
     {...rest}
   >
     {children}
@@ -766,7 +762,7 @@ const Index = () => {
                         animate={{ opacity: 1, x: 0, height: "auto" }}
                         exit={{ opacity: 0, x: 20, height: 0 }}
                         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.03)] transition-colors group/gift"
+                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors group/gift"
                       >
                         {/* Gift image with user avatar overlay */}
                         <div className="relative flex-shrink-0">
@@ -822,7 +818,7 @@ const Index = () => {
                     initial={{ opacity: 0, x: -8 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 0.3 + i * 0.04 }}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.03)] transition-colors group/gift"
+                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors group/gift"
                   >
                     <div className="relative flex-shrink-0">
                       <div className="w-9 h-9 rounded-full flex items-center justify-center"
@@ -924,7 +920,7 @@ const Index = () => {
                     return (
                       <div
                         key={entry.unique_id || i}
-                        className="flex items-center px-4 py-3 hover:bg-[hsl(0_0%_100%/0.02)] transition-colors"
+                        className="flex items-center px-4 py-3 hover:bg-accent transition-colors"
                       >
                         {/* Rank */}
                         <span className="w-12 text-sm font-bold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
@@ -970,7 +966,7 @@ const Index = () => {
                 const Icon = update.icon;
                 return (
                   <div key={update.title}
-                    className="flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-[hsl(0_0%_100%/0.02)] transition-colors cursor-pointer group">
+                    className="flex items-start gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors cursor-pointer group">
                     <Icon size={14} className="text-muted-foreground mt-0.5 shrink-0 group-hover:text-primary transition-colors" />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
@@ -996,9 +992,8 @@ const Index = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.4 }}
         >
-          <GlassCard className="p-6 relative overflow-hidden" style={{
-            background: "linear-gradient(135deg, hsl(280 50% 10% / 0.6), hsl(210 15% 6% / 0.9))",
-            border: "1px solid hsl(280 100% 65% / 0.1)",
+          <GlassCard className="p-6 relative overflow-hidden dark:border-[hsl(280_100%_65%/0.1)]" style={{
+            background: undefined,
           }}>
             <div className="absolute top-0 right-0 w-60 h-60 rounded-full pointer-events-none"
               style={{ background: "radial-gradient(ellipse, hsl(280 100% 65% / 0.06), transparent 70%)" }} />

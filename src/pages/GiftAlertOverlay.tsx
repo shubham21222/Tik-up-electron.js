@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Gift, Plus, ExternalLink } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useOverlayWidgets, defaultGiftAlertSettings } from "@/hooks/use-overlay-widgets";
+import { giftAlertPresets } from "@/hooks/overlay-defaults";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import OverlaySettingsShell from "@/components/overlays/OverlaySettingsShell";
 import SettingRow from "@/components/overlays/settings/SettingRow";
@@ -203,11 +204,47 @@ const GiftAlertOverlay = () => {
                     }
                     settingsSlot={
                       <div className="space-y-4">
+                        {/* Style Presets */}
+                        <SettingRow label="Style Preset" description="Quick-apply a complete look">
+                          <SettingSelect value={s.style_preset || "custom"} onChange={v => {
+                            if (v !== "custom" && giftAlertPresets[v]) {
+                              updateSettings(widget.id, { ...widget.settings, ...giftAlertPresets[v], style_preset: v });
+                            } else {
+                              set("style_preset", v);
+                            }
+                          }} options={[
+                            { value: "custom", label: "Custom" },
+                            { value: "minimal", label: "✨ Minimal" },
+                            { value: "neon", label: "💚 Neon" },
+                            { value: "cyber", label: "🔷 Cyber" },
+                            { value: "luxury", label: "👑 Luxury" },
+                            { value: "fun", label: "🎉 Fun" },
+                          ]} />
+                        </SettingRow>
+                        <SettingRow label="Background Style" description="Card background look">
+                          <SettingSelect value={s.bg_style || "glass"} onChange={v => set("bg_style", v)} options={[
+                            { value: "none", label: "None" },
+                            { value: "glass", label: "Glass Pill" },
+                            { value: "neon", label: "Neon Card" },
+                            { value: "solid", label: "Solid" },
+                          ]} />
+                        </SettingRow>
                         <SettingRow label="No Background" description="Remove alert card background">
                           <SettingToggle checked={s.no_background} onChange={v => set("no_background", v)} />
                         </SettingRow>
                         <SettingRow label="No Border" description="Remove alert card border">
                           <SettingToggle checked={s.no_border} onChange={v => set("no_border", v)} />
+                        </SettingRow>
+                        <SettingRow label="Alert Position" description="Where alerts appear on screen">
+                          <SettingSelect value={s.alert_position || "center"} onChange={v => set("alert_position", v)} options={[
+                            { value: "center", label: "Center" },
+                            { value: "top", label: "Top" },
+                            { value: "bottom", label: "Bottom" },
+                            { value: "top-left", label: "Top Left" },
+                            { value: "top-right", label: "Top Right" },
+                            { value: "bottom-left", label: "Bottom Left" },
+                            { value: "bottom-right", label: "Bottom Right" },
+                          ]} />
                         </SettingRow>
                         <SettingRow label="Trigger Mode" description="When to show alerts">
                           <SettingSelect value={s.trigger_mode} onChange={v => set("trigger_mode", v)} options={[
@@ -231,7 +268,7 @@ const GiftAlertOverlay = () => {
                         <SettingRow label="Animation Style">
                           <SettingSelect value={s.animation_style} onChange={v => set("animation_style", v)} options={[
                             { value: "slide", label: "Slide In" },
-                            { value: "bounce", label: "Bounce" },
+                            { value: "bounce", label: "Pop + Bounce" },
                             { value: "explosion", label: "Explosion" },
                             { value: "flip_3d", label: "3D Flip" },
                             { value: "glitch", label: "Glitch Intro" },
@@ -246,21 +283,26 @@ const GiftAlertOverlay = () => {
                         <SettingRow label="Alert Duration" description="How long alerts stay on screen">
                           <SettingSlider value={s.duration} onChange={v => set("duration", v)} min={1} max={15} suffix="s" />
                         </SettingRow>
-                        <SettingRow label="Entry Animation">
-                          <SettingSelect value={s.entry_animation} onChange={v => set("entry_animation", v)} options={[
-                            { value: "scale_up", label: "Scale Up" },
-                            { value: "slide_left", label: "Slide Left" },
-                            { value: "slide_right", label: "Slide Right" },
-                            { value: "slide_top", label: "Slide Top" },
-                            { value: "fade", label: "Fade" },
+                        <SettingRow label="Font Family" description="Typography style">
+                          <SettingSelect value={s.font_family || "default"} onChange={v => set("font_family", v)} options={[
+                            { value: "default", label: "Default" },
+                            { value: "inter", label: "Inter" },
+                            { value: "space-grotesk", label: "Space Grotesk" },
+                            { value: "orbitron", label: "Orbitron" },
+                            { value: "bebas", label: "Bebas Neue" },
+                            { value: "press-start", label: "Press Start 2P" },
                           ]} />
                         </SettingRow>
-                        <SettingRow label="Exit Animation">
-                          <SettingSelect value={s.exit_animation} onChange={v => set("exit_animation", v)} options={[
-                            { value: "fade", label: "Fade" },
-                            { value: "slide_out", label: "Slide Out" },
-                            { value: "scale_down", label: "Scale Down" },
-                            { value: "dissolve", label: "Dissolve" },
+                        <SettingRow label="Font Size" description="Username text size">
+                          <SettingSlider value={s.font_size || 24} onChange={v => set("font_size", v)} min={14} max={48} suffix="px" />
+                        </SettingRow>
+                        <SettingRow label="Font Weight">
+                          <SettingSelect value={String(s.font_weight || 800)} onChange={v => set("font_weight", Number(v))} options={[
+                            { value: "400", label: "Regular" },
+                            { value: "600", label: "Semi Bold" },
+                            { value: "700", label: "Bold" },
+                            { value: "800", label: "Extra Bold" },
+                            { value: "900", label: "Black" },
                           ]} />
                         </SettingRow>
                         <SettingRow label="Gift Image Size">
@@ -275,17 +317,17 @@ const GiftAlertOverlay = () => {
                         <SettingRow label="Border Glow Pulse">
                           <SettingToggle checked={s.border_glow} onChange={v => set("border_glow", v)} />
                         </SettingRow>
+                        <SettingRow label="Accent Color" description="Gift name & borders">
+                          <SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} />
+                        </SettingRow>
+                        <SettingRow label="Glow Color" description="Ring & particle glow">
+                          <SettingColorPicker value={s.glow_color || s.accent_color} onChange={v => set("glow_color", v)} />
+                        </SettingRow>
+                        <SettingRow label="Text Color" description="Username & subtitle">
+                          <SettingColorPicker value={s.text_color || "0 0% 100%"} onChange={v => set("text_color", v)} />
+                        </SettingRow>
                         <SettingRow label="Sound Volume">
                           <SettingSlider value={s.sound_volume} onChange={v => set("sound_volume", v)} min={0} max={100} suffix="%" />
-                        </SettingRow>
-                        <SettingRow label="Sound Delay">
-                          <SettingSlider value={s.sound_delay} onChange={v => set("sound_delay", v)} min={0} max={5} step={0.5} suffix="s" />
-                        </SettingRow>
-                        <SettingRow label="Loop Sound">
-                          <SettingToggle checked={s.sound_loop} onChange={v => set("sound_loop", v)} />
-                        </SettingRow>
-                        <SettingRow label="Accent Color">
-                          <SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} />
                         </SettingRow>
                       </div>
                     }

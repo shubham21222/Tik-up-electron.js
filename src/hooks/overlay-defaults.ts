@@ -18,7 +18,15 @@ export const defaultGiftAlertSettings = {
   glow_intensity: 50,
   shadow_depth: 30,
   border_glow: true,
-  accent_color: "160 100% 45%",
+  accent_color: "280 100% 65%",
+  text_color: "0 0% 100%",
+  glow_color: "280 100% 65%",
+  bg_style: "glass" as "none" | "glass" | "neon" | "solid",
+  font_family: "default" as "default" | "inter" | "space-grotesk" | "orbitron" | "bebas" | "press-start",
+  font_size: 24,
+  font_weight: 800,
+  alert_position: "center" as "center" | "top" | "bottom" | "top-left" | "top-right" | "bottom-left" | "bottom-right",
+  style_preset: "custom" as "custom" | "minimal" | "neon" | "cyber" | "luxury" | "fun",
   sound_url: "",
   sound_volume: 80,
   sound_delay: 0,
@@ -36,6 +44,34 @@ export const defaultGiftAlertSettings = {
   dark_bg: false,
   fps_limit: 60,
   custom_css: "",
+};
+
+// Style presets for Gift Alerts
+export const giftAlertPresets: Record<string, Partial<typeof defaultGiftAlertSettings>> = {
+  minimal: {
+    bg_style: "none", glow_intensity: 0, shadow_depth: 0, border_glow: false, no_background: true, no_border: true,
+    accent_color: "0 0% 100%", glow_color: "0 0% 80%", font_family: "inter", font_weight: 600, animation_style: "slide",
+  },
+  neon: {
+    bg_style: "neon", glow_intensity: 90, shadow_depth: 60, border_glow: true,
+    accent_color: "160 100% 50%", glow_color: "160 100% 50%", text_color: "0 0% 100%",
+    font_family: "orbitron", font_weight: 700, animation_style: "glitch",
+  },
+  cyber: {
+    bg_style: "glass", glow_intensity: 70, shadow_depth: 50, border_glow: true,
+    accent_color: "200 100% 60%", glow_color: "200 100% 60%", text_color: "0 0% 100%",
+    font_family: "space-grotesk", font_weight: 700, animation_style: "flip_3d",
+  },
+  luxury: {
+    bg_style: "solid", glow_intensity: 30, shadow_depth: 80, border_glow: false,
+    accent_color: "45 100% 55%", glow_color: "45 100% 50%", text_color: "0 0% 100%",
+    font_family: "default", font_weight: 800, animation_style: "bounce",
+  },
+  fun: {
+    bg_style: "glass", glow_intensity: 60, shadow_depth: 40, border_glow: true,
+    accent_color: "330 100% 65%", glow_color: "330 100% 65%", text_color: "0 0% 100%",
+    font_family: "bebas", font_weight: 400, animation_style: "explosion",
+  },
 };
 
 // Chat Box

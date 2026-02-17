@@ -399,7 +399,7 @@ export const defaultSocialRotatorSettings = {
   glow_intensity: 40,
   glass_bg: true,
   show_indicators: true,
-  social_links: [] as { icon: string; label: string; handle: string; color: string }[],
+  social_links: [] as { id?: string; icon: string; label: string; handle: string; color: string }[],
   accent_color: "200 100% 55%",
   transparent_bg: true,
   dark_bg: false,

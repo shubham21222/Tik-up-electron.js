@@ -216,10 +216,10 @@ const SidebarSectionGroup = ({
         )}
       >
         {isCollapsed ? (
-          <section.sectionIcon size={16} className="flex-shrink-0 opacity-50" />
+          <section.sectionIcon size={16} className="sidebar-section-icon flex-shrink-0 opacity-80" />
         ) : (
           <>
-            <section.sectionIcon size={14} className="flex-shrink-0 opacity-60" />
+            <section.sectionIcon size={14} className="sidebar-section-icon flex-shrink-0 opacity-80" />
             <span className="sidebar-section-label uppercase tracking-[0.14em] font-bold text-[10px] flex-1 text-left">
               {section.label}
             </span>

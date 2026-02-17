@@ -46,30 +46,20 @@ const sections: SidebarSection[] = [
       { id: "/viewer-count", label: "Viewer Count", icon: Users },
       { id: "/like-counter", label: "Like & Follower Counter", icon: BarChart3 },
       { id: "/stream-timer", label: "Stream Timer", icon: Timer },
-    ],
-  },
-  {
-    label: "Engagement",
-    emoji: "⚡",
-    sectionIcon: Sparkles,
-    items: [
       { id: "/tts", label: "Text-to-Speech", icon: Mic },
       { id: "/sound-alerts", label: "Sound Alerts", icon: Volume2 },
       { id: "/recent-activity", label: "Event Feed", icon: Activity },
-      { id: "/overlays", label: "All Overlays", icon: Layers },
-      { id: "/sounds", label: "Spotify Integration", icon: Music, pro: true },
-      { id: "/backgrounds", label: "Backgrounds", icon: Image, pro: true },
     ],
   },
   {
-    label: "Growth",
+    label: "Engagement & Growth",
     emoji: "📈",
     sectionIcon: Target,
     items: [
       { id: "/goal-overlays", label: "Stream Goals", icon: Target },
       { id: "/leaderboard", label: "Top Supporters", icon: Trophy },
-      { id: "/points", label: "User Levels & Points", icon: Coins },
-      { id: "/social-rotator", label: "Social Media Widget", icon: Share2 },
+      { id: "/points", label: "Points & Loyalty", icon: Coins },
+      { id: "/social-rotator", label: "Social Rotator", icon: Share2 },
     ],
   },
   {
@@ -80,7 +70,17 @@ const sections: SidebarSection[] = [
       { id: "/chat-commands", label: "Chat Commands", icon: Terminal },
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
-      { id: "/gta-triggers", label: "GTA Interactive", icon: Gamepad2, pro: true },
+      { id: "/gta-triggers", label: "Subathon Timer", icon: Clock },
+    ],
+  },
+  {
+    label: "Visual Tools",
+    emoji: "🎨",
+    sectionIcon: Palette,
+    items: [
+      { id: "/backgrounds", label: "Backgrounds", icon: Image },
+      { id: "/overlays", label: "Premium Overlays", icon: Layers },
+      { id: "/sounds", label: "AI Voice Packs", icon: Music, pro: true },
     ],
   },
   {

@@ -12,6 +12,7 @@ interface AlertEvent {
   gift: string;
   emoji: string;
   value: number;
+  count: number;
   avatar?: string;
   giftImageUrl?: string;
   animationOverride?: string;
@@ -142,6 +143,7 @@ const GiftAlertRenderer = () => {
           gift: giftName,
           emoji: p.emoji || "🎁",
           value: Number(p.coinValue || p.coin_value || p.diamondCount || p.diamond_count || 0),
+          count: Number(p.repeatCount || p.repeat_count || p.count || 1),
           avatar: p.avatar || p.profilePictureUrl || p.avatar_url || undefined,
           giftImageUrl: p.giftImageUrl || p.gift_image_url || undefined,
           animationOverride: animOverride,
@@ -157,7 +159,7 @@ const GiftAlertRenderer = () => {
       .on("broadcast", { event: "test_alert" }, () => {
         const s = settingsRef.current;
         const testEvent: AlertEvent = {
-          id: Date.now(), user: "TestUser", gift: "Rose", emoji: "🌹", value: 1,
+          id: Date.now(), user: "TestUser", gift: "Rose", emoji: "🌹", value: 1, count: 5,
           soundUrl: s.sound_url || undefined,
         };
         setAlerts(prev => [...prev, testEvent]);
@@ -197,7 +199,7 @@ const GiftAlertRenderer = () => {
 
   const s = settings as any;
   const glowIntensity = (s.glow_intensity || 50) / 100;
-  const imageSize = s.gift_image_size || 64;
+  const imageSize = (s.gift_image_size || 64) * 3;
   const noBackground = s.no_background ?? false;
   const noBorder = s.no_border ?? false;
 
@@ -275,12 +277,24 @@ const GiftAlertRenderer = () => {
               )}
 
               <div className="text-center">
-                <p className={`text-sm font-bold text-white truncate max-w-[200px] ${s.username_font === "mono" ? "font-mono" : s.username_font === "heading" ? "font-heading" : ""}`}>
+                <p className={`text-2xl font-extrabold text-white truncate max-w-[400px] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] ${s.username_font === "mono" ? "font-mono" : s.username_font === "heading" ? "font-heading" : ""}`}>
                   {alert.user}
                 </p>
-                <p className="text-[11px] text-white/50 mt-0.5">sent a gift!</p>
-                <p className="text-xs font-semibold mt-1" style={{ color: "hsl(280 100% 70%)" }}>{alert.gift}</p>
-                {alert.value > 0 && <p className="text-[10px] text-white/30 mt-0.5">🪙 {alert.value}</p>}
+                <p className="text-base text-white/60 mt-1 font-semibold drop-shadow-[0_1px_4px_rgba(0,0,0,0.6)]">sent a gift!</p>
+                <p className="text-xl font-bold mt-2 drop-shadow-[0_0_12px_hsl(280_100%_65%/0.6)]" style={{ color: "hsl(280 100% 70%)" }}>{alert.gift}</p>
+                {alert.count > 1 && (
+                  <motion.p
+                    key={alert.count}
+                    className="text-3xl font-black mt-2 tracking-tight"
+                    style={{ color: "hsl(45 100% 60%)", textShadow: "0 0 20px hsl(45 100% 55% / 0.6), 0 0 40px hsl(45 100% 55% / 0.3)" }}
+                    initial={{ scale: 1.8 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 400 }}
+                  >
+                    ×{alert.count}
+                  </motion.p>
+                )}
+                {alert.value > 0 && <p className="text-sm text-white/50 mt-1 font-medium">🪙 {alert.value}</p>}
               </div>
             </motion.div>
           );

@@ -55,7 +55,7 @@ const BattleRoyaleRenderer = () => {
 
   // Auto-start when enough fighters
   useEffect(() => {
-    if (phase === "waiting" && fighters.filter(f => !f.eliminated).length >= 3) {
+    if (phase === "waiting" && fighters.filter(f => !f.eliminated).length >= 2) {
       const t = setTimeout(() => setPhase("fighting"), 5000);
       return () => clearTimeout(t);
     }

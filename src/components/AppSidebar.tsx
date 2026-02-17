@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Gift, MessageCircle, Users, BarChart3, Timer,
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
-  Shield, Link2, Palette, Settings,
+  Shield, Link2, Palette, Settings, CreditCard, SlidersHorizontal,
   ChevronLeft, ChevronRight, Crown, Layers, ShieldCheck,
-  Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2,
-  ChevronDown
+  Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2, Music,
+  ChevronDown, Monitor
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -36,38 +36,39 @@ interface AppSidebarProps {
 
 const sections: SidebarSection[] = [
   {
-    label: "Live Controls",
-    emoji: "📡",
-    sectionIcon: Activity,
+    label: "Live Studio",
+    emoji: "🎥",
+    sectionIcon: Monitor,
     items: [
       { id: "/actions", label: "Gift Alerts", icon: Gift },
       { id: "/chat-overlay", label: "Chat Overlay", icon: MessageCircle },
       { id: "/viewer-count", label: "Viewer Count", icon: Users },
-      { id: "/like-counter", label: "Like / Follower Counter", icon: BarChart3 },
+      { id: "/like-counter", label: "Like & Follower Counter", icon: BarChart3 },
       { id: "/stream-timer", label: "Stream Timer", icon: Timer },
       { id: "/presets", label: "Stream Themes", icon: Sparkles },
     ],
   },
   {
     label: "Engagement",
-    emoji: "🔥",
+    emoji: "⚡",
     sectionIcon: Sparkles,
     items: [
-      { id: "/sounds", label: "Spotify Connect", icon: Volume2, pro: true },
+      { id: "/tts", label: "Text-to-Speech", icon: Mic },
       { id: "/sound-alerts", label: "Sound Alerts", icon: Volume2 },
       { id: "/overlays", label: "Effects Browser", icon: Layers },
-      { id: "/backgrounds", label: "Backgrounds", icon: Image, pro: true },
       { id: "/recent-activity", label: "Event Feed", icon: Activity },
+      { id: "/sounds", label: "Spotify Integration", icon: Music, pro: true },
+      { id: "/backgrounds", label: "Backgrounds", icon: Image, pro: true },
     ],
   },
   {
-    label: "Growth & Goals",
-    emoji: "🚀",
+    label: "Growth",
+    emoji: "📈",
     sectionIcon: Target,
     items: [
       { id: "/goal-overlays", label: "Stream Goals", icon: Target },
       { id: "/leaderboard", label: "Top Supporters", icon: Trophy, pro: true },
-      { id: "/points", label: "User & Points", icon: Coins },
+      { id: "/points", label: "User Levels & Points", icon: Coins },
     ],
   },
   {
@@ -76,7 +77,6 @@ const sections: SidebarSection[] = [
     sectionIcon: Terminal,
     items: [
       { id: "/chat-commands", label: "Chat Commands", icon: Terminal },
-      { id: "/tts", label: "TTS Chat", icon: Mic },
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
       { id: "/gta-triggers", label: "GTA Interactive", icon: Gamepad2, pro: true },
@@ -97,10 +97,11 @@ const sections: SidebarSection[] = [
     emoji: "⚙",
     sectionIcon: Settings,
     items: [
-      { id: "/setup", label: "Connect TikTok", icon: Link2 },
-      { id: "/brand-settings", label: "Brand & Style", icon: Palette, pro: true },
+      { id: "/setup", label: "Account", icon: Link2 },
       { id: "/integrations", label: "Integrations", icon: Settings },
-      { id: "/admin", label: "Admin Panel", icon: ShieldCheck, adminOnly: true },
+      { id: "/pro", label: "Billing", icon: CreditCard },
+      { id: "/brand-settings", label: "Appearance", icon: Palette, pro: true },
+      { id: "/admin", label: "Advanced", icon: SlidersHorizontal, adminOnly: true },
     ],
   },
 ];

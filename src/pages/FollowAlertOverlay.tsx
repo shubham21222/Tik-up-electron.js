@@ -15,6 +15,7 @@ import FollowAlertPreview from "@/components/overlays/previews/FollowAlertPrevie
 const FollowAlertOverlay = () => {
   const { user } = useAuth();
   const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("follow_alert");
+  const [testTrigger, setTestTrigger] = useState(0);
 
   const handleCreate = () => createWidget("follow_alert", `Follow Alert ${widgets.length + 1}`);
   const updateSetting = useCallback((id: string, cur: Record<string, any>, key: string, val: any) => {
@@ -74,8 +75,8 @@ const FollowAlertOverlay = () => {
                     onDelete={() => deleteWidget(widget.id)}
                     onReset={() => updateSettings(widget.id, defaultFollowAlertSettings)}
                     onToggleActive={() => toggleActive(widget.id)}
-                    onTest={() => {}}
-                    previewSlot={<Suspense fallback={null}><FollowAlertPreview settings={s} /></Suspense>}
+                    onTest={() => setTestTrigger(prev => prev + 1)}
+                    previewSlot={<Suspense fallback={null}><FollowAlertPreview settings={s} testTrigger={testTrigger} /></Suspense>}
                     settingsSlot={
                       <div className="space-y-4">
                         <SettingRow label="Animation Style">

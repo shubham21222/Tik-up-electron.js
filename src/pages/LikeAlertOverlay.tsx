@@ -15,6 +15,7 @@ import LikeAlertPreview from "@/components/overlays/previews/LikeAlertPreview";
 const LikeAlertOverlay = () => {
   const { user } = useAuth();
   const { widgets, loading, createWidget, updateSettings, deleteWidget, toggleActive } = useOverlayWidgets("like_alert");
+  const [testTrigger, setTestTrigger] = useState(0);
 
   const handleCreate = () => createWidget("like_alert", `Like Alert ${widgets.length + 1}`);
   const updateSetting = useCallback((id: string, cur: Record<string, any>, key: string, val: any) => {
@@ -74,8 +75,8 @@ const LikeAlertOverlay = () => {
                     onDelete={() => deleteWidget(widget.id)}
                     onReset={() => updateSettings(widget.id, defaultLikeAlertSettings)}
                     onToggleActive={() => toggleActive(widget.id)}
-                    onTest={() => {}}
-                    previewSlot={<Suspense fallback={null}><LikeAlertPreview settings={s} /></Suspense>}
+                    onTest={() => setTestTrigger(prev => prev + 1)}
+                    previewSlot={<Suspense fallback={null}><LikeAlertPreview settings={s} testTrigger={testTrigger} /></Suspense>}
                     settingsSlot={
                       <div className="space-y-4">
                         <SettingRow label="Animation Style" description="Visual effect when likes appear">

@@ -2,10 +2,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback } from "react";
 
 const mockAlerts = [
-  { user: "Tikup_User", gift: "Rose", emoji: "🌹", value: 1, count: 5, giftImageUrl: "" },
-  { user: "NightOwl_Live", gift: "Lion", emoji: "🦁", value: 500, count: 3, giftImageUrl: "" },
-  { user: "StreamFan99", gift: "Universe", emoji: "🌌", value: 10000, count: 1, giftImageUrl: "" },
-  { user: "GiftKing_Pro", gift: "Crown", emoji: "👑", value: 2000, count: 7, giftImageUrl: "" },
+  { user: "Tikup_User", gift: "Rose", emoji: "🌹", value: 1, count: 5, giftImageUrl: "/gifts/rose.png" },
+  { user: "NightOwl_Live", gift: "Flame Heart", emoji: "❤️‍🔥", value: 500, count: 3, giftImageUrl: "/gifts/flame_heart.png" },
+  { user: "StreamFan99", gift: "Fluffy Heart", emoji: "☁️", value: 1000, count: 1, giftImageUrl: "/gifts/fluffy_heart.png" },
+  { user: "GiftKing_Pro", gift: "Love You", emoji: "💖", value: 2000, count: 7, giftImageUrl: "/gifts/love_you_so_much.png" },
 ];
 
 /* ── Animation variants (identical to renderer) ── */
@@ -221,7 +221,11 @@ const GiftAlertPreview = ({ settings = {}, testTrigger = 0 }: GiftAlertPreviewPr
               animate={isHighValue ? { scale: [1, 1.1, 1] } : undefined}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
             >
-              <span style={{ fontSize: imageSize * 0.48 }}>{alert.emoji}</span>
+              {alert.giftImageUrl ? (
+                <img src={alert.giftImageUrl} alt={alert.gift} className="w-[75%] h-[75%] object-contain drop-shadow-lg" />
+              ) : (
+                <span style={{ fontSize: imageSize * 0.48 }}>{alert.emoji}</span>
+              )}
             </motion.div>
 
             {/* Text content — exact match to renderer but scaled for preview visibility */}

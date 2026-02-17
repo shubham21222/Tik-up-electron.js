@@ -28,6 +28,7 @@ export const defaultGiftAlertSettings = {
   alert_position: "center" as "center" | "top" | "bottom" | "top-left" | "top-right" | "bottom-left" | "bottom-right",
   style_preset: "custom" as "custom" | "minimal" | "neon" | "cyber" | "luxury" | "fun",
   sound_url: "",
+  sound_name: "",
   sound_volume: 80,
   sound_delay: 0,
   sound_loop: false,

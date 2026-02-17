@@ -13,6 +13,7 @@ import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
 import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
+import SoundLibraryPicker from "@/components/sound-alerts/SoundLibraryPicker";
 import GiftAlertPreview from "@/components/overlays/previews/GiftAlertPreview";
 import { useNavigate } from "react-router-dom";
 
@@ -332,6 +333,15 @@ const GiftAlertOverlay = () => {
                         </SettingRow>
                         <SettingRow label="Text Color" description="Username & subtitle">
                           <SettingColorPicker value={s.text_color || "0 0% 100%"} onChange={v => set("text_color", v)} />
+                        </SettingRow>
+                        <SettingRow label="Alert Sound" description="Sound played when a gift alert fires">
+                          <SoundLibraryPicker
+                            currentUrl={s.sound_url || ""}
+                            currentName={s.sound_name || ""}
+                            onSelect={(url, name) => {
+                              updateSettings(widget.id, { ...widget.settings, sound_url: url, sound_name: name });
+                            }}
+                          />
                         </SettingRow>
                         <SettingRow label="Sound Volume">
                           <SettingSlider value={s.sound_volume} onChange={v => set("sound_volume", v)} min={0} max={100} suffix="%" />

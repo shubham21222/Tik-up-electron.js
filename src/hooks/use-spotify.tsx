@@ -79,11 +79,6 @@ export function useSpotify() {
     const { data: { session: s } } = await supabase.auth.getSession();
     if (!s) throw new Error("Not authenticated");
     
-    const res = await supabase.functions.invoke("spotify-auth", {
-      body: body || {},
-      headers: {},
-    });
-    // We need to call with query params, use fetch directly
     const url = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify-auth?action=${action}`;
     const response = await fetch(url, {
       method: "POST",

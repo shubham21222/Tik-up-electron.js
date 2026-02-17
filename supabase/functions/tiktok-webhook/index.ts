@@ -615,14 +615,23 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Method 4: Anon key with valid user JWT (for testing from dashboard)
+      // Method 4: Valid JWT in Authorization header (user session or service key)
       if (!authenticated) {
         const authHeader = req.headers.get("authorization") || "";
         const bearerToken = authHeader.replace(/^Bearer\s+/i, "");
         if (bearerToken && bearerToken.length > 50) {
-          // Accept any valid-looking JWT (the Supabase client validates it)
           authenticated = true;
           console.log("✅ Bridge auth: user JWT");
+        }
+      }
+
+      // Method 5: Supabase anon key via apikey header (testing from dashboard/curl)
+      if (!authenticated) {
+        const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+        const apikeyHeader = req.headers.get("apikey") || "";
+        if (anonKey && apikeyHeader && apikeyHeader === anonKey) {
+          authenticated = true;
+          console.log("✅ Bridge auth: anon apikey header");
         }
       }
 

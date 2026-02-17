@@ -2,11 +2,11 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect } from "react";
 
 const mockLikes = [
-  { user: "Tikup_User", count: 12 },
-  { user: "Tikup_User", count: 5 },
-  { user: "Tikup_User", count: 28 },
-  { user: "Tikup_User", count: 3 },
-  { user: "Tikup_User", count: 50 },
+  { user: "StreamFan42", count: 12 },
+  { user: "GiftKing_99", count: 5 },
+  { user: "NightOwl_Live", count: 28 },
+  { user: "CoolViewer", count: 3 },
+  { user: "TikTokPro", count: 50 },
 ];
 
 interface LikeAlertPreviewProps {

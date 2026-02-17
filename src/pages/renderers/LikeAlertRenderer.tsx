@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { defaultLikeAlertSettings } from "@/hooks/use-overlay-widgets";
 import useOverlayBody from "@/hooks/use-overlay-body";
 
-interface LikeEvent { id: number; user: string; count: number; }
+interface LikeEvent { id: number; user: string; count: number; avatar?: string; }
 
 const LikeAlertRenderer = () => {
   useOverlayBody();
@@ -24,7 +24,13 @@ const LikeAlertRenderer = () => {
     if (!publicToken) return;
     const ch = supabase.channel(`like-alert-${publicToken}`)
       .on("broadcast", { event: "like_alert" }, (msg) => {
-        setAlerts(prev => [...prev, { ...msg.payload as any, id: Date.now() }]);
+        const p = msg.payload as any;
+        setAlerts(prev => [...prev, {
+          id: Date.now(),
+          user: p.username || p.user || "Viewer",
+          count: p.likeCount || p.like_count || p.count || 1,
+          avatar: p.avatar || p.profilePictureUrl || p.avatar_url,
+        }]);
       })
       .on("broadcast", { event: "test_alert" }, () => {
         setAlerts(prev => [...prev, { id: Date.now(), user: "TestUser", count: 5 }]);
@@ -63,6 +69,7 @@ const LikeAlertRenderer = () => {
             </motion.div>
             <p className="text-sm font-bold text-white">{a.user}</p>
             {settings.show_count && <p className="text-lg font-heading font-black" style={{ color: colors[0] }}>+{a.count} ❤️</p>}
+            <p className="text-[10px] text-white/40 mt-0.5">liked your stream</p>
           </motion.div>
         ))}
       </AnimatePresence>

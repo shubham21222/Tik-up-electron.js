@@ -4,13 +4,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import { defaultSocialRotatorSettings } from "@/hooks/overlay-defaults";
 import useOverlayBody from "@/hooks/use-overlay-body";
+import SocialPlatformIcon from "@/components/overlays/SocialPlatformIcon";
 
 const defaultSocials = [
-  { icon: "📺", label: "YouTube", handle: "@streamer", color: "0 100% 50%" },
-  { icon: "📸", label: "Instagram", handle: "@streamer", color: "330 80% 55%" },
-  { icon: "🎵", label: "TikTok", handle: "@streamer", color: "180 100% 45%" },
-  { icon: "🐦", label: "Twitter", handle: "@streamer", color: "200 100% 55%" },
-  { icon: "💬", label: "Discord", handle: "discord.gg/stream", color: "235 86% 65%" },
+  { id: "youtube", icon: "youtube", label: "YouTube", handle: "@streamer", color: "0 100% 50%" },
+  { id: "instagram", icon: "instagram", label: "Instagram", handle: "@streamer", color: "330 80% 55%" },
+  { id: "tiktok", icon: "tiktok", label: "TikTok", handle: "@streamer", color: "180 100% 45%" },
+  { id: "twitter", icon: "twitter", label: "Twitter", handle: "@streamer", color: "200 100% 55%" },
+  { id: "discord", icon: "discord", label: "Discord", handle: "discord.gg/stream", color: "235 86% 65%" },
 ];
 
 const SocialRotatorRenderer = () => {
@@ -35,17 +36,21 @@ const SocialRotatorRenderer = () => {
     return () => { supabase.removeChannel(db); };
   }, [publicToken]);
 
-  const socials = settings.social_links?.length ? settings.social_links : defaultSocials;
+  const socials = (settings.social_links?.length ? settings.social_links : defaultSocials).filter((s: any) => s.handle);
 
   useEffect(() => {
+    if (socials.length === 0) return;
     const interval = setInterval(() => {
       setIndex((prev) => (prev + 1) % socials.length);
     }, (settings.rotation_speed || 4) * 1000);
     return () => clearInterval(interval);
   }, [socials.length, settings.rotation_speed]);
 
-  const social = socials[index];
+  if (socials.length === 0) return <div className="w-screen h-screen" />;
+
+  const social = socials[index % socials.length] as any;
   const fontSize = settings.font_size || 16;
+  const platformId = social.id || social.icon || "";
 
   return (
     <div className={`w-screen h-screen overflow-hidden flex items-center justify-center ${settings.transparent_bg ? "bg-transparent" : "bg-black"}`}>
@@ -70,18 +75,18 @@ const SocialRotatorRenderer = () => {
             style={{
               width: settings.icon_size || 48,
               height: settings.icon_size || 48,
-              fontSize: (settings.icon_size || 48) * 0.5,
               background: `hsl(${social.color || "160 100% 45%"} / 0.15)`,
               boxShadow: `0 0 15px hsl(${social.color || "160 100% 45%"} / 0.2)`,
+              color: `hsl(${social.color || "160 100% 45%"})`,
             }}
             animate={{ scale: [1, 1.08, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           >
-            {social.icon}
+            <SocialPlatformIcon platform={platformId} size={(settings.icon_size || 48) * 0.45} />
           </motion.div>
           <div>
             <p className="font-bold text-white" style={{ fontSize }}>{social.label}</p>
-            <p className="font-medium" style={{ fontSize: fontSize * 0.75, color: `hsl(${social.color || "160 100% 45%"})` }}>{social.handle}</p>
+            <p className="font-semibold" style={{ fontSize: fontSize * 0.75, color: `hsl(${social.color || "160 100% 45%"})` }}>{social.handle}</p>
           </div>
         </motion.div>
       </AnimatePresence>
@@ -92,7 +97,6 @@ const SocialRotatorRenderer = () => {
           ))}
         </div>
       )}
-      
     </div>
   );
 };

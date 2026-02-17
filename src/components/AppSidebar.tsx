@@ -6,7 +6,7 @@ import {
   Shield, Link2, Palette, Settings, CreditCard, SlidersHorizontal,
   ChevronLeft, ChevronRight, Crown, Layers,
   Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2, Music,
-  Monitor, Clock
+  Monitor, Clock, Share2
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -55,8 +55,8 @@ const sections: SidebarSection[] = [
     items: [
       { id: "/tts", label: "Text-to-Speech", icon: Mic },
       { id: "/sound-alerts", label: "Sound Alerts", icon: Volume2 },
-      { id: "/overlays", label: "Overlays", icon: Layers },
       { id: "/recent-activity", label: "Event Feed", icon: Activity },
+      { id: "/overlays", label: "All Overlays", icon: Layers },
       { id: "/sounds", label: "Spotify Integration", icon: Music, pro: true },
       { id: "/backgrounds", label: "Backgrounds", icon: Image, pro: true },
     ],
@@ -67,8 +67,9 @@ const sections: SidebarSection[] = [
     sectionIcon: Target,
     items: [
       { id: "/goal-overlays", label: "Stream Goals", icon: Target },
-      { id: "/leaderboard", label: "Top Supporters", icon: Trophy, pro: true },
+      { id: "/leaderboard", label: "Top Supporters", icon: Trophy },
       { id: "/points", label: "User Levels & Points", icon: Coins },
+      { id: "/social-rotator", label: "Social Media Widget", icon: Share2 },
     ],
   },
   {
@@ -80,7 +81,6 @@ const sections: SidebarSection[] = [
       { id: "/auto-moderation", label: "Chat Protection", icon: Shield },
       { id: "/keystroke-triggers", label: "Keystroke Triggers", icon: Keyboard },
       { id: "/gta-triggers", label: "GTA Interactive", icon: Gamepad2, pro: true },
-      
     ],
   },
   {

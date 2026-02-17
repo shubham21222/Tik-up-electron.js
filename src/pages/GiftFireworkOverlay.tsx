@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 
 const GiftFireworkOverlay = () => {
   const { user } = useAuth();
@@ -67,6 +68,7 @@ const GiftFireworkOverlay = () => {
                   <SettingRow label="Show Username"><SettingToggle checked={s.show_username} onChange={v => set("show_username", v)} /></SettingRow>
                   <SettingRow label="Gravity Effect"><SettingToggle checked={s.gravity} onChange={v => set("gravity", v)} /></SettingRow>
                   <SettingRow label="Multi Burst"><SettingToggle checked={s.multi_burst} onChange={v => set("multi_burst", v)} /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Transparent Background"><SettingToggle checked={s.transparent_bg} onChange={v => set("transparent_bg", v)} /></SettingRow>

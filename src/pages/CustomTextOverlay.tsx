@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import CustomTextPreview from "@/components/overlays/previews/CustomTextPreview";
 
 const CustomTextOverlay = () => {
@@ -55,6 +56,7 @@ const CustomTextOverlay = () => {
                   <SettingRow label="Align"><SettingSelect value={s.text_align} onChange={v => set("text_align", v)} options={[{ value: "left", label: "Left" }, { value: "center", label: "Center" }, { value: "right", label: "Right" }]} /></SettingRow>
                   <SettingRow label="Animated Gradient"><SettingToggle checked={s.animated_gradient} onChange={v => set("animated_gradient", v)} /></SettingRow>
                   <SettingRow label="Gradient Speed"><SettingSlider value={s.gradient_speed} onChange={v => set("gradient_speed", v)} min={1} max={10} suffix="s" /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Text Shadow"><SettingToggle checked={s.text_shadow} onChange={v => set("text_shadow", v)} /></SettingRow>

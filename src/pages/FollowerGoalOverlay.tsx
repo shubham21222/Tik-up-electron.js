@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import FollowerGoalPreview from "@/components/overlays/previews/FollowerGoalPreview";
 
 const FollowerGoalOverlay = () => {
@@ -50,6 +51,7 @@ const FollowerGoalOverlay = () => {
                   <SettingRow label="Show Percentage"><SettingToggle checked={s.show_percentage} onChange={v => set("show_percentage", v)} /></SettingRow>
                   <SettingRow label="Text Position"><SettingSelect value={s.text_position} onChange={v => set("text_position", v)} options={[{ value: "inside", label: "Inside Bar" }, { value: "above", label: "Above" }, { value: "below", label: "Below" }, { value: "hidden", label: "Hidden" }]} /></SettingRow>
                   <SettingRow label="Title"><input value={s.title_text} onChange={e => set("title_text", e.target.value)} className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 w-[160px]" /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Auto Hide at 100%"><SettingToggle checked={s.auto_hide_complete} onChange={v => set("auto_hide_complete", v)} /></SettingRow>

@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import LeaderboardPreview from "@/components/overlays/previews/LeaderboardPreview";
 
 const LeaderboardOverlay = () => {
@@ -54,6 +55,7 @@ const LeaderboardOverlay = () => {
                   <SettingRow label="Crown for #1"><SettingToggle checked={s.crown_for_first} onChange={v => set("crown_for_first", v)} /></SettingRow>
                   <SettingRow label="Show Values"><SettingToggle checked={s.show_values} onChange={v => set("show_values", v)} /></SettingRow>
                   <SettingRow label="Show Avatars"><SettingToggle checked={s.show_avatars} onChange={v => set("show_avatars", v)} /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Glow per Rank"><SettingToggle checked={s.glow_per_rank} onChange={v => set("glow_per_rank", v)} /></SettingRow>

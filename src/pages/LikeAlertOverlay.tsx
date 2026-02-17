@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import LikeAlertPreview from "@/components/overlays/previews/LikeAlertPreview";
 
 const LikeAlertOverlay = () => {
@@ -109,6 +110,7 @@ const LikeAlertOverlay = () => {
                         </SettingRow>
                         <SettingRow label="Show Username"><SettingToggle checked={s.username_visible} onChange={v => set("username_visible", v)} /></SettingRow>
                         <SettingRow label="Combo Detection"><SettingToggle checked={s.combo_detection} onChange={v => set("combo_detection", v)} /></SettingRow>
+                        <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                       </div>
                     }
                     advancedSlot={

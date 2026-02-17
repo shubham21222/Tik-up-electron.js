@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import WebcamFramePreview from "@/components/overlays/previews/WebcamFramePreview";
 
 const WebcamFrameOverlay = () => {
@@ -97,6 +98,8 @@ const WebcamFrameOverlay = () => {
                         <SettingRow label="Corner Radius"><SettingSlider value={s.corner_radius} onChange={v => set("corner_radius", v)} min={0} max={40} suffix="px" /></SettingRow>
                         <SettingRow label="Animation Speed"><SettingSlider value={s.animation_speed} onChange={v => set("animation_speed", v)} min={0.25} max={3} step={0.25} suffix="x" /></SettingRow>
                         <SettingRow label="Glow Intensity"><SettingSlider value={s.glow_intensity} onChange={v => set("glow_intensity", v)} min={0} max={100} suffix="%" /></SettingRow>
+                        <SettingRow label="Color 1"><SettingColorPicker value={s.color_1} onChange={v => set("color_1", v)} /></SettingRow>
+                        <SettingRow label="Color 2"><SettingColorPicker value={s.color_2} onChange={v => set("color_2", v)} /></SettingRow>
                       </div>
                     }
                     advancedSlot={

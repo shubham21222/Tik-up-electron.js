@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import PromoOverlayPreview from "@/components/overlays/previews/PromoOverlayPreview";
 
 const PromoOverlay = () => {
@@ -96,6 +97,9 @@ const PromoOverlay = () => {
                         <SettingRow label="Handle">
                           <input value={s.handle} onChange={e => set("handle", e.target.value)}
                             className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 w-[160px]" />
+                        </SettingRow>
+                        <SettingRow label="Accent Color">
+                          <SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} />
                         </SettingRow>
                       </div>
                     }

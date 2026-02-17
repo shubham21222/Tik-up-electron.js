@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 
 const GiftComboOverlay = () => {
   const { user } = useAuth();
@@ -69,6 +70,7 @@ const GiftComboOverlay = () => {
                   <SettingRow label="Show Gift Icon"><SettingToggle checked={s.show_gift_icon} onChange={v => set("show_gift_icon", v)} /></SettingRow>
                   <SettingRow label="Particle Burst"><SettingToggle checked={s.particle_burst} onChange={v => set("particle_burst", v)} /></SettingRow>
                   <SettingRow label="Screen Shake"><SettingToggle checked={s.screen_shake} onChange={v => set("screen_shake", v)} /></SettingRow>
+                  <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Transparent Background"><SettingToggle checked={s.transparent_bg} onChange={v => set("transparent_bg", v)} /></SettingRow>

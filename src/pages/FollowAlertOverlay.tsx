@@ -9,6 +9,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import FollowAlertPreview from "@/components/overlays/previews/FollowAlertPreview";
 
 const FollowAlertOverlay = () => {
@@ -119,6 +120,7 @@ const FollowAlertOverlay = () => {
                           ]} />
                         </SettingRow>
                         <SettingRow label="Follow Counter"><SettingToggle checked={s.counter_visible} onChange={v => set("counter_visible", v)} /></SettingRow>
+                        <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                       </div>
                     }
                     advancedSlot={

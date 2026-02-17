@@ -11,6 +11,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 import SocialPlatformIcon from "@/components/overlays/SocialPlatformIcon";
 import { toast } from "sonner";
 
@@ -126,6 +127,7 @@ const SocialRotatorOverlay = () => {
                         <SettingRow label="Glow Intensity"><SettingSlider value={s.glow_intensity} onChange={v => set("glow_intensity", v)} min={0} max={100} suffix="%" /></SettingRow>
                         <SettingRow label="Glass Background"><SettingToggle checked={s.glass_bg} onChange={v => set("glass_bg", v)} /></SettingRow>
                         <SettingRow label="Show Indicators"><SettingToggle checked={s.show_indicators} onChange={v => set("show_indicators", v)} /></SettingRow>
+                        <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                       </div>
                     }
                     advancedSlot={

@@ -10,6 +10,7 @@ import SettingRow from "@/components/overlays/settings/SettingRow";
 import SettingSelect from "@/components/overlays/settings/SettingSelect";
 import SettingSlider from "@/components/overlays/settings/SettingSlider";
 import SettingToggle from "@/components/overlays/settings/SettingToggle";
+import SettingColorPicker from "@/components/overlays/settings/SettingColorPicker";
 
 const AnimatedBgOverlay = () => {
   const { user } = useAuth();
@@ -76,6 +77,9 @@ const AnimatedBgOverlay = () => {
                   {s.bg_type === "grid" && <SettingRow label="Grid Size"><SettingSlider value={s.grid_size} onChange={v => set("grid_size", v)} min={20} max={80} suffix="px" /></SettingRow>}
                   {s.bg_type === "waves" && <SettingRow label="Wave Amplitude"><SettingSlider value={s.wave_amplitude} onChange={v => set("wave_amplitude", v)} min={5} max={60} suffix="px" /></SettingRow>}
                   <SettingRow label="Blur Amount"><SettingSlider value={s.blur_amount} onChange={v => set("blur_amount", v)} min={0} max={30} suffix="px" /></SettingRow>
+                  <SettingRow label="Color 1"><SettingColorPicker value={s.color_1} onChange={v => set("color_1", v)} /></SettingRow>
+                  <SettingRow label="Color 2"><SettingColorPicker value={s.color_2} onChange={v => set("color_2", v)} /></SettingRow>
+                  <SettingRow label="Color 3"><SettingColorPicker value={s.color_3} onChange={v => set("color_3", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
                   <SettingRow label="Dark Background"><SettingToggle checked={s.dark_bg} onChange={v => set("dark_bg", v)} /></SettingRow>

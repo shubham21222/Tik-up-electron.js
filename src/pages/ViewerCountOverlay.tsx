@@ -24,18 +24,24 @@ const ViewerCountOverlay = () => {
 
   return (
     <AppLayout>
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full pointer-events-none z-0" style={{ background: "radial-gradient(ellipse, hsl(45 100% 55% / 0.04), transparent 70%)" }} />
       <div className="max-w-5xl mx-auto relative z-10 pb-12">
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="flex items-center justify-between mb-8">
-          <div><h1 className="text-2xl font-heading font-bold text-foreground mb-1">Viewer Count</h1><p className="text-muted-foreground text-sm">Live viewer count display with spike animations and peak tracking.</p></div>
-          <button onClick={handleCreate} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm transition-all hover:-translate-y-0.5" style={{ background: "linear-gradient(135deg, hsl(45 100% 55%), hsl(35 100% 50%))", color: "black", boxShadow: "0 0 25px hsl(45 100% 55% / 0.25)" }}><Plus size={16} /> New Widget</button>
+          <div>
+            <h1 className="text-2xl font-heading font-bold text-foreground mb-1">Viewer Count</h1>
+            <p className="text-muted-foreground text-sm">Live viewer count display with spike animations and peak tracking.</p>
+          </div>
+          <button onClick={handleCreate} className="flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground transition-all hover:-translate-y-0.5 hover:bg-secondary/90 shadow-md">
+            <Plus size={16} /> New Widget
+          </button>
         </motion.div>
-        {loading ? <div className="space-y-6">{[...Array(2)].map((_, i) => <div key={i} className="rounded-2xl h-64 bg-muted/20 animate-pulse" />)}</div>
+        {loading ? <div className="space-y-6">{[...Array(2)].map((_, i) => <div key={i} className="rounded-2xl h-64 bg-muted/40 animate-pulse" />)}</div>
         : widgets.length === 0 ? (
-          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20 rounded-2xl border border-border bg-card">
             <Users size={48} className="text-muted-foreground/20 mx-auto mb-4" />
             <h2 className="text-lg font-heading font-bold text-foreground mb-2">No Viewer Counts yet</h2>
-            <button onClick={handleCreate} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm" style={{ background: "linear-gradient(135deg, hsl(45 100% 55%), hsl(35 100% 50%))", color: "black" }}><Plus size={16} /> Create Widget</button>
+            <button onClick={handleCreate} className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm bg-secondary text-secondary-foreground hover:bg-secondary/90 shadow-md">
+              <Plus size={16} /> Create Widget
+            </button>
           </motion.div>
         ) : (
           <div className="space-y-6"><AnimatePresence>{widgets.map(widget => {
@@ -51,7 +57,7 @@ const ViewerCountOverlay = () => {
                   <SettingRow label="Spike Animation"><SettingToggle checked={s.spike_animation} onChange={v => set("spike_animation", v)} /></SettingRow>
                   <SettingRow label="Pulse on Increase"><SettingToggle checked={s.pulse_on_increase} onChange={v => set("pulse_on_increase", v)} /></SettingRow>
                   <SettingRow label="Show Icon"><SettingToggle checked={s.icon_visible} onChange={v => set("icon_visible", v)} /></SettingRow>
-                  <SettingRow label="Label Text"><input value={s.label_text} onChange={e => set("label_text", e.target.value)} className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium focus:outline-none focus:border-primary/30 w-[120px]" /></SettingRow>
+                  <SettingRow label="Label Text"><input value={s.label_text} onChange={e => set("label_text", e.target.value)} className="text-[11px] px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-foreground font-medium focus:outline-none focus:ring-1 focus:ring-secondary/30 w-[120px]" /></SettingRow>
                   <SettingRow label="Accent Color"><SettingColorPicker value={s.accent_color} onChange={v => set("accent_color", v)} /></SettingRow>
                 </div>}
                 advancedSlot={<div className="space-y-4">
@@ -60,7 +66,7 @@ const ViewerCountOverlay = () => {
                   <SettingRow label="Show Average"><SettingToggle checked={s.show_average} onChange={v => set("show_average", v)} /></SettingRow>
                   <SettingRow label="Spike Threshold"><SettingSlider value={s.spike_threshold} onChange={v => set("spike_threshold", v)} min={10} max={200} /></SettingRow>
                   <SettingRow label="Transparent BG"><SettingToggle checked={s.transparent_bg} onChange={v => set("transparent_bg", v)} /></SettingRow>
-                  <div><p className="text-[12px] font-medium text-foreground mb-1.5">Custom CSS</p><textarea value={s.custom_css} onChange={e => set("custom_css", e.target.value)} placeholder="/* Custom CSS */" className="w-full h-24 text-[11px] font-mono p-3 rounded-lg border border-white/[0.08] bg-white/[0.02] text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary/30 resize-none" /></div>
+                  <div><p className="text-[12px] font-medium text-foreground mb-1.5">Custom CSS</p><textarea value={s.custom_css} onChange={e => set("custom_css", e.target.value)} placeholder="/* Custom CSS */" className="w-full h-24 text-[11px] font-mono p-3 rounded-lg border border-border bg-muted/50 text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:ring-1 focus:ring-secondary/30 resize-none" /></div>
                 </div>} />
             );
           })}</AnimatePresence></div>

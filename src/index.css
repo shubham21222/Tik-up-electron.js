@@ -499,6 +499,94 @@ main > div[class*="max-w-"] {
   box-shadow: none;
 }
 
+/* ── Overlay Settings Shell: light / dark theme ── */
+
+/* Light mode: clean white card */
+.overlay-shell-wrapper {
+  background: hsl(var(--border));
+  box-shadow: 0 1px 3px hsl(0 0% 0% / 0.04), 0 4px 16px hsl(0 0% 0% / 0.06);
+}
+
+.overlay-shell-inner {
+  background: hsl(var(--card));
+}
+
+.overlay-shell-border-b {
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+.overlay-shell-border-t {
+  border-top: 1px solid hsl(var(--border));
+}
+
+.overlay-shell-preview {
+  background: linear-gradient(135deg, hsl(220 14% 96%), hsl(220 14% 94%));
+}
+
+.overlay-shell-url-bar {
+  background: hsl(var(--muted) / 0.3);
+}
+
+.overlay-shell-copy-btn {
+  background: hsl(var(--secondary) / 0.08);
+  color: hsl(var(--secondary));
+}
+
+.overlay-shell-copy-btn:hover {
+  background: hsl(var(--secondary) / 0.14);
+}
+
+/* PRO badge: light mode pastel purple */
+.pro-badge-overlay {
+  background: hsl(270 80% 96%);
+  color: hsl(270 60% 45%);
+  border: 1px solid hsl(270 60% 88%);
+  box-shadow: none;
+}
+
+/* Dark mode overrides */
+.dark .overlay-shell-wrapper {
+  background: linear-gradient(135deg, hsl(280 100% 65% / 0.1), hsl(280 100% 65% / 0.02));
+  box-shadow: none;
+}
+
+.dark .overlay-shell-inner {
+  background: rgba(12, 10, 20, 0.85);
+  backdrop-filter: blur(20px);
+}
+
+.dark .overlay-shell-border-b {
+  border-bottom: 1px solid hsl(0 0% 100% / 0.04);
+}
+
+.dark .overlay-shell-border-t {
+  border-top: 1px solid hsl(0 0% 100% / 0.04);
+}
+
+.dark .overlay-shell-preview {
+  background: linear-gradient(135deg, hsl(0 0% 2%), hsl(280 20% 5%));
+}
+
+.dark .overlay-shell-url-bar {
+  background: hsl(0 0% 100% / 0.01);
+}
+
+.dark .overlay-shell-copy-btn {
+  background: hsl(280 100% 65% / 0.1);
+  color: hsl(280 100% 70%);
+}
+
+.dark .overlay-shell-copy-btn:hover {
+  background: hsl(280 100% 65% / 0.18);
+}
+
+.dark .pro-badge-overlay {
+  background: linear-gradient(135deg, hsl(280 100% 65% / 0.15), hsl(280 100% 55% / 0.08));
+  color: hsl(280 100% 70%);
+  border: 1px solid hsl(280 100% 65% / 0.2);
+  box-shadow: 0 0 12px hsl(280 100% 65% / 0.1);
+}
+
 /* Stream Buddies animations */
 @keyframes buddyCrown {
   0%, 100% { transform: translateX(-50%) translateY(0); }

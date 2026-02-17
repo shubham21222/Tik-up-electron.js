@@ -45,15 +45,11 @@ const OverlaySettingsShell = ({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -10, scale: 0.95 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-      className="rounded-2xl p-[1px] transition-all duration-300"
-      style={{ background: "linear-gradient(135deg, hsl(280 100% 65% / 0.1), hsl(280 100% 65% / 0.02))" }}
+      className="overlay-shell-wrapper rounded-2xl p-[1px] transition-all duration-300"
     >
-      <div
-        className="rounded-2xl overflow-hidden"
-        style={{ background: "rgba(12,10,20,0.85)", backdropFilter: "blur(20px)" }}
-      >
+      <div className="overlay-shell-inner rounded-2xl overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.04]">
+        <div className="flex items-center justify-between px-5 py-4 overlay-shell-border-b">
           <div className="flex items-center gap-3">
             <h3 className="text-sm font-heading font-bold text-foreground">{widget.name}</h3>
             <ProBadge />
@@ -70,7 +66,7 @@ const OverlaySettingsShell = ({
             </button>
           </div>
           <div className="flex items-center gap-1.5">
-            <button onClick={onTest} className="p-2 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/5 transition-colors" title="Test">
+            <button onClick={onTest} className="p-2 rounded-lg text-muted-foreground hover:text-secondary hover:bg-secondary/5 transition-colors" title="Test">
               <Play size={14} />
             </button>
             <button onClick={onReset} className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors" title="Reset">
@@ -82,8 +78,8 @@ const OverlaySettingsShell = ({
           </div>
         </div>
 
-        {/* Live Preview */}
-        <div className="relative h-[220px] bg-gradient-to-br from-[hsl(0,0%,2%)] to-[hsl(280,20%,5%)] overflow-hidden border-b border-white/[0.04]">
+        {/* Live Preview – canvas stays dark for contrast */}
+        <div className="overlay-shell-preview relative h-[220px] overflow-hidden overlay-shell-border-b">
           <div className="absolute inset-0 opacity-[0.03]" style={{
             backgroundImage: "radial-gradient(circle at 1px 1px, white 1px, transparent 0)",
             backgroundSize: "24px 24px"
@@ -95,21 +91,17 @@ const OverlaySettingsShell = ({
         </div>
 
         {/* URL Bar */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 px-4 md:px-5 py-3 border-b border-white/[0.04] bg-white/[0.01]">
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 px-4 md:px-5 py-3 overlay-shell-border-b overlay-shell-url-bar">
           <div className="flex-1 text-[11px] text-muted-foreground font-mono truncate min-w-0">
             {isPro ? overlayUrl : (
               <span className="flex items-center gap-1.5 select-none">
-                <Lock size={10} className="shrink-0" style={{ color: "hsl(280 100% 65%)" }} />
+                <Lock size={10} className="shrink-0 text-secondary" />
                 <span className="blur-[5px] pointer-events-none">https://tikup.xyz/overlay/••••••/••••-••••-••••</span>
               </span>
             )}
           </div>
-          <button onClick={copyUrl} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
-            style={{
-              background: isPro ? "hsl(280 100% 65% / 0.1)" : "hsl(0 0% 50% / 0.08)",
-              color: isPro ? "hsl(280 100% 70%)" : "hsl(0 0% 50%)",
-              cursor: isPro ? "pointer" : "not-allowed",
-            }}>
+          <button onClick={copyUrl} className="overlay-shell-copy-btn flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-colors"
+            style={{ cursor: isPro ? "pointer" : "not-allowed" }}>
             {isPro ? <Copy size={11} /> : <Lock size={11} />} {isPro ? "Copy URL" : "Pro Only"}
           </button>
           {isPro && (
@@ -120,17 +112,17 @@ const OverlaySettingsShell = ({
         </div>
 
         {/* OBS Instructions */}
-        <button onClick={() => setShowOBS(!showOBS)} className="w-full flex items-center justify-between px-5 py-2.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors border-b border-white/[0.04]">
+        <button onClick={() => setShowOBS(!showOBS)} className="w-full flex items-center justify-between px-5 py-2.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors overlay-shell-border-b">
           <span className="flex items-center gap-1.5"><Info size={11} /> OBS Browser Source Setup</span>
           <ChevronDown size={12} className={`transition-transform ${showOBS ? "rotate-180" : ""}`} />
         </button>
         <AnimatePresence>
           {showOBS && (
-            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden border-b border-white/[0.04]">
+            <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden overlay-shell-border-b">
               <div className="px-5 py-3 space-y-2">
-                <p className="text-[11px] text-muted-foreground">1. Open OBS Studio → Sources → <strong>+</strong> → Browser</p>
+                <p className="text-[11px] text-muted-foreground">1. Open OBS Studio → Sources → <strong className="text-foreground">+</strong> → Browser</p>
                 <p className="text-[11px] text-muted-foreground">2. Paste the URL above</p>
-                <p className="text-[11px] text-muted-foreground">3. Set width: <strong>1920</strong>, height: <strong>1080</strong></p>
+                <p className="text-[11px] text-muted-foreground">3. Set width: <strong className="text-foreground">1920</strong>, height: <strong className="text-foreground">1080</strong></p>
                 <p className="text-[11px] text-muted-foreground">4. ✅ Delete cache on scene change</p>
               </div>
             </motion.div>
@@ -138,7 +130,7 @@ const OverlaySettingsShell = ({
         </AnimatePresence>
 
         {/* Settings */}
-        <div className="px-5 py-4 space-y-4">
+        <div className="px-5 py-5 space-y-4">
           <div className="flex items-center gap-2 mb-2">
             <Settings size={14} className="text-muted-foreground" />
             <span className="text-xs font-heading font-bold text-foreground uppercase tracking-wider">Customization</span>
@@ -151,8 +143,7 @@ const OverlaySettingsShell = ({
           <>
             <button
               onClick={() => setShowAdvanced(!showAdvanced)}
-              className="w-full flex items-center justify-between px-5 py-3 text-[11px] font-medium transition-colors border-t border-white/[0.04]"
-              style={{ color: "hsl(280 100% 70%)" }}
+              className="w-full flex items-center justify-between px-5 py-3 text-[11px] font-medium transition-colors overlay-shell-border-t text-secondary"
             >
               <span className="flex items-center gap-1.5"><Sparkles size={11} /> Advanced Settings (PRO)</span>
               <ChevronDown size={12} className={`transition-transform ${showAdvanced ? "rotate-180" : ""}`} />
@@ -160,7 +151,7 @@ const OverlaySettingsShell = ({
             <AnimatePresence>
               {showAdvanced && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="overflow-hidden">
-                  <div className="px-5 py-4 space-y-4 border-t border-white/[0.04]">
+                  <div className="px-5 py-5 space-y-4 overlay-shell-border-t">
                     {advancedSlot}
                   </div>
                 </motion.div>

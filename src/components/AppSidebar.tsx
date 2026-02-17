@@ -12,6 +12,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 import tikupLogo from "@/assets/tikup_logo.png";
 import { useState, useCallback } from "react";
 
@@ -115,73 +116,108 @@ const SidebarNavItem = ({
   isActive,
   isCollapsed,
   onClick,
+  isHidden,
 }: {
   item: NavItem;
   isActive: boolean;
   isCollapsed: boolean;
   onClick: () => void;
-}) => (
-  <Link
-    to={item.id}
-    onClick={onClick}
-    className={cn(
-      "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200",
-      isCollapsed ? "justify-center p-2.5" : "px-3 py-2",
-      isActive
-        ? "sidebar-nav-active"
-        : "text-muted-foreground/70 hover:text-foreground/90"
-    )}
-  >
-    {/* Active indicator bar */}
-    <AnimatePresence>
-      {isActive && (
-        <motion.div
-          layoutId="sidebar-active-bar"
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-r-full bg-secondary"
-          style={{ boxShadow: "0 0 8px hsl(var(--secondary) / 0.6)" }}
-          initial={{ opacity: 0, scaleY: 0 }}
-          animate={{ opacity: 1, scaleY: 1 }}
-          exit={{ opacity: 0, scaleY: 0 }}
-          transition={{ duration: 0.2, ease: "easeOut" }}
-        />
-      )}
-    </AnimatePresence>
-
-    {/* Icon in glass card */}
-    <motion.div
-      className={cn(
-        "flex items-center justify-center rounded-lg transition-all duration-200 flex-shrink-0",
-        isCollapsed ? "w-8 h-8" : "w-7 h-7",
-        isActive
-          ? "sidebar-icon-active"
-          : "sidebar-icon-glass"
-      )}
-      whileHover={{ scale: 1.08 }}
-      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-    >
-      <item.icon size={isCollapsed ? 17 : 15} className="flex-shrink-0" />
-    </motion.div>
-
-    {!isCollapsed && (
-      <>
-        <span className="text-[12.5px] font-semibold tracking-wide truncate">{item.label}</span>
-        {item.pro && (
-          <span className="sidebar-pro-badge ml-auto text-[7px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 inline-flex items-center gap-0.5">
-            <Star size={6} />
-            PRO
-          </span>
+  isHidden?: boolean;
+}) => {
+  if (isHidden) {
+    return (
+      <div
+        className={cn(
+          "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200 opacity-40 cursor-not-allowed select-none",
+          isCollapsed ? "justify-center p-2.5" : "px-3 py-2",
         )}
-      </>
-    )}
-
-    {/* Collapsed tooltip */}
-    {isCollapsed && (
-      <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
-        {item.label}
+      >
+        <div className={cn(
+          "flex items-center justify-center rounded-lg flex-shrink-0 sidebar-icon-glass opacity-50",
+          isCollapsed ? "w-8 h-8" : "w-7 h-7",
+        )}>
+          <item.icon size={isCollapsed ? 17 : 15} className="flex-shrink-0" />
+        </div>
+        {!isCollapsed && (
+          <>
+            <span className="text-[12.5px] font-semibold tracking-wide truncate text-muted-foreground/50">{item.label}</span>
+            <span className="ml-auto text-[7px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 bg-muted/30 text-muted-foreground/60">
+              SOON
+            </span>
+          </>
+        )}
+        {isCollapsed && (
+          <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
+            {item.label} (Coming Soon)
+          </div>
+        )}
       </div>
-    )}
-  </Link>
-);
+    );
+  }
+
+  return (
+    <Link
+      to={item.id}
+      onClick={onClick}
+      className={cn(
+        "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200",
+        isCollapsed ? "justify-center p-2.5" : "px-3 py-2",
+        isActive
+          ? "sidebar-nav-active"
+          : "text-muted-foreground/70 hover:text-foreground/90"
+      )}
+    >
+      {/* Active indicator bar */}
+      <AnimatePresence>
+        {isActive && (
+          <motion.div
+            layoutId="sidebar-active-bar"
+            className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-r-full bg-secondary"
+            style={{ boxShadow: "0 0 8px hsl(var(--secondary) / 0.6)" }}
+            initial={{ opacity: 0, scaleY: 0 }}
+            animate={{ opacity: 1, scaleY: 1 }}
+            exit={{ opacity: 0, scaleY: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Icon in glass card */}
+      <motion.div
+        className={cn(
+          "flex items-center justify-center rounded-lg transition-all duration-200 flex-shrink-0",
+          isCollapsed ? "w-8 h-8" : "w-7 h-7",
+          isActive
+            ? "sidebar-icon-active"
+            : "sidebar-icon-glass"
+        )}
+        whileHover={{ scale: 1.08 }}
+        transition={{ type: "spring", stiffness: 400, damping: 20 }}
+      >
+        <item.icon size={isCollapsed ? 17 : 15} className="flex-shrink-0" />
+      </motion.div>
+
+      {!isCollapsed && (
+        <>
+          <span className="text-[12.5px] font-semibold tracking-wide truncate">{item.label}</span>
+          {item.pro && (
+            <span className="sidebar-pro-badge ml-auto text-[7px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 inline-flex items-center gap-0.5">
+              <Star size={6} />
+              PRO
+            </span>
+          )}
+        </>
+      )}
+
+      {/* Collapsed tooltip */}
+      {isCollapsed && (
+        <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
+          {item.label}
+        </div>
+      )}
+    </Link>
+  );
+};
 
 /* ── Section group component ── */
 const SidebarSectionGroup = ({
@@ -192,6 +228,7 @@ const SidebarSectionGroup = ({
   isAdmin,
   onNavigate,
   location,
+  isVisible,
 }: {
   section: SidebarSection;
   isOpen: boolean;
@@ -200,13 +237,14 @@ const SidebarSectionGroup = ({
   isAdmin: boolean;
   onNavigate: () => void;
   location: ReturnType<typeof useLocation>;
+  isVisible: (key: string) => boolean;
 }) => {
   const visibleItems = section.items.filter(item => !item.adminOnly || isAdmin);
   if (visibleItems.length === 0) return null;
 
   return (
     <div className="space-y-0.5">
-      {/* Section header – dropdown style with icon */}
+      {/* Section header */}
       <button
         onClick={() => !isCollapsed && onToggle()}
         className={cn(
@@ -251,6 +289,7 @@ const SidebarSectionGroup = ({
               isActive={location.pathname === item.id}
               isCollapsed={isCollapsed}
               onClick={onNavigate}
+              isHidden={!isVisible(item.id)}
             />
           ))}
         </div>
@@ -264,6 +303,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const location = useLocation();
   const { collapsed, toggle } = useSidebarState();
   const { isAdmin } = useIsAdmin();
+  const { isVisible } = useFeatureFlags();
   const isMobile = useIsMobile();
   const isCollapsed = isMobile ? false : collapsed;
 
@@ -378,6 +418,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
             isAdmin={isAdmin}
             onNavigate={handleClick}
             location={location}
+            isVisible={isVisible}
           />
         ))}
 
@@ -394,6 +435,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
             isAdmin={isAdmin}
             onNavigate={handleClick}
             location={location}
+            isVisible={isVisible}
           />
         ))}
       </nav>

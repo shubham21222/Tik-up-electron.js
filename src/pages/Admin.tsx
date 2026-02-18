@@ -649,7 +649,7 @@ const FeatureFlagsTab = () => {
     return acc;
   }, {});
 
-  const sectionOrder = ["Live Studio", "Engagement", "Growth", "Creator Tools", "Enterprise", "Settings"];
+  const sectionOrder = ["Live Studio", "Engagement", "Growth", "Creator Tools", "Overlays", "Enterprise", "Settings"];
 
   const saveBadge = async (flagId: string) => {
     await supabase.from("feature_flags" as any).update({ badge: badgeValue } as any).eq("id", flagId);

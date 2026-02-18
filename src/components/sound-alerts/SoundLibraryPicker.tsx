@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Volume2, Play, Pause, Search, Music, Zap, Bell, PartyPopper, Coins, ChevronDown, Link, X, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -6,6 +6,56 @@ import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+
+/* ── Mini Waveform Canvas ── */
+function WaveformPreview({ file }: { file: File }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !file) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const audioCtx = new AudioContext();
+        const buffer = await audioCtx.decodeAudioData(reader.result as ArrayBuffer);
+        const data = buffer.getChannelData(0);
+        const step = Math.ceil(data.length / canvas.width);
+        const amp = canvas.height / 2;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "hsl(160 100% 50% / 0.6)";
+        for (let i = 0; i < canvas.width; i++) {
+          let min = 1.0, max = -1.0;
+          for (let j = 0; j < step; j++) {
+            const val = data[i * step + j] || 0;
+            if (val < min) min = val;
+            if (val > max) max = val;
+          }
+          const y = (1 + min) * amp;
+          const h = Math.max(1, (max - min) * amp);
+          ctx.fillRect(i, y, 1, h);
+        }
+        audioCtx.close();
+      } catch {
+        // silently fail
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }, [file]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      width={280}
+      height={40}
+      className="w-full h-10 rounded-lg mt-2"
+      style={{ background: "rgba(255,255,255,0.03)" }}
+    />
+  );
+}
 
 export interface SoundPreset {
   id: string;
@@ -79,6 +129,7 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
   const [showCustom, setShowCustom] = useState(false);
   const [customUrl, setCustomUrl] = useState("");
   const [uploading, setUploading] = useState(false);
+  const [uploadPreviewFile, setUploadPreviewFile] = useState<File | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -142,6 +193,8 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
       return;
     }
 
+    // Show waveform preview
+    setUploadPreviewFile(file);
     setUploading(true);
     try {
       const ext = file.name.split(".").pop()?.toLowerCase() || "mp3";
@@ -163,6 +216,7 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
 
       onSelect(publicUrl, displayName);
       toast.success(`Uploaded "${displayName}"`);
+      setUploadPreviewFile(null);
       setOpen(false);
     } catch (err: any) {
       console.error("Upload failed:", err);
@@ -199,7 +253,7 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
         onChange={handleFileUpload}
       />
 
-      <Dialog open={open} onOpenChange={(v) => { if (!v) { audioRef.current?.pause(); setPlayingId(null); } setOpen(v); }}>
+      <Dialog open={open} onOpenChange={(v) => { if (!v) { audioRef.current?.pause(); setPlayingId(null); setUploadPreviewFile(null); } setOpen(v); }}>
         <DialogContent className="sm:max-w-lg bg-background border-white/[0.08] p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-5 pt-5 pb-0">
             <DialogTitle className="font-heading text-base flex items-center gap-2">
@@ -224,6 +278,15 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
               {uploading ? "Uploading…" : "Upload Custom Sound"}
               <span className="text-[10px] text-muted-foreground/50 ml-1">(MP3, WAV — max 5MB)</span>
             </button>
+            {/* Waveform preview after selecting file */}
+            {uploadPreviewFile && (
+              <div className="mt-2">
+                <WaveformPreview file={uploadPreviewFile} />
+                <p className="text-[10px] text-muted-foreground/50 mt-1 text-center">
+                  {uploadPreviewFile.name}
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Category tabs */}

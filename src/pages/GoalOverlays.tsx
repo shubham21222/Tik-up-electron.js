@@ -226,20 +226,25 @@ const GoalTypeCard = ({
 
         {/* Live iframe preview */}
         {goal && (
-          <div className="mb-4 rounded-xl overflow-hidden border border-border/20 relative" style={{ height: 100, background: "rgba(0,0,0,0.6)" }}>
+          <div className="mb-4 rounded-xl overflow-hidden border border-border/20 relative" style={{ height: 140, background: "rgba(0,0,0,0.5)" }}>
             <iframe
-              src={`/overlay/goal/${goal.public_token}`}
-              className="w-full h-full border-0 pointer-events-none"
-              style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
+              src={`/overlay/goal/${goal.public_token}?t=${goal.style_preset}`}
+              className="border-0 pointer-events-none absolute top-0 left-0"
+              style={{
+                transform: "scale(0.5)",
+                transformOrigin: "top left",
+                width: "200%",
+                height: "200%",
+              }}
               title={`${typeConfig.label} preview`}
             />
-            <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+            <div className="absolute top-2 right-2 flex items-center gap-1.5 z-10">
               {isStyleProLocked && (
                 <span className="text-[8px] font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(280 100% 65% / 0.3)", color: "hsl(280 100% 75%)" }}>
                   PRO STYLE
                 </span>
               )}
-              <span className="text-[8px] font-mono text-white/30 bg-black/40 px-1.5 py-0.5 rounded">LIVE</span>
+              <span className="text-[8px] font-mono text-white/40 bg-black/50 px-1.5 py-0.5 rounded backdrop-blur-sm">LIVE</span>
             </div>
           </div>
         )}

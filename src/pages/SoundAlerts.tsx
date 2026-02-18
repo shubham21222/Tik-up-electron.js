@@ -3,16 +3,17 @@ import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Volume2, Plus, Trash2, Play, Search, Gift,
-  Pause
+  Pause, AlertTriangle, Link2
 } from "lucide-react";
 import { useSoundAlerts } from "@/hooks/use-sound-alerts";
-import { useGiftCatalog } from "@/hooks/use-gift-catalog";
+import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import { useAuth } from "@/hooks/use-auth";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import SoundLibraryPicker from "@/components/sound-alerts/SoundLibraryPicker";
+import { Badge } from "@/components/ui/badge";
 
 const TRIGGER_TYPES = [
   { value: "any_gift", label: "Any Gift", icon: "🎁" },
@@ -24,6 +25,7 @@ const TRIGGER_TYPES = [
 /* ── Main Page ── */
 const SoundAlertsPage = () => {
   const { user } = useAuth();
+  const { triggers } = useUserGiftTriggers();
   const { alerts, loading, createAlert, updateAlert, deleteAlert, toggleEnabled } = useSoundAlerts();
   const { gifts } = useGiftCatalog();
   const [showCreate, setShowCreate] = useState(false);
@@ -126,6 +128,53 @@ const SoundAlertsPage = () => {
           </div>
         </motion.div>
 
+        {/* TikTok Guidelines Warning */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          className="mb-4 rounded-xl px-4 py-3 flex items-start gap-3"
+          style={{ background: "hsl(45 100% 50% / 0.06)", border: "1px solid hsl(45 100% 50% / 0.15)" }}
+        >
+          <AlertTriangle size={16} className="text-yellow-500 flex-shrink-0 mt-0.5" />
+          <div>
+            <p className="text-[11px] font-bold text-yellow-400">TikTok LIVE Guidelines</p>
+            <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+              Only use appropriate sounds. Offensive, copyrighted, or NSFW audio may result in your TikTok account being banned. You are responsible for all sounds used on your stream.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Linked Gift Trigger Sounds */}
+        {(() => {
+          const linkedTriggers = triggers.filter(t => t.is_enabled && t.alert_sound_url);
+          if (linkedTriggers.length === 0) return null;
+          return (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+              className="mb-4 rounded-xl overflow-hidden"
+              style={{ background: "rgba(11,15,20,0.5)", border: "1px solid rgba(255,255,255,0.06)" }}
+            >
+              <div className="px-4 py-2.5 border-b border-white/[0.04] flex items-center gap-2">
+                <Link2 size={12} className="text-primary" />
+                <span className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-bold">Linked from Gift Alerts</span>
+                <Badge variant="secondary" className="text-[9px] px-1.5 py-0 ml-auto">{linkedTriggers.length}</Badge>
+              </div>
+              <div className="divide-y divide-white/[0.03]">
+                {linkedTriggers.map(t => {
+                  const gift = gifts.find(g => g.gift_id === t.gift_id);
+                  return (
+                    <div key={t.gift_id} className="flex items-center gap-3 px-4 py-2.5">
+                      <div className="w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0" style={{ background: "rgba(255,255,255,0.04)" }}>
+                        {gift?.image_url ? <img src={gift.image_url} alt={gift.name} className="w-5 h-5 object-contain" /> : <Gift size={12} className="text-muted-foreground" />}
+                      </div>
+                      <span className="text-sm text-foreground font-medium flex-1 truncate">{gift?.name || t.gift_id}</span>
+                      <span className="text-[10px] text-primary/60 truncate max-w-[120px]">🔊 Custom sound</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </motion.div>
+          );
+        })()}
 
         {/* Toolbar */}
         <motion.div

@@ -55,6 +55,21 @@ interface SoundLibraryPickerProps {
   onSelect: (url: string, name: string) => void;
 }
 
+function getAudioDuration(file: File): Promise<number> {
+  return new Promise((resolve) => {
+    const url = URL.createObjectURL(file);
+    const audio = new Audio(url);
+    audio.addEventListener("loadedmetadata", () => {
+      resolve(audio.duration);
+      URL.revokeObjectURL(url);
+    });
+    audio.addEventListener("error", () => {
+      resolve(0);
+      URL.revokeObjectURL(url);
+    });
+  });
+}
+
 export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }: SoundLibraryPickerProps) {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -117,6 +132,13 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
     // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("File too large — max 5MB");
+      return;
+    }
+
+    // Validate duration (max 30 seconds)
+    const duration = await getAudioDuration(file);
+    if (duration > 30) {
+      toast.error("Sound too long — max 30 seconds");
       return;
     }
 

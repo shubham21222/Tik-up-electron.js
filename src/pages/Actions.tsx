@@ -8,7 +8,6 @@ import {
 } from "lucide-react";
 import SoundLibraryPicker from "@/components/sound-alerts/SoundLibraryPicker";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
-// Sound alerts are now merged into this page
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -18,6 +17,8 @@ import FeatureGuideModal, { defaultAlertSteps } from "@/components/FeatureGuideM
 import PageHelpButton from "@/components/PageHelpButton";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
 import { toast } from "sonner";
+import TabNav from "@/components/TabNav";
+import SoundOnlyTab from "@/components/sound-alerts/SoundOnlyTab";
 
 interface AnimationOption {
   value: string;
@@ -87,6 +88,7 @@ const Actions = () => {
   const [bulkMinValue, setBulkMinValue] = useState<number | null>(null);
   const [testPlayingGiftId, setTestPlayingGiftId] = useState<string | null>(null);
   const testAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [activeTab, setActiveTab] = useState("Gift Alerts");
 
   const handleTestSound = useCallback((giftId: string, url: string | null | undefined) => {
     if (!url) return;
@@ -178,7 +180,7 @@ const Actions = () => {
     <AppLayout>
       <div className={`mx-auto relative z-10 pb-12 ${viewMode === "grid" ? "max-w-6xl" : "max-w-2xl"}`}>
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
+         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-4 text-center">
           <div className="flex items-center justify-center gap-3">
             <h1 className="text-3xl font-heading font-bold text-foreground mb-1">Gift & Sound Alerts</h1>
             <PageHelpButton featureKey="gift_alerts" />
@@ -188,7 +190,18 @@ const Actions = () => {
           </p>
         </motion.div>
 
-        {/* Search & Filter */}
+        {/* Tab Navigation */}
+        <TabNav
+          tabs={["Gift Alerts", "Sound Only"]}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+        />
+
+        {activeTab === "Sound Only" ? (
+          <SoundOnlyTab />
+        ) : (
+        <>
+        {/* Rest of Gift Alerts tab content */}
         <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
           className="flex flex-col gap-3 mb-8">
           <div className="relative w-full">
@@ -807,6 +820,8 @@ const Actions = () => {
               </motion.div>
             )}
           </>
+        )}
+        </>
         )}
       </div>
 

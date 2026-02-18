@@ -684,6 +684,7 @@ Deno.serve(async (req) => {
       { data: bannedUsers },
       { data: pointsConfig },
       { data: giftCatalog },
+      { data: soundAlerts },
     ] = await Promise.all([
       supabase.from("overlay_widgets").select("public_token, widget_type").eq("user_id", userId).eq("is_active", true),
       supabase.from("user_gift_triggers").select("*").eq("user_id", userId).eq("is_enabled", true),
@@ -694,6 +695,7 @@ Deno.serve(async (req) => {
       supabase.from("banned_users").select("*").eq("user_id", userId),
       supabase.from("points_config").select("*").eq("user_id", userId).maybeSingle(),
       supabase.from("tiktok_gifts").select("gift_id, name, image_url").eq("is_active", true),
+      supabase.from("sound_alerts").select("*").eq("user_id", userId).eq("is_enabled", true),
     ]);
 
     let ttsTriggered = 0;
@@ -910,6 +912,30 @@ Deno.serve(async (req) => {
             }
           }
 
+          // ── SOUND ALERTS: Match sound_alerts table for this gift ──
+          if (soundAlerts && soundAlerts.length > 0) {
+            // First try specific gift match, then fall back to any_gift
+            const specificMatch = (soundAlerts as any[]).find(
+              (sa: any) => sa.trigger_type === "gift" && (
+                sa.gift_id === normalizedGiftName || sa.gift_id === rawGiftId || sa.gift_id === rawGiftName.toLowerCase()
+              )
+            );
+            const anyGiftMatch = (soundAlerts as any[]).find(
+              (sa: any) => sa.trigger_type === "any_gift"
+            );
+            const matchedSound = specificMatch || anyGiftMatch;
+            if (matchedSound?.sound_url) {
+              // Sound alert overrides the trigger sound if no trigger sound is set
+              if (!triggerOverrides.alert_sound_url) {
+                triggerOverrides.alert_sound_url = matchedSound.sound_url;
+              }
+              // Also add sound_alert_url and volume for dedicated sound alert playback
+              triggerOverrides.sound_alert_url = matchedSound.sound_url;
+              triggerOverrides.sound_alert_volume = matchedSound.volume || 80;
+              console.log(`🔊 Sound alert matched: "${matchedSound.sound_name}" (${matchedSound.trigger_type})`);
+            }
+          }
+
           // Look up gift image from catalog
           if (giftCatalog) {
             const catalogMatch = (giftCatalog as any[]).find(
@@ -920,7 +946,7 @@ Deno.serve(async (req) => {
             }
           }
           
-          console.log(`🎁 Gift: "${rawGiftName}" (id=${rawGiftId}), trigger=${hasMatchedTrigger}, img=${!!giftImageUrl}`);
+          console.log(`🎁 Gift: "${rawGiftName}" (id=${rawGiftId}), trigger=${hasMatchedTrigger}, sound=${!!triggerOverrides.sound_alert_url}, img=${!!giftImageUrl}`);
         }
 
         for (const widget of widgets) {

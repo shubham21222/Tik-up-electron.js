@@ -4,8 +4,9 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Gift, Search, Volume2, Play, X,
   ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff,
-  Lock, Copy, ExternalLink, Monitor, LayoutGrid, SlidersHorizontal, Check
+  Lock, Copy, ExternalLink, Monitor, LayoutGrid, SlidersHorizontal, Check, AlertTriangle, Save
 } from "lucide-react";
+import SoundLibraryPicker from "@/components/sound-alerts/SoundLibraryPicker";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
@@ -630,17 +631,47 @@ const Actions = () => {
                       ))}
                     </div>
 
-                    {/* Sound */}
+                    {/* Alert Sound - Connected Picker */}
                     <div>
                       <label className="text-xs font-bold text-foreground mb-2 block">Alert Sound</label>
-                      <button className="w-full flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 border border-border/30 text-left hover:border-border/60 transition-colors">
-                        <Volume2 size={14} className="text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground flex-1">
-                          {currentTrigger?.alert_sound_url ? "Custom sound" : "Default chime"}
-                        </span>
-                        <ChevronDown size={12} className="text-muted-foreground" />
-                      </button>
+                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 border border-border/30">
+                        <Volume2 size={14} className="text-muted-foreground flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <SoundLibraryPicker
+                            currentUrl={currentTrigger?.alert_sound_url || ""}
+                            currentName={currentTrigger?.alert_sound_url ? "Custom sound" : ""}
+                            onSelect={(url, name) => updateTrigger(currentGift.gift_id, { alert_sound_url: url || null })}
+                          />
+                        </div>
+                      </div>
                     </div>
+
+                    {/* TikTok Guidelines Warning */}
+                    <div className="rounded-xl px-4 py-3 flex items-start gap-3"
+                      style={{ background: "hsl(45 100% 50% / 0.06)", border: "1px solid hsl(45 100% 50% / 0.15)" }}>
+                      <AlertTriangle size={16} className="text-yellow-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-[11px] font-bold text-yellow-400">TikTok LIVE Guidelines</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5 leading-relaxed">
+                          Only use appropriate sounds. Offensive, copyrighted, or NSFW audio may result in your TikTok account being banned. You are responsible for all sounds used on your stream.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Save Button */}
+                    <button
+                      onClick={() => {
+                        toast.success(`Settings saved for ${currentGift.name}`);
+                      }}
+                      className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl text-sm font-bold transition-all hover:-translate-y-0.5"
+                      style={{
+                        background: "linear-gradient(135deg, hsl(160 100% 45%), hsl(160 80% 35%))",
+                        color: "white",
+                        boxShadow: "0 0 20px hsl(160 100% 45% / 0.2)",
+                      }}
+                    >
+                      <Save size={14} /> Save Gift Settings
+                    </button>
 
                     {/* Preview Button */}
                     <button

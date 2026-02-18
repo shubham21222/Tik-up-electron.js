@@ -314,12 +314,22 @@ const GoalOverlays = () => {
   const { isPro } = useSubscription();
   const [customizeGoalId, setCustomizeGoalId] = useState<string | null>(null);
   const customizeGoal = goals.find(g => g.id === customizeGoalId);
+  const autoCreatedRef = useRef(false);
 
   // Map goals by type for quick lookup
   const goalsByType = goals.reduce<Record<string, Goal>>((acc, g) => {
     if (!acc[g.goal_type]) acc[g.goal_type] = g;
     return acc;
   }, {});
+
+  // Auto-create missing goals on first load so every card is fully populated
+  useEffect(() => {
+    if (loading || autoCreatedRef.current || !user) return;
+    autoCreatedRef.current = true;
+    const missing = GOAL_TYPES.filter(t => !goalsByType[t.id]);
+    if (missing.length === 0) return;
+    missing.forEach(t => createGoal(t.id, t.defaultTitle, t.defaultTarget));
+  }, [loading, user]);
 
   const ensureGoal = async (type: string, title: string, target: number): Promise<Goal | null> => {
     const existing = goalsByType[type];

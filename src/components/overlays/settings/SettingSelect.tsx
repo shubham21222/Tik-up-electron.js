@@ -1,7 +1,7 @@
 interface SettingSelectProps {
   value: string;
   onChange: (v: string) => void;
-  options: { value: string; label: string }[];
+  options: { value: string; label: string; disabled?: boolean }[];
 }
 
 const SettingSelect = ({ value, onChange, options }: SettingSelectProps) => (
@@ -11,7 +11,7 @@ const SettingSelect = ({ value, onChange, options }: SettingSelectProps) => (
     className="text-[11px] px-3 py-1.5 rounded-lg border border-border bg-muted/50 text-foreground font-medium focus:outline-none focus:ring-1 focus:ring-secondary/30 transition-colors min-w-[140px]"
   >
     {options.map(o => (
-      <option key={o.value} value={o.value} className="bg-popover text-foreground">{o.label}</option>
+      <option key={o.value} value={o.value} disabled={o.disabled} className="bg-popover text-foreground">{o.label}</option>
     ))}
   </select>
 );

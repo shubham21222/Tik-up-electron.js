@@ -1,140 +1,334 @@
 import AppLayout from "@/components/AppLayout";
 import PageHelpButton from "@/components/PageHelpButton";
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Heart, Share2, Users, Gift, Eye, Plus, Coins,
-  Target, UserPlus, RotateCcw, Pencil, Copy, Trash2,
-  ExternalLink, Info, ChevronDown
+  Heart, Share2, UserPlus, Eye, Coins, Star,
+  Copy, Play, Settings2, ChevronLeft, ChevronRight,
+  Trash2, Target
 } from "lucide-react";
 import { useGoals, type Goal } from "@/hooks/use-goals";
 import { useAuth } from "@/hooks/use-auth";
 import GoalCustomizePanel from "@/components/goals/GoalCustomizePanel";
-import GoalCreateDialog from "@/components/goals/GoalCreateDialog";
-import GoalOBSInstructions from "@/components/goals/GoalOBSInstructions";
-import { toast } from "sonner";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
 import { copyToClipboard } from "@/lib/clipboard";
+import { useSubscription } from "@/hooks/use-subscription";
 
-const goalTypeConfig: Record<string, { icon: typeof Heart; label: string; color: string; barColor: string }> = {
-  likes:       { icon: Heart, label: "Likes", color: "350 90% 55%", barColor: "hsl(160 100% 50%)" },
-  shares:      { icon: Share2, label: "Shares", color: "200 100% 55%", barColor: "hsl(200 100% 55%)" },
-  follows:     { icon: UserPlus, label: "Followers", color: "190 100% 50%", barColor: "hsl(190 100% 50%)" },
-  viewers:     { icon: Eye, label: "Viewer Count", color: "45 100% 55%", barColor: "hsl(45 100% 55%)" },
-  coins:       { icon: Coins, label: "Coins Earned", color: "280 100% 65%", barColor: "hsl(280 100% 65%)" },
-  gifts:       { icon: Gift, label: "Gifts Count", color: "320 90% 55%", barColor: "hsl(320 90% 55%)" },
-  subscribers: { icon: Users, label: "Subscribers", color: "160 100% 45%", barColor: "hsl(160 100% 45%)" },
-  custom:      { icon: Target, label: "Custom Goal", color: "200 100% 55%", barColor: "hsl(200 100% 55%)" },
-};
+/* ── Goal type definitions ── */
+interface GoalTypeConfig {
+  id: string;
+  icon: typeof Heart;
+  label: string;
+  defaultTitle: string;
+  defaultTarget: number;
+  color: string;
+  barColors: string[];
+  pro?: boolean;
+}
 
-const goalTypeEmoji: Record<string, string> = {
-  likes: "❤️", shares: "🔄", follows: "👤", viewers: "👁️",
-  coins: "🪙", gifts: "🎁", subscribers: "⭐", custom: "🎯",
-};
+const GOAL_TYPES: GoalTypeConfig[] = [
+  { id: "likes", icon: Heart, label: "Likes", defaultTitle: "Like Goal", defaultTarget: 1000, color: "350 90% 55%", barColors: ["hsl(160 100% 50%)", "hsl(180 100% 45%)"] },
+  { id: "shares", icon: Share2, label: "Shares", defaultTitle: "Share Goal", defaultTarget: 50, color: "200 100% 55%", barColors: ["hsl(160 100% 50%)", "hsl(200 100% 55%)"] },
+  { id: "follows", icon: UserPlus, label: "Follows", defaultTitle: "New Followers", defaultTarget: 20, color: "190 100% 50%", barColors: ["hsl(200 100% 55%)", "hsl(190 100% 50%)"], pro: true },
+  { id: "viewers", icon: Eye, label: "Viewer Count", defaultTitle: "Viewer Goal", defaultTarget: 100, color: "45 100% 55%", barColors: ["hsl(160 100% 50%)", "hsl(45 100% 55%)"] },
+  { id: "coins", icon: Coins, label: "Coins Earned", defaultTitle: "Earned Coins", defaultTarget: 500, color: "280 100% 65%", barColors: ["hsl(280 100% 65%)", "hsl(320 90% 55%)"] },
+  { id: "custom", icon: Star, label: "Channel Points Earned", defaultTitle: "Earned Points", defaultTarget: 50, color: "45 100% 50%", barColors: ["hsl(45 100% 50%)", "hsl(35 100% 55%)"] },
+];
 
-const GoalCard = ({ goal, onSimulate, onReset, onDelete, onCustomize }: {
-  goal: Goal;
-  onSimulate: () => void;
-  onReset: () => void;
-  onDelete: () => void;
-  onCustomize: () => void;
+const WHEN_REACHED_OPTIONS = ["Keep Goal unchanged", "Double Goal", "Reset Goal", "Hide Goal"];
+const STYLE_COUNT = 5;
+const STYLE_PRESETS = ["glass", "neon", "minimal", "gradient", "tiktok"];
+
+/* ── Style preview bar component ── */
+const StylePreviewBar = ({ goal, styleIndex, typeConfig }: {
+  goal: Goal | null;
+  styleIndex: number;
+  typeConfig: GoalTypeConfig;
 }) => {
-  const config = goalTypeConfig[goal.goal_type] || goalTypeConfig.custom;
-  const emoji = goalTypeEmoji[goal.goal_type] || "🎯";
-  const pct = goal.target_value > 0 ? Math.min(Math.round((goal.current_value / goal.target_value) * 100), 100) : 0;
-  const [showOBS, setShowOBS] = useState(false);
-  const overlayUrl = `${getOverlayBaseUrl()}/overlay/goal/${goal.public_token}`;
+  const title = goal?.title || typeConfig.defaultTitle;
+  const current = goal?.current_value || 0;
+  const target = goal?.target_value || typeConfig.defaultTarget;
+  const pct = target > 0 ? Math.min(Math.round((current / target) * 100), 100) : 0;
+  const preset = STYLE_PRESETS[styleIndex] || "glass";
 
-  const handleCopy = () => {
-    copyToClipboard(overlayUrl);
-    toast.success("URL copied to clipboard!");
+  const getBarBg = () => {
+    switch (preset) {
+      case "neon": return "linear-gradient(90deg, hsl(160 100% 45%), hsl(200 100% 55%))";
+      case "tiktok": return "linear-gradient(90deg, hsl(174 100% 54%), hsl(350 99% 57%))";
+      case "gradient": return `linear-gradient(90deg, ${typeConfig.barColors[0]}, ${typeConfig.barColors[1]})`;
+      case "minimal": return "linear-gradient(90deg, hsl(0 0% 70%), hsl(0 0% 90%))";
+      default: return `linear-gradient(90deg, ${typeConfig.barColors[0]}, ${typeConfig.barColors[1]})`;
+    }
   };
 
   return (
+    <div className="relative h-14 rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.5)" }}>
+      {/* Progress fill */}
+      <motion.div
+        className="absolute inset-y-0 left-0 rounded-xl"
+        initial={{ width: 0 }}
+        animate={{ width: `${Math.max(pct, 4)}%` }}
+        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+        style={{ background: getBarBg() }}
+      >
+        {/* Shimmer */}
+        <motion.div
+          className="absolute inset-0"
+          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2) 50%, transparent)" }}
+          animate={{ x: ["-100%", "100%"] }}
+          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
+        />
+      </motion.div>
+      {/* Text overlay */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <span className="text-xs font-bold text-white drop-shadow-lg">
+          {pct}%
+        </span>
+      </div>
+      <div className="absolute inset-0 flex items-end px-4 pb-2">
+        <span className="text-[11px] font-bold text-white/90 drop-shadow-lg">
+          {title} – {current.toLocaleString()} / {target.toLocaleString()} {typeConfig.label}
+        </span>
+      </div>
+    </div>
+  );
+};
+
+/* ── Individual Goal Card ── */
+const GoalTypeCard = ({
+  typeConfig,
+  goal,
+  onEnsureGoal,
+  onSimulate,
+  onCustomize,
+  onDelete,
+  isPro,
+}: {
+  typeConfig: GoalTypeConfig;
+  goal: Goal | null;
+  onEnsureGoal: (type: string, title: string, target: number) => Promise<Goal | null>;
+  onSimulate: (goalId: string) => void;
+  onCustomize: (goalId: string) => void;
+  onDelete: (goalId: string) => void;
+  isPro: boolean;
+}) => {
+  const Icon = typeConfig.icon;
+  const isProLocked = typeConfig.pro && !isPro;
+
+  const [title, setTitle] = useState(goal?.title || typeConfig.defaultTitle);
+  const [target, setTarget] = useState(goal?.target_value || typeConfig.defaultTarget);
+  const [whenReached, setWhenReached] = useState(WHEN_REACHED_OPTIONS[0]);
+  const [styleIndex, setStyleIndex] = useState(0);
+
+  const { updateGoal } = useGoals();
+
+  // Sync from goal data
+  useEffect(() => {
+    if (goal) {
+      setTitle(goal.title);
+      setTarget(goal.target_value);
+      const presetIdx = STYLE_PRESETS.indexOf(goal.style_preset);
+      if (presetIdx >= 0) setStyleIndex(presetIdx);
+    }
+  }, [goal?.id]);
+
+  const overlayUrl = goal
+    ? `${getOverlayBaseUrl()}/overlay/goal/${goal.public_token}`
+    : "";
+
+  const handleCopyUrl = async () => {
+    if (!goal) {
+      const newGoal = await onEnsureGoal(typeConfig.id, title, target);
+      if (newGoal) {
+        const url = `${getOverlayBaseUrl()}/overlay/goal/${newGoal.public_token}`;
+        copyToClipboard(url, "Goal URL copied!");
+      }
+    } else {
+      copyToClipboard(overlayUrl, "Goal URL copied!");
+    }
+  };
+
+  const handleTest = async () => {
+    if (!goal) {
+      const newGoal = await onEnsureGoal(typeConfig.id, title, target);
+      if (newGoal) onSimulate(newGoal.id);
+    } else {
+      onSimulate(goal.id);
+    }
+  };
+
+  const handleCustomize = async () => {
+    if (!goal) {
+      const newGoal = await onEnsureGoal(typeConfig.id, title, target);
+      if (newGoal) onCustomize(newGoal.id);
+    } else {
+      onCustomize(goal.id);
+    }
+  };
+
+  // Auto-save title/target changes
+  const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
+  const handleFieldChange = useCallback((field: "title" | "target", value: string | number) => {
+    if (field === "title") setTitle(value as string);
+    if (field === "target") setTarget(value as number);
+
+    if (goal) {
+      clearTimeout(saveTimeout.current);
+      saveTimeout.current = setTimeout(() => {
+        updateGoal(goal.id, field === "title" ? { title: value as string } : { target_value: value as number });
+      }, 800);
+    }
+  }, [goal, updateGoal]);
+
+  const prevStyle = () => setStyleIndex(i => (i - 1 + STYLE_COUNT) % STYLE_COUNT);
+  const nextStyle = () => setStyleIndex(i => (i + 1) % STYLE_COUNT);
+
+  // Auto-save style changes
+  useEffect(() => {
+    if (goal && STYLE_PRESETS[styleIndex] !== goal.style_preset) {
+      updateGoal(goal.id, { style_preset: STYLE_PRESETS[styleIndex] });
+    }
+  }, [styleIndex]);
+
+  return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -10, scale: 0.95 }}
-      className="rounded-2xl p-[1px]"
+      className="rounded-2xl p-[1px] relative"
       style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" }}
     >
-      <div className="rounded-2xl p-6" style={{ background: "rgba(20,25,35,0.65)", backdropFilter: "blur(20px)" }}>
-        {/* Header with title + session badge + action buttons */}
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-3">
-            <h3 className="text-base font-heading font-bold text-foreground">{goal.title}</h3>
-            <span className="px-2.5 py-0.5 rounded-md text-[10px] font-bold"
-              style={{ background: "hsl(160 100% 45% / 0.15)", color: "hsl(160 100% 50%)", border: "1px solid hsl(160 100% 45% / 0.3)" }}>
-              Session
-            </span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <button onClick={onCustomize}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{ background: "hsl(200 80% 50% / 0.15)", color: "hsl(200 80% 55%)" }}>
-              <Pencil size={14} />
-            </button>
-            <button onClick={onReset}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{ background: "hsl(45 90% 50% / 0.15)", color: "hsl(45 90% 55%)" }}>
-              <RotateCcw size={14} />
-            </button>
-            <button onClick={onDelete}
-              className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-              style={{ background: "hsl(350 80% 50% / 0.15)", color: "hsl(350 80% 55%)" }}>
-              <Trash2 size={14} />
-            </button>
-          </div>
+      {isProLocked && (
+        <div className="absolute inset-0 z-10 rounded-2xl bg-background/60 backdrop-blur-sm flex items-center justify-center">
+          <span className="px-3 py-1.5 rounded-lg text-xs font-bold" style={{ background: "hsl(280 100% 65% / 0.2)", color: "hsl(280 100% 70%)" }}>
+            TikUp Pro exclusive
+          </span>
         </div>
-        <p className="text-xs text-muted-foreground mb-5">{config.label}</p>
+      )}
 
-        {/* Progress Bar */}
-        <div className="mb-5">
-          <div className="h-9 rounded-xl bg-muted/30 overflow-hidden relative flex items-center">
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${Math.max(pct, 3)}%` }}
-              transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
-              className="h-full rounded-xl relative overflow-hidden flex items-center px-3 gap-2"
-              style={{ background: config.barColor, boxShadow: `0 0 20px ${config.barColor}40` }}
+      <div className="rounded-2xl p-5" style={{ background: "rgba(14,18,26,0.8)", backdropFilter: "blur(16px)" }}>
+        {/* Header */}
+        <div className="flex items-center gap-2 mb-4">
+          <Icon size={16} style={{ color: `hsl(${typeConfig.color})` }} />
+          <h3 className="text-sm font-heading font-bold text-foreground">{typeConfig.label}</h3>
+          {typeConfig.pro && (
+            <span className="text-[8px] font-extrabold px-1.5 py-0.5 rounded-md" style={{ background: "hsl(350 90% 55% / 0.15)", color: "hsl(350 90% 60%)" }}>
+              PRO
+            </span>
+          )}
+          {goal && (
+            <button onClick={() => onDelete(goal.id)} className="ml-auto p-1.5 rounded-lg text-muted-foreground/50 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+              <Trash2 size={13} />
+            </button>
+          )}
+        </div>
+
+        {/* Settings row */}
+        <div className="grid grid-cols-4 gap-3 mb-4">
+          <div>
+            <label className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-1 block font-semibold">Goal:</label>
+            <input
+              type="number"
+              value={target}
+              onChange={(e) => handleFieldChange("target", Number(e.target.value))}
+              min={1}
+              className="w-full bg-muted/20 border border-border/40 rounded-lg px-2.5 py-2 text-xs text-foreground outline-none focus:border-primary/40 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-1 block font-semibold">Title:</label>
+            <input
+              type="text"
+              value={title}
+              onChange={(e) => handleFieldChange("title", e.target.value)}
+              className="w-full bg-muted/20 border border-border/40 rounded-lg px-2.5 py-2 text-xs text-foreground outline-none focus:border-primary/40 transition-colors"
+            />
+          </div>
+          <div>
+            <label className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-1 block font-semibold">When reached:</label>
+            <select
+              value={whenReached}
+              onChange={(e) => setWhenReached(e.target.value)}
+              className="w-full bg-muted/20 border border-border/40 rounded-lg px-2 py-2 text-xs text-foreground outline-none focus:border-primary/40 transition-colors appearance-none"
             >
-              <span className="text-sm">{emoji}</span>
-              <span className="text-xs font-bold text-white whitespace-nowrap drop-shadow-sm">{goal.title}</span>
-              {/* Shimmer */}
-              <motion.div className="absolute inset-0"
-                style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15) 50%, transparent)" }}
-                animate={{ x: ["-100%", "100%"] }}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }} />
-            </motion.div>
-            {/* Counter on right */}
-            <span className="absolute right-3 text-xs font-heading font-bold text-foreground">
-              {goal.current_value.toLocaleString()} / {goal.target_value.toLocaleString()}{" "}
-              <span className="text-muted-foreground">({pct}%)</span>
-            </span>
+              {WHEN_REACHED_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-1 block font-semibold">Action on reaching:</label>
+            <button
+              onClick={handleCustomize}
+              className="w-full bg-primary/10 border border-primary/20 rounded-lg px-2.5 py-2 text-xs text-primary font-medium hover:bg-primary/15 transition-colors text-left"
+            >
+              Select
+            </button>
           </div>
         </div>
 
-        {/* URL Copy Bar */}
-        <div className="flex items-center gap-2 px-4 py-3 rounded-xl border transition-colors"
-          style={{ borderColor: "hsl(160 100% 45% / 0.3)", background: "rgba(0,0,0,0.3)" }}>
-          <span className="flex-1 text-[11px] font-mono text-muted-foreground truncate">{overlayUrl}</span>
-          <button onClick={handleCopy}
-            className="p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors flex-shrink-0">
-            <Copy size={14} />
+        {/* URL + action buttons row */}
+        <div className="flex items-center gap-2 mb-4">
+          <div className="flex-1 bg-muted/15 border border-border/30 rounded-lg px-3 py-2 flex items-center">
+            <span className="text-[10px] font-mono text-muted-foreground/60 truncate">
+              {overlayUrl || `${getOverlayBaseUrl()}/overlay/goal/...`}
+            </span>
+          </div>
+          <button onClick={handleCopyUrl}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+            style={{ background: "rgba(255,255,255,0.05)", color: "hsl(200 80% 65%)" }}>
+            <Copy size={12} /> Copy URL
+          </button>
+          <button onClick={handleTest}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+            style={{ background: "rgba(255,255,255,0.05)", color: "hsl(160 100% 50%)" }}>
+            <Play size={12} /> Test
+          </button>
+          <button onClick={handleCustomize}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-colors"
+            style={{ background: "rgba(255,255,255,0.05)", color: "hsl(280 80% 65%)" }}>
+            <Settings2 size={12} /> Customize
           </button>
         </div>
+
+        {/* Style carousel */}
+        <div className="relative">
+          <button onClick={prevStyle}
+            className="absolute left-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+            style={{ background: "rgba(255,255,255,0.08)" }}>
+            <ChevronLeft size={14} className="text-white/60" />
+          </button>
+          <div className="px-9">
+            <StylePreviewBar goal={goal} styleIndex={styleIndex} typeConfig={typeConfig} />
+          </div>
+          <button onClick={nextStyle}
+            className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
+            style={{ background: "rgba(255,255,255,0.08)" }}>
+            <ChevronRight size={14} className="text-white/60" />
+          </button>
+        </div>
+        <p className="text-center text-[10px] text-muted-foreground/40 mt-2">Style: {styleIndex + 1}/{STYLE_COUNT}</p>
       </div>
     </motion.div>
   );
 };
 
+/* ── Main Page ── */
 const GoalOverlays = () => {
   const { user } = useAuth();
-  const { goals, loading, createGoal, deleteGoal, simulateGoal, resetGoal } = useGoals();
-  const [showCreate, setShowCreate] = useState(false);
+  const { goals, loading, createGoal, deleteGoal, simulateGoal } = useGoals();
+  const { isPro } = useSubscription();
   const [customizeGoalId, setCustomizeGoalId] = useState<string | null>(null);
-
   const customizeGoal = goals.find(g => g.id === customizeGoalId);
+
+  // Map goals by type for quick lookup
+  const goalsByType = goals.reduce<Record<string, Goal>>((acc, g) => {
+    if (!acc[g.goal_type]) acc[g.goal_type] = g;
+    return acc;
+  }, {});
+
+  const ensureGoal = async (type: string, title: string, target: number): Promise<Goal | null> => {
+    const existing = goalsByType[type];
+    if (existing) return existing;
+    return await createGoal(type, title, target);
+  };
 
   if (!user) {
     return (
@@ -152,57 +346,46 @@ const GoalOverlays = () => {
 
   return (
     <AppLayout>
-      <div className="max-w-5xl mx-auto relative z-10 pb-12">
+      <div className="max-w-6xl mx-auto relative z-10 pb-12">
         {/* Page Header */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}
-          className="mb-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-3"><h1 className="text-3xl font-heading font-bold text-foreground mb-2">Your Individual Goal Overlays</h1><PageHelpButton featureKey="goal_overlays" /></div>
-              <p className="text-muted-foreground text-sm">Manage and configure your stream goals</p>
-            </div>
-            <button onClick={() => setShowCreate(true)}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.25)]">
-              <Plus size={16} /> Create Goal
-            </button>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <h1 className="text-3xl font-heading font-bold text-foreground">Goal Overlays</h1>
+            <PageHelpButton featureKey="goal_overlays" />
           </div>
+          <p className="text-sm text-muted-foreground max-w-2xl">
+            What goals do you have in your broadcast? Define Like, Share or Follow goals in the form of progress indicators.
+            To include the goals in <strong className="text-foreground">OBS (Browser Source)</strong> or <strong className="text-foreground">LIVE Studio (Link)</strong>, simply
+            copy the URLs. You can change the colors by clicking on the "Customize" button.
+          </p>
         </motion.div>
 
-        {/* Goal Cards */}
+        {/* Goal cards grid — 2 columns */}
         {loading ? (
-          <div className="space-y-6">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="rounded-2xl h-40 bg-muted/20 animate-pulse" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="rounded-2xl h-56 bg-muted/10 animate-pulse" />
             ))}
           </div>
-        ) : goals.length === 0 ? (
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="text-center py-20">
-            <Target size={48} className="text-muted-foreground/20 mx-auto mb-4" />
-            <h2 className="text-lg font-heading font-bold text-foreground mb-2">No goals yet</h2>
-            <p className="text-sm text-muted-foreground mb-6">Create your first goal overlay to get started.</p>
-            <button onClick={() => setShowCreate(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-primary-foreground font-semibold text-sm hover:-translate-y-0.5 transition-all duration-200">
-              <Plus size={16} /> Create First Goal
-            </button>
-          </motion.div>
         ) : (
-          <div className="space-y-6">
-            <AnimatePresence>
-              {goals.map((goal, i) => (
-                <GoalCard key={goal.id} goal={goal}
-                  onSimulate={() => simulateGoal(goal.id, Math.ceil(goal.target_value * 0.1))}
-                  onReset={() => resetGoal(goal.id)}
-                  onDelete={() => deleteGoal(goal.id)}
-                  onCustomize={() => setCustomizeGoalId(goal.id)} />
-              ))}
-            </AnimatePresence>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            {GOAL_TYPES.map((typeConfig) => (
+              <GoalTypeCard
+                key={typeConfig.id}
+                typeConfig={typeConfig}
+                goal={goalsByType[typeConfig.id] || null}
+                onEnsureGoal={ensureGoal}
+                onSimulate={(id) => simulateGoal(id, Math.ceil((goalsByType[typeConfig.id]?.target_value || typeConfig.defaultTarget) * 0.1))}
+                onCustomize={(id) => setCustomizeGoalId(id)}
+                onDelete={(id) => deleteGoal(id)}
+                isPro={isPro}
+              />
+            ))}
           </div>
         )}
       </div>
 
-      <GoalCreateDialog open={showCreate} onClose={() => setShowCreate(false)}
-        onCreate={async (type, title, target) => { await createGoal(type, title, target); setShowCreate(false); }} />
-
+      {/* Customize panel */}
       <AnimatePresence>
         {customizeGoal && <GoalCustomizePanel goal={customizeGoal} onClose={() => setCustomizeGoalId(null)} />}
       </AnimatePresence>

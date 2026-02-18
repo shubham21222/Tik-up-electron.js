@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import useOverlayBody from "@/hooks/use-overlay-body";
+import { useQuickControlListener } from "@/hooks/use-quick-controls";
 
 /**
  * TTSRenderer — Browser source overlay for OBS / TikTok Live Studio
@@ -45,9 +46,20 @@ const TTSRenderer = () => {
   const [queue, setQueue] = useState<TTSMessage[]>([]);
   const [current, setCurrent] = useState<TTSMessage | null>(null);
   const [speaking, setSpeaking] = useState(false);
+  const [ownerId, setOwnerId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const processingRef = useRef(false);
   const recentMsgHashes = useRef<Set<string>>(new Set());
+  const controls = useQuickControlListener(ownerId);
+  const controlsRef = useRef(controls);
+  useEffect(() => { controlsRef.current = controls; }, [controls]);
+
+  // Fetch widget owner
+  useEffect(() => {
+    if (!publicToken) return;
+    supabase.from("overlay_widgets" as any).select("user_id").eq("public_token", publicToken).single()
+      .then(({ data }) => { if (data) setOwnerId((data as any).user_id); });
+  }, [publicToken]);
 
   // Subscribe to TTS broadcast channel
   useEffect(() => {
@@ -183,6 +195,8 @@ const TTSRenderer = () => {
   // Process queue — one message at a time
   useEffect(() => {
     if (processingRef.current || queue.length === 0) return;
+    // Skip playback when TTS is muted or cooldown is active
+    if (controlsRef.current.ttsMuted || controlsRef.current.cooldownActive) return;
 
     const processNext = async () => {
       processingRef.current = true;

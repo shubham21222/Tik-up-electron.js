@@ -269,17 +269,17 @@ const GiftAlertOverlay = () => {
                         )}
                         <SettingRow label="Animation Style">
                           <SettingSelect value={s.animation_style} onChange={v => set("animation_style", v)} options={[
-                            { value: "slide", label: "Slide In" },
                             { value: "bounce", label: "Pop + Bounce" },
-                            { value: "explosion", label: "Explosion" },
-                            { value: "flip_3d", label: "3D Flip" },
-                            { value: "glitch", label: "Glitch Intro" },
-                            { value: "flames_rising", label: "🔥 Flames Rising" },
-                            { value: "icy_blast", label: "❄️ Icy Blast" },
-                            { value: "christmas_spark", label: "🎄 Christmas Spark" },
-                            { value: "snowfall", label: "🌨️ Snowfall" },
-                            { value: "cyber_pulse", label: "⚡ Cyber Pulse" },
+                            { value: "slide", label: "Slide Up" },
                             { value: "explosion_burst", label: "💥 Explosion Burst" },
+                            { value: "explosion", label: "🔒 Explosion — Coming Soon", disabled: true },
+                            { value: "flip_3d", label: "🔒 3D Flip — Coming Soon", disabled: true },
+                            { value: "glitch", label: "🔒 Glitch Intro — Coming Soon", disabled: true },
+                            { value: "flames_rising", label: "🔒 Flames Rising — Coming Soon", disabled: true },
+                            { value: "icy_blast", label: "🔒 Icy Blast — Coming Soon", disabled: true },
+                            { value: "christmas_spark", label: "🔒 Christmas Spark — Coming Soon", disabled: true },
+                            { value: "snowfall", label: "🔒 Snowfall — Coming Soon", disabled: true },
+                            { value: "cyber_pulse", label: "🔒 Cyber Pulse — Coming Soon", disabled: true },
                           ]} />
                         </SettingRow>
                         <SettingRow label="Alert Duration" description="How long alerts stay on screen">

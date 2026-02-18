@@ -5,14 +5,14 @@ import {
   Sparkles, Volume2, Activity, Target, Trophy, Terminal,
   Shield, Link2, Palette, Settings, CreditCard, SlidersHorizontal,
   ChevronLeft, ChevronRight, Crown, Layers,
-  Star, Keyboard, Coins, Image, Building2, Mic, Gamepad2, Music,
+  Star, Keyboard, Coins, Image, Building2, Mic, Music,
   Monitor, Clock, Share2
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useIsAdmin } from "@/hooks/use-admin";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useFeatureFlags } from "@/hooks/use-feature-flags";
+import { useFeatureFlags, type FeatureFlag } from "@/hooks/use-feature-flags";
 import tikupLogo from "@/assets/tikup_logo.png";
 import { useState, useCallback } from "react";
 
@@ -316,22 +316,39 @@ const SidebarSectionGroup = ({
   );
 };
 
-/* ── Coming Soon item (simplified) ── */
-const ComingSoonItem = ({ item, isCollapsed }: { item: NavItem; isCollapsed: boolean }) => (
+/* ── What's New item with description & badge ── */
+const ComingSoonItemNew = ({ item, isCollapsed, flag }: { item: NavItem; isCollapsed: boolean; flag?: FeatureFlag }) => (
   <div
     className={cn(
-      "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200 opacity-40 cursor-not-allowed select-none",
-      isCollapsed ? "justify-center p-2.5" : "px-3 py-2",
+      "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200 opacity-60 cursor-not-allowed select-none",
+      isCollapsed ? "justify-center p-2.5" : "px-3 py-2.5",
     )}
   >
     <div className={cn(
-      "flex items-center justify-center rounded-lg flex-shrink-0 sidebar-icon-glass opacity-50",
+      "flex items-center justify-center rounded-lg flex-shrink-0 sidebar-icon-glass opacity-60",
       isCollapsed ? "w-8 h-8" : "w-7 h-7",
     )}>
       <item.icon size={isCollapsed ? 17 : 15} className="flex-shrink-0" />
     </div>
     {!isCollapsed && (
-      <span className="text-[12.5px] font-semibold tracking-wide truncate text-muted-foreground/50">{item.label}</span>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="text-[12px] font-bold tracking-wide truncate text-foreground/60">{item.label}</span>
+          {flag?.badge && (
+            <span className={cn(
+              "text-[8px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 uppercase",
+              flag.badge === "New" ? "bg-secondary/20 text-secondary" :
+              flag.badge === "Popular" ? "bg-orange-500/20 text-orange-400" :
+              "bg-muted/30 text-muted-foreground/60"
+            )}>
+              {flag.badge}
+            </span>
+          )}
+        </div>
+        {flag?.description && (
+          <p className="text-[10px] text-muted-foreground/40 truncate leading-tight mt-0.5">{flag.description}</p>
+        )}
+      </div>
     )}
     {isCollapsed && (
       <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
@@ -346,7 +363,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const location = useLocation();
   const { collapsed, toggle } = useSidebarState();
   const { isAdmin } = useIsAdmin();
-  const { isVisible } = useFeatureFlags();
+  const { isVisible, flags: allFlags } = useFeatureFlags();
   const isMobile = useIsMobile();
   const isCollapsed = isMobile ? false : collapsed;
 
@@ -366,6 +383,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
     sections.filter(s => ["Enterprise", "Settings"].includes(s.label)), isVisible, isAdmin
   );
   const comingSoonItems = [...comingSoonCore, ...comingSoonBottom];
+  const comingSoonFlags = allFlags.filter(f => !f.is_visible);
 
   const handleClick = () => {
     if (onNavigate) onNavigate();
@@ -487,7 +505,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
           />
         ))}
 
-        {/* ── Coming Soon section ── */}
+        {/* ── Coming Soon / What's New section ── */}
         {comingSoonItems.length > 0 && (
           <>
             <div className="mx-1 h-px sidebar-separator my-2" />
@@ -501,12 +519,12 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
                 )}
               >
                 {isCollapsed ? (
-                  <Clock size={16} className="sidebar-section-icon flex-shrink-0 opacity-80" />
+                  <Sparkles size={16} className="sidebar-section-icon flex-shrink-0 opacity-80" />
                 ) : (
                   <>
-                    <Clock size={14} className="sidebar-section-icon flex-shrink-0 opacity-80" />
+                    <Sparkles size={14} className="sidebar-section-icon flex-shrink-0 text-secondary opacity-90" />
                     <span className="sidebar-section-label uppercase tracking-[0.14em] font-bold text-[10px] flex-1 text-left">
-                      Coming Soon
+                      What's New
                     </span>
                     <motion.div
                       animate={{ rotate: (openSections["Coming Soon"] ?? true) ? 0 : -90 }}
@@ -528,7 +546,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
               >
                 <div className="space-y-px">
                   {comingSoonItems.map((item) => (
-                    <ComingSoonItem key={item.id} item={item} isCollapsed={isCollapsed} />
+                    <ComingSoonItemNew key={item.id} item={item} isCollapsed={isCollapsed} flag={comingSoonFlags.find(f => f.feature_key === item.id)} />
                   ))}
                 </div>
               </motion.div>

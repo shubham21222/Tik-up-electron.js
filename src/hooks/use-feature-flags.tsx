@@ -7,6 +7,8 @@ export interface FeatureFlag {
   label: string;
   section: string;
   is_visible: boolean;
+  description: string;
+  badge: string;
 }
 
 let globalFlags: FeatureFlag[] = [];

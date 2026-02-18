@@ -638,6 +638,10 @@ const RateLimitsTab = () => {
 
 const FeatureFlagsTab = () => {
   const { flags, toggleFlag } = useFeatureFlags();
+  const [editingBadge, setEditingBadge] = useState<string | null>(null);
+  const [badgeValue, setBadgeValue] = useState("");
+  const [editingDesc, setEditingDesc] = useState<string | null>(null);
+  const [descValue, setDescValue] = useState("");
 
   // Group flags by section
   const grouped = flags.reduce<Record<string, typeof flags>>((acc, f) => {
@@ -647,25 +651,69 @@ const FeatureFlagsTab = () => {
 
   const sectionOrder = ["Live Studio", "Engagement", "Growth", "Creator Tools", "Enterprise", "Settings"];
 
+  const saveBadge = async (flagId: string) => {
+    await supabase.from("feature_flags" as any).update({ badge: badgeValue } as any).eq("id", flagId);
+    setEditingBadge(null);
+    toast.success("Badge updated");
+  };
+
+  const saveDesc = async (flagId: string) => {
+    await supabase.from("feature_flags" as any).update({ description: descValue } as any).eq("id", flagId);
+    setEditingDesc(null);
+    toast.success("Description updated");
+  };
+
   return (
     <div className="space-y-6">
-      <p className="text-sm text-muted-foreground">Toggle features on/off globally. Hidden features appear greyed out with a "Coming Soon" badge for all users.</p>
+      <p className="text-sm text-muted-foreground">Full control over all features. Hidden features move to the "What's New" section for all users.</p>
       {sectionOrder.map(section => {
         const items = grouped[section];
         if (!items?.length) return null;
         return (
           <div key={section} className="rounded-2xl border border-white/[0.06] p-5 bg-muted/5">
             <h3 className="text-sm font-heading font-bold text-foreground mb-4">{section}</h3>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {items.map(flag => (
-                <div key={flag.id} className="flex items-center justify-between py-2 px-3 rounded-xl hover:bg-white/[0.03] transition-colors">
-                  <div>
-                    <span className="text-sm font-medium text-foreground">{flag.label}</span>
-                    <span className="text-[10px] text-muted-foreground/50 ml-2 font-mono">{flag.feature_key}</span>
+                <div key={flag.id} className="flex items-center justify-between py-2.5 px-3 rounded-xl hover:bg-white/[0.03] transition-colors gap-3">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-0.5">
+                      <span className="text-sm font-medium text-foreground">{flag.label}</span>
+                      <span className="text-[10px] text-muted-foreground/50 font-mono">{flag.feature_key}</span>
+                      {editingBadge === flag.id ? (
+                        <div className="flex items-center gap-1">
+                          <input value={badgeValue} onChange={e => setBadgeValue(e.target.value)} placeholder="Badge" maxLength={20}
+                            className="bg-muted/30 border border-border rounded px-2 py-0.5 text-[10px] w-20 text-foreground outline-none focus:border-primary" />
+                          <button onClick={() => saveBadge(flag.id)} className="text-[10px] text-primary hover:text-primary/80">Save</button>
+                          <button onClick={() => setEditingBadge(null)} className="text-[10px] text-muted-foreground">✕</button>
+                        </div>
+                      ) : (
+                        <button onClick={() => { setEditingBadge(flag.id); setBadgeValue(flag.badge || ""); }}
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md cursor-pointer ${
+                            flag.badge === "New" ? "bg-secondary/20 text-secondary" :
+                            flag.badge === "Popular" ? "bg-orange-500/20 text-orange-400" :
+                            flag.badge ? "bg-muted/30 text-muted-foreground" : "bg-muted/10 text-muted-foreground/30 hover:bg-muted/20"
+                          }`}>
+                          {flag.badge || "+ badge"}
+                        </button>
+                      )}
+                    </div>
+                    {editingDesc === flag.id ? (
+                      <div className="flex items-center gap-1 mt-1">
+                        <input value={descValue} onChange={e => setDescValue(e.target.value)} placeholder="Description"
+                          className="bg-muted/30 border border-border rounded px-2 py-0.5 text-[10px] flex-1 text-foreground outline-none focus:border-primary" />
+                        <button onClick={() => saveDesc(flag.id)} className="text-[10px] text-primary hover:text-primary/80">Save</button>
+                        <button onClick={() => setEditingDesc(null)} className="text-[10px] text-muted-foreground">✕</button>
+                      </div>
+                    ) : (
+                      <p onClick={() => { setEditingDesc(flag.id); setDescValue(flag.description || ""); }}
+                        className="text-[11px] text-muted-foreground/50 cursor-pointer hover:text-muted-foreground truncate">
+                        {flag.description || "Click to add description..."}
+                      </p>
+                    )}
                   </div>
                   <button
                     onClick={() => toggleFlag(flag.feature_key)}
-                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 ${
+                    className={`relative w-11 h-6 rounded-full transition-colors duration-200 flex-shrink-0 ${
                       flag.is_visible ? "bg-primary" : "bg-muted/40"
                     }`}
                   >

@@ -298,7 +298,9 @@ export type Database = {
       }
       feature_flags: {
         Row: {
+          badge: string | null
           created_at: string
+          description: string | null
           feature_key: string
           id: string
           is_visible: boolean
@@ -307,7 +309,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          badge?: string | null
           created_at?: string
+          description?: string | null
           feature_key: string
           id?: string
           is_visible?: boolean
@@ -316,7 +320,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          badge?: string | null
           created_at?: string
+          description?: string | null
           feature_key?: string
           id?: string
           is_visible?: boolean

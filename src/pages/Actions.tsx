@@ -1,13 +1,14 @@
 import AppLayout from "@/components/AppLayout";
 import { motion, AnimatePresence } from "framer-motion";
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import {
-  Gift, Search, Volume2, Play, X,
-  ChevronDown, ChevronLeft, ChevronRight, Coins, Eye, EyeOff,
+  Gift, Search, Volume2, Play, Pause, X,
+  ChevronLeft, ChevronRight, Coins, Eye, EyeOff,
   Lock, Copy, ExternalLink, Monitor, LayoutGrid, SlidersHorizontal, Check, AlertTriangle, Save
 } from "lucide-react";
 import SoundLibraryPicker from "@/components/sound-alerts/SoundLibraryPicker";
 import { useGiftCatalog, useUserGiftTriggers } from "@/hooks/use-gift-catalog";
+// Sound alerts are now merged into this page
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -84,7 +85,33 @@ const Actions = () => {
   const hideAlertBorder = true;
   const [viewMode, setViewMode] = useState<"carousel" | "grid">("carousel");
   const [bulkMinValue, setBulkMinValue] = useState<number | null>(null);
-  
+  const [testPlayingGiftId, setTestPlayingGiftId] = useState<string | null>(null);
+  const testAudioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleTestSound = useCallback((giftId: string, url: string | null | undefined) => {
+    if (!url) return;
+    if (testPlayingGiftId === giftId) {
+      testAudioRef.current?.pause();
+      setTestPlayingGiftId(null);
+      return;
+    }
+    testAudioRef.current?.pause();
+    const audio = new Audio(url);
+    testAudioRef.current = audio;
+    audio.play().catch(() => {});
+    setTestPlayingGiftId(giftId);
+    audio.onended = () => setTestPlayingGiftId(null);
+  }, [testPlayingGiftId]);
+
+  const handleBulkSoundAssign = useCallback((soundUrl: string, soundName: string) => {
+    if (bulkMinValue === null) return;
+    const qualifying = gifts.filter(g => g.coin_value >= bulkMinValue);
+    for (const g of qualifying) {
+      updateTrigger(g.gift_id, { alert_sound_url: soundUrl || null });
+    }
+    toast.success(`Sound "${soundName}" applied to ${qualifying.length} gifts (≥${bulkMinValue} coins)`);
+    setBulkMinValue(null);
+  }, [bulkMinValue, gifts, updateTrigger]);
 
   const giftAlertWidget = widgets[0]; // first gift_alert overlay if exists
   const obsUrl = giftAlertWidget ? `${getOverlayBaseUrl()}/overlay/gift-alert/${giftAlertWidget.public_token}` : null;
@@ -153,11 +180,11 @@ const Actions = () => {
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6 text-center">
           <div className="flex items-center justify-center gap-3">
-            <h1 className="text-3xl font-heading font-bold text-foreground mb-1">Gift Alerts</h1>
+            <h1 className="text-3xl font-heading font-bold text-foreground mb-1">Gift & Sound Alerts</h1>
             <PageHelpButton featureKey="gift_alerts" />
           </div>
           <p className="text-muted-foreground text-sm">
-            Pick a gift → choose what happens on your stream
+            Pick a gift → choose animation + sound for your stream
           </p>
         </motion.div>
 
@@ -274,6 +301,16 @@ const Actions = () => {
                       </div>
                       {trigger?.animation_effect && trigger.animation_effect !== "tikup_signature" && (
                         <Badge variant="secondary" className="mt-1.5 text-[9px] px-1.5 py-0">{trigger.animation_effect}</Badge>
+                      )}
+                      {/* Test Sound in grid */}
+                      {trigger?.alert_sound_url && (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleTestSound(gift.gift_id, trigger.alert_sound_url); }}
+                          className="mt-1.5 flex items-center justify-center gap-1 text-[10px] text-primary hover:text-primary/80 transition-colors"
+                        >
+                          {testPlayingGiftId === gift.gift_id ? <Pause size={10} /> : <Play size={10} />}
+                          {testPlayingGiftId === gift.gift_id ? "Stop" : "Test Sound"}
+                        </button>
                       )}
                     </div>
                   </motion.div>
@@ -631,19 +668,61 @@ const Actions = () => {
                       ))}
                     </div>
 
-                    {/* Alert Sound - Connected Picker */}
+                    {/* Alert Sound - Connected Picker + Test */}
                     <div>
                       <label className="text-xs font-bold text-foreground mb-2 block">Alert Sound</label>
-                      <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 border border-border/30">
-                        <Volume2 size={14} className="text-muted-foreground flex-shrink-0" />
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 flex items-center gap-3 px-4 py-3 rounded-xl bg-muted/30 border border-border/30">
+                          <Volume2 size={14} className="text-muted-foreground flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <SoundLibraryPicker
+                              currentUrl={currentTrigger?.alert_sound_url || ""}
+                              currentName={currentTrigger?.alert_sound_url ? "Custom sound" : ""}
+                              onSelect={(url, _name) => updateTrigger(currentGift.gift_id, { alert_sound_url: url || null })}
+                            />
+                          </div>
+                        </div>
+                        {/* Test Sound Button */}
+                        <button
+                          onClick={() => handleTestSound(currentGift.gift_id, currentTrigger?.alert_sound_url)}
+                          disabled={!currentTrigger?.alert_sound_url}
+                          className="flex items-center gap-1.5 px-3 py-3 rounded-xl text-xs font-bold transition-all disabled:opacity-30 border border-border/30 bg-muted/30 hover:bg-muted/50"
+                          title="Test this sound"
+                        >
+                          {testPlayingGiftId === currentGift.gift_id ? <Pause size={14} className="text-primary" /> : <Play size={14} className="text-primary" />}
+                          <span className="hidden sm:inline">{testPlayingGiftId === currentGift.gift_id ? "Stop" : "Test"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Bulk Sound Assignment */}
+                    <div className="rounded-xl p-4 space-y-3" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                      <p className="text-xs font-bold text-foreground flex items-center gap-2">
+                        <Coins size={12} className="text-yellow-500" />
+                        Bulk Sound Assignment
+                      </p>
+                      <p className="text-[10px] text-muted-foreground">Apply a sound to all gifts above a coin threshold.</p>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="number"
+                          placeholder="Min coins (e.g. 100)"
+                          className="w-[130px] h-8 text-xs bg-muted/30 border-border/50"
+                          value={bulkMinValue ?? ""}
+                          onChange={e => setBulkMinValue(e.target.value ? Number(e.target.value) : null)}
+                        />
                         <div className="flex-1 min-w-0">
                           <SoundLibraryPicker
-                            currentUrl={currentTrigger?.alert_sound_url || ""}
-                            currentName={currentTrigger?.alert_sound_url ? "Custom sound" : ""}
-                            onSelect={(url, name) => updateTrigger(currentGift.gift_id, { alert_sound_url: url || null })}
+                            currentUrl=""
+                            currentName=""
+                            onSelect={(url, name) => handleBulkSoundAssign(url, name)}
                           />
                         </div>
                       </div>
+                      {bulkMinValue !== null && (
+                        <p className="text-[10px] text-primary">
+                          {gifts.filter(g => g.coin_value >= bulkMinValue).length} gifts will be affected
+                        </p>
+                      )}
                     </div>
 
                     {/* TikTok Guidelines Warning */}

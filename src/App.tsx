@@ -41,7 +41,7 @@ import SoundReactiveRenderer from "./pages/renderers/SoundReactiveRenderer";
 import BackgroundRenderer from "./pages/renderers/BackgroundRenderer";
 import Actions from "./pages/Actions";
 import Sounds from "./pages/Sounds";
-import SoundAlertsPage from "./pages/SoundAlerts";
+// SoundAlerts is now merged into Actions page
 import Chat from "./pages/Chat";
 import Points from "./pages/Points";
 import Song from "./pages/Song";
@@ -181,7 +181,7 @@ const App = () => (
                 <Route path="/custom-text" element={<CustomTextOverlay />} />
                 <Route path="/actions" element={<Actions />} />
                 <Route path="/sounds" element={<Sounds />} />
-                <Route path="/sound-alerts" element={<SoundAlertsPage />} />
+                <Route path="/sound-alerts" element={<Navigate to="/actions" replace />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/points" element={<Points />} />
                 

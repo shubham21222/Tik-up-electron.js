@@ -226,36 +226,29 @@ const TTSRenderer = () => {
             transition={{ duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] }}
             className="relative"
           >
-            <div className="absolute -inset-[1px] rounded-[20px] bg-gradient-to-r from-[hsl(160,100%,45%/0.3)] to-[hsl(160,100%,45%/0.05)] blur-[1px]" />
+            <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-white/[0.12] to-white/[0.03] blur-[1px]" />
 
-            <div className="relative flex items-start gap-3.5 px-5 py-4 rounded-[20px] bg-[rgba(0,0,0,0.7)] backdrop-blur-xl border border-[hsl(160,100%,45%/0.15)] min-w-[320px] max-w-[420px]">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(160,100%,45%)] to-[hsl(180,100%,38%)] flex items-center justify-center flex-shrink-0 text-sm font-bold text-black">
+            <div className="relative flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-black/60 backdrop-blur-2xl border border-white/[0.08] min-w-[300px] max-w-[400px] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(160,100%,45%)] to-[hsl(180,100%,38%)] flex items-center justify-center flex-shrink-0 text-sm font-bold text-black shadow-[0_0_12px_rgba(37,244,238,0.25)]">
                 {current.username[0]}
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-white tracking-wide">{current.username}</p>
-                <p className="text-[12px] text-white/70 mt-0.5 leading-relaxed">{current.text}</p>
-
-                {/* Audio waveform visualizer */}
-                <div className="flex items-end gap-[3px] mt-2.5 h-3">
-                  {[...Array(12)].map((_, i) => (
-                    <motion.div
-                      key={i}
-                      className="w-[2.5px] rounded-full bg-[hsl(160,100%,45%)]"
-                      animate={speaking ? {
-                        height: [3, 8 + Math.random() * 6, 3, 10 + Math.random() * 4, 3],
-                      } : { height: 3 }}
-                      transition={speaking ? {
-                        duration: 0.4 + Math.random() * 0.3,
-                        repeat: Infinity,
-                        ease: "easeInOut",
-                        delay: i * 0.04,
-                      } : { duration: 0.3 }}
-                    />
-                  ))}
-                </div>
+                <p className="text-[13px] font-semibold text-white/90 tracking-wide">{current.username}</p>
+                <p className="text-[12px] text-white/50 mt-0.5 leading-relaxed truncate">{current.text}</p>
               </div>
+
+              <motion.div
+                animate={speaking ? { opacity: [0.3, 0.7, 0.3] } : { opacity: 0.2 }}
+                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                className="flex-shrink-0"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
+                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
+                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+                </svg>
+              </motion.div>
             </div>
           </motion.div>
         )}

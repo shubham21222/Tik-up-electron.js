@@ -1,8 +1,11 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Volume2, Play, Pause, Search, Music, Zap, Bell, PartyPopper, Coins, ChevronDown, Link, X } from "lucide-react";
+import { Volume2, Play, Pause, Search, Music, Zap, Bell, PartyPopper, Coins, ChevronDown, Link, X, Upload } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/use-auth";
+import { toast } from "sonner";
 
 export interface SoundPreset {
   id: string;
@@ -53,13 +56,16 @@ interface SoundLibraryPickerProps {
 }
 
 export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }: SoundLibraryPickerProps) {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [playingId, setPlayingId] = useState<string | null>(null);
   const [showCustom, setShowCustom] = useState(false);
   const [customUrl, setCustomUrl] = useState("");
+  const [uploading, setUploading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const filtered = SOUND_LIBRARY.filter(s => {
     if (category !== "All" && s.category !== category) return false;
@@ -97,8 +103,58 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
     setOpen(false);
   };
 
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Validate file type
+    const allowedTypes = ["audio/mpeg", "audio/mp3", "audio/wav", "audio/ogg", "audio/webm", "audio/x-wav"];
+    if (!allowedTypes.includes(file.type) && !file.name.match(/\.(mp3|wav|ogg|webm)$/i)) {
+      toast.error("Please upload an MP3, WAV, OGG, or WebM audio file");
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large — max 5MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase() || "mp3";
+      const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const filePath = `${user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("sound-alerts")
+        .upload(filePath, file, { contentType: file.type });
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("sound-alerts")
+        .getPublicUrl(filePath);
+
+      const publicUrl = urlData.publicUrl;
+      const displayName = file.name.replace(/\.[^/.]+$/, ""); // strip extension
+
+      onSelect(publicUrl, displayName);
+      toast.success(`Uploaded "${displayName}"`);
+      setOpen(false);
+    } catch (err: any) {
+      console.error("Upload failed:", err);
+      toast.error("Upload failed: " + (err.message || "Unknown error"));
+    } finally {
+      setUploading(false);
+      // Reset file input
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
+
   const selectedPreset = SOUND_LIBRARY.find(s => s.url === currentUrl);
-  const displayName = selectedPreset?.name || currentName || (currentUrl ? "Custom Sound" : "No sound selected");
+  const isUploaded = currentUrl && !selectedPreset && !currentUrl.includes("freesound.org");
+  const displayName = selectedPreset?.name || currentName || (currentUrl ? (isUploaded ? "🔊 " + (currentName || "Uploaded Sound") : "Custom Sound") : "No sound selected");
 
   return (
     <>
@@ -112,6 +168,15 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
         <ChevronDown size={12} className="text-muted-foreground/40 flex-shrink-0 opacity-0 group-hover/btn:opacity-100 transition-opacity" />
       </button>
 
+      {/* Hidden file input */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="audio/mpeg,audio/mp3,audio/wav,audio/ogg,audio/webm,.mp3,.wav,.ogg,.webm"
+        className="hidden"
+        onChange={handleFileUpload}
+      />
+
       <Dialog open={open} onOpenChange={(v) => { if (!v) { audioRef.current?.pause(); setPlayingId(null); } setOpen(v); }}>
         <DialogContent className="sm:max-w-lg bg-background border-white/[0.08] p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-5 pt-5 pb-0">
@@ -121,8 +186,26 @@ export default function SoundLibraryPicker({ currentUrl, currentName, onSelect }
             </DialogTitle>
           </DialogHeader>
 
+          {/* Upload banner */}
+          <div className="px-5 pt-4">
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border border-dashed transition-all text-sm font-medium"
+              style={{
+                borderColor: "hsl(160 100% 45% / 0.25)",
+                background: "hsl(160 100% 45% / 0.04)",
+                color: "hsl(160 100% 60%)",
+              }}
+            >
+              <Upload size={14} />
+              {uploading ? "Uploading…" : "Upload Custom Sound"}
+              <span className="text-[10px] text-muted-foreground/50 ml-1">(MP3, WAV — max 5MB)</span>
+            </button>
+          </div>
+
           {/* Category tabs */}
-          <div className="flex gap-1 px-5 pt-4 pb-2 overflow-x-auto">
+          <div className="flex gap-1 px-5 pt-3 pb-2 overflow-x-auto">
             {CATEGORIES.map(c => {
               const Icon = c.icon;
               return (

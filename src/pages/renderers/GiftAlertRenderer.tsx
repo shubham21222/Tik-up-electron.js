@@ -107,18 +107,18 @@ const GiftAlertRenderer = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Play sound
-  const playSoundRef = useRef<(url: string | undefined) => void>(() => {});
-  playSoundRef.current = (url: string | undefined) => {
+  const playSoundRef = useRef<(url: string | undefined, vol?: number) => void>(() => {});
+  playSoundRef.current = (url: string | undefined, vol?: number) => {
     if (!url) return;
     try {
       if (audioRef.current) { audioRef.current.pause(); audioRef.current.currentTime = 0; }
       const audio = new Audio(url);
-      audio.volume = (settings.sound_volume || 80) / 100;
+      audio.volume = (vol ?? settings.sound_volume ?? 80) / 100;
       audioRef.current = audio;
       audio.play().catch(() => {});
     } catch {}
   };
-  const playSound = useCallback((url: string | undefined) => { playSoundRef.current(url); }, []);
+  const playSound = useCallback((url: string | undefined, vol?: number) => { playSoundRef.current(url, vol); }, []);
 
   // Fetch widget settings + owner
   useEffect(() => {
@@ -175,7 +175,11 @@ const GiftAlertRenderer = () => {
 
         const s = settingsRef.current;
         const DEFAULT_CHIME = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3";
-        const soundUrl = p.alert_sound_url || trigger?.alert_sound_url || s.sound_url || DEFAULT_CHIME;
+        // Sound priority: sound_alert_url (from sound_alerts table) > alert_sound_url (trigger) > widget setting > default
+        const soundAlertUrl = p.sound_alert_url;
+        const soundAlertVolume = p.sound_alert_volume;
+        const soundUrl = soundAlertUrl || p.alert_sound_url || trigger?.alert_sound_url || s.sound_url || DEFAULT_CHIME;
+        const soundVol = soundAlertUrl ? soundAlertVolume : undefined;
         const animOverride = p.animation_effect || trigger?.animation_effect || undefined;
 
         const event: AlertEvent = {
@@ -192,7 +196,7 @@ const GiftAlertRenderer = () => {
           message: p.comment || p.message || undefined,
         };
 
-        console.log(`[GiftAlert] Received gift: ${giftName} from ${event.user}`);
+        console.log(`[GiftAlert] Received gift: ${giftName} from ${event.user}, sound=${!!soundUrl}`);
         setAlerts(prev => {
           const recent = prev.find(a => a.user === event.user && a.gift === event.gift && (Date.now() - a.id) < 500);
           if (recent) {
@@ -200,7 +204,7 @@ const GiftAlertRenderer = () => {
           }
           return [...prev, event];
         });
-        playSound(soundUrl);
+        playSound(soundUrl, soundVol);
       })
       .on("broadcast", { event: "test_alert" }, () => {
         const s = settingsRef.current;

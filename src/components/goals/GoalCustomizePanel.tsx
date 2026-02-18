@@ -1,10 +1,19 @@
 import { motion } from "framer-motion";
-import { X, Sliders } from "lucide-react";
+import { X, Sliders, Palette, Type, Sparkles, PartyPopper } from "lucide-react";
 import { useGoals, type Goal } from "@/hooks/use-goals";
 import { useState } from "react";
+import { useSubscription } from "@/hooks/use-subscription";
 
-const stylePresets = ["glass", "neon", "minimal", "gradient", "tiktok"];
-const completionActions = ["none", "confetti", "sound", "glow_pulse"];
+const STYLE_PRESETS = ["glass", "neon", "minimal", "gradient", "tiktok", "cyber", "flame", "ice", "festive", "rgb"];
+const COMPLETION_ACTIONS = ["none", "confetti", "glow_pulse", "fireworks", "explosion", "sound"];
+const PROGRESS_ANIMATIONS = ["none", "pulse", "glow_burst", "shake", "particles"];
+const FONT_OPTIONS = ["Inter", "Space Grotesk", "Orbitron", "Rajdhani", "Poppins", "Montserrat"];
+const BG_OPTIONS = [
+  { label: "Transparent", value: "transparent" },
+  { label: "Glass Card", value: "glass" },
+  { label: "Floating Card", value: "floating" },
+  { label: "Blurred Glass", value: "blurred" },
+];
 
 interface Props {
   goal: Goal;
@@ -13,12 +22,23 @@ interface Props {
 
 const GoalCustomizePanel = ({ goal, onClose }: Props) => {
   const { updateGoal } = useGoals();
+  const { isPro } = useSubscription();
+
+  const customConfig = (goal.custom_config || {}) as Record<string, unknown>;
+
   const [style, setStyle] = useState(goal.style_preset);
   const [action, setAction] = useState(goal.on_complete_action || "none");
   const [autoReset, setAutoReset] = useState(goal.auto_reset);
   const [milestones, setMilestones] = useState(goal.milestone_alerts);
   const [title, setTitle] = useState(goal.title);
   const [target, setTarget] = useState(goal.target_value);
+
+  // Custom config fields
+  const [primaryColor, setPrimaryColor] = useState((customConfig.primary_color as string) || "#00e676");
+  const [glowIntensity, setGlowIntensity] = useState((customConfig.glow_intensity as number) || 50);
+  const [fontFamily, setFontFamily] = useState((customConfig.font_family as string) || "Inter");
+  const [progressAnimation, setProgressAnimation] = useState((customConfig.progress_animation as string) || "none");
+  const [bgStyle, setBgStyle] = useState((customConfig.bg_style as string) || "glass");
 
   const save = async () => {
     await updateGoal(goal.id, {
@@ -28,9 +48,18 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
       milestone_alerts: milestones,
       title,
       target_value: target,
+      custom_config: {
+        primary_color: primaryColor,
+        glow_intensity: glowIntensity,
+        font_family: fontFamily,
+        progress_animation: progressAnimation,
+        bg_style: bgStyle,
+      },
     });
     onClose();
   };
+
+  const isProStyle = (idx: number) => idx >= 5 && !isPro;
 
   return (
     <motion.div
@@ -46,7 +75,7 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
         exit={{ opacity: 0, y: 30 }}
         transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md rounded-2xl p-[1px] max-h-[85vh] overflow-y-auto"
+        className="w-full max-w-lg rounded-2xl p-[1px] max-h-[90vh] overflow-y-auto"
         style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02))" }}
       >
         <div className="rounded-2xl p-6" style={{ background: "rgba(12,16,22,0.95)", backdropFilter: "blur(20px)" }}>
@@ -60,31 +89,116 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
             </button>
           </div>
 
-          <div className="space-y-5">
-            {/* Title */}
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 block font-semibold">Title</label>
-              <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
-                className="w-full bg-muted/30 border border-border/60 rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/40 transition-colors" />
-            </div>
+          {/* Live Preview */}
+          <div className="mb-5 rounded-xl overflow-hidden border border-border/20" style={{ height: 120, background: "rgba(0,0,0,0.6)" }}>
+            <iframe
+              src={`/overlay/goal/${goal.public_token}`}
+              className="w-full h-full border-0 pointer-events-none"
+              style={{ transform: "scale(0.45)", transformOrigin: "top left", width: "222%", height: "222%" }}
+              title="Goal Preview"
+            />
+          </div>
 
-            {/* Target */}
-            <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 block font-semibold">Target Value</label>
-              <input type="number" value={target} onChange={(e) => setTarget(Number(e.target.value))} min={1}
-                className="w-full bg-muted/30 border border-border/60 rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/40 transition-colors" />
+          <div className="space-y-5">
+            {/* Title + Target */}
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 block font-semibold">Title</label>
+                <input type="text" value={title} onChange={(e) => setTitle(e.target.value)}
+                  className="w-full bg-muted/30 border border-border/60 rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/40 transition-colors" />
+              </div>
+              <div>
+                <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 block font-semibold">Target Value</label>
+                <input type="number" value={target} onChange={(e) => setTarget(Number(e.target.value))} min={1}
+                  className="w-full bg-muted/30 border border-border/60 rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/40 transition-colors" />
+              </div>
             </div>
 
             {/* Style Preset */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold">Style Preset</label>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold flex items-center gap-1.5">
+                <Palette size={10} /> Style Preset
+              </label>
               <div className="flex flex-wrap gap-2">
-                {stylePresets.map(s => (
+                {STYLE_PRESETS.map((s, idx) => (
                   <button key={s} onClick={() => setStyle(s)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all duration-200 ${
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all duration-200 relative ${
                       style === s ? "bg-primary/10 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground border border-border/40 hover:border-border/60"
                     }`}>
                     {s}
+                    {isProStyle(idx) && <span className="ml-1 text-[7px] align-super" style={{ color: "hsl(350 90% 60%)" }}>★</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Primary Color */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold flex items-center gap-1.5">
+                <Palette size={10} /> Primary Color
+              </label>
+              <div className="flex items-center gap-3">
+                <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="w-10 h-10 rounded-lg border border-border/40 cursor-pointer bg-transparent" />
+                <input type="text" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)}
+                  className="flex-1 bg-muted/30 border border-border/60 rounded-xl px-3 py-2.5 text-sm text-foreground font-mono outline-none focus:border-primary/40 transition-colors" />
+              </div>
+            </div>
+
+            {/* Glow Intensity */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold">
+                Glow Intensity: {glowIntensity}%
+              </label>
+              <input type="range" min={0} max={100} value={glowIntensity} onChange={(e) => setGlowIntensity(Number(e.target.value))}
+                className="w-full accent-primary h-1.5" />
+            </div>
+
+            {/* Font Family */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold flex items-center gap-1.5">
+                <Type size={10} /> Font Family
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {FONT_OPTIONS.map(f => (
+                  <button key={f} onClick={() => setFontFamily(f)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      fontFamily === f ? "bg-primary/10 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground border border-border/40 hover:border-border/60"
+                    }`}
+                    style={{ fontFamily: f }}>
+                    {f}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Background Style */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold">Background</label>
+              <div className="flex flex-wrap gap-2">
+                {BG_OPTIONS.map(bg => (
+                  <button key={bg.value} onClick={() => setBgStyle(bg.value)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      bgStyle === bg.value ? "bg-primary/10 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground border border-border/40 hover:border-border/60"
+                    }`}>
+                    {bg.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Progress Animation */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold flex items-center gap-1.5">
+                <Sparkles size={10} /> On Progress Increase
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {PROGRESS_ANIMATIONS.map(a => (
+                  <button key={a} onClick={() => setProgressAnimation(a)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all duration-200 ${
+                      progressAnimation === a ? "bg-primary/10 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground border border-border/40 hover:border-border/60"
+                    }`}>
+                    {a.replace("_", " ")}
                   </button>
                 ))}
               </div>
@@ -92,9 +206,11 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
 
             {/* Completion Action */}
             <div>
-              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold">On Complete</label>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold flex items-center gap-1.5">
+                <PartyPopper size={10} /> On Complete
+              </label>
               <div className="flex flex-wrap gap-2">
-                {completionActions.map(a => (
+                {COMPLETION_ACTIONS.map(a => (
                   <button key={a} onClick={() => setAction(a)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-medium capitalize transition-all duration-200 ${
                       action === a ? "bg-primary/10 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground border border-border/40 hover:border-border/60"

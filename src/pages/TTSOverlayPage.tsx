@@ -10,7 +10,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { Link } from "react-router-dom";
+
 import { useAuth } from "@/hooks/use-auth";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
 import { copyToClipboard } from "@/lib/clipboard";
@@ -127,15 +127,90 @@ const TTSOverlayPage = () => {
       <ProGate feature="Text-to-Speech">
       <div className="max-w-6xl mx-auto pb-12">
         {/* Header */}
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-6">
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="mb-5">
           <h1 className="text-2xl font-heading font-bold text-primary flex items-center gap-2 mb-2">
             <Mic size={24} /> Text-to-Speech Chat
           </h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            Here you can read out the chat comments from your viewers automatically via Text-to-Speech (TTS).<br />
-            The voice is played directly in the browser. No Overlay is required!<br />
-            A TTS feature is also available via <Link to="/actions" className="text-primary hover:underline">Actions &amp; Events</Link> which offers more flexibility (e.g. Read out gifts).
+            Read out chat comments automatically. Enable below and keep this page open — or paste the overlay URL into OBS.
           </p>
+        </motion.div>
+
+        {/* Quick Start Banner */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
+          className="mb-5 rounded-2xl border border-primary/15 bg-primary/[0.04] p-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Mic size={14} className="text-primary" />
+              </div>
+              <div>
+                <p className="text-[12px] font-bold text-foreground mb-0.5">Browser TTS (easiest)</p>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">Just enable TTS below &amp; keep this page open. Audio plays from your browser — no URL needed.</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 rounded-xl bg-accent/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                <Copy size={14} className="text-muted-foreground" />
+              </div>
+              <div>
+                <p className="text-[12px] font-bold text-foreground mb-0.5">OBS Overlay (visual bubble)</p>
+                <p className="text-[10px] text-muted-foreground leading-relaxed">Copy the URL below &amp; add as Browser Source in OBS / TikTok Live Studio for a visual chat bubble.</p>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Overlay URL + Test — Prominent */}
+        <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+          className="mb-5 rounded-2xl border border-border bg-card p-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <div className="flex-1 min-w-0 w-full">
+              <p className="text-[10px] font-bold text-primary uppercase tracking-wider mb-1.5">OBS Overlay URL</p>
+              {ttsWidget ? (
+                <div className="flex items-center gap-2">
+                  <Input className="h-8 text-[10px] bg-white/[0.03] border-white/[0.08] flex-1 font-mono" readOnly
+                    value={`${getOverlayBaseUrl()}/overlay/tts/${ttsWidget.public_token}`} />
+                  <button onClick={() => {
+                    copyToClipboard(`${getOverlayBaseUrl()}/overlay/tts/${ttsWidget.public_token}`, "URL copied!");
+                  }} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 text-primary text-[11px] font-medium hover:bg-primary/20 transition-colors">
+                    <Copy size={12} /> Copy
+                  </button>
+                </div>
+              ) : (
+                <p className="text-[11px] text-muted-foreground">Creating TTS overlay...</p>
+              )}
+            </div>
+            {ttsWidget && (
+              <button
+                onClick={async () => {
+                  if (!ttsWidget) return;
+                  const channel = supabase.channel(`tts-${ttsWidget.public_token}`);
+                  await channel.subscribe();
+                  await channel.send({
+                    type: "broadcast",
+                    event: "play_tts",
+                    payload: {
+                      username: "@TestUser",
+                      text: testText || "Hello! This is a TTS test message.",
+                      voice_id: local.voice_id,
+                      volume: local.volume,
+                      speed: local.speed,
+                      pitch: local.pitch,
+                      interrupt: false,
+                      voice_provider: local.voice_provider,
+                      avatar: "",
+                    },
+                  });
+                  supabase.removeChannel(channel);
+                  toast.success("Test sent to overlay!");
+                }}
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-accent text-accent-foreground text-[11px] font-bold hover:brightness-110 transition-all whitespace-nowrap"
+              >
+                <Play size={12} /> Test on Overlay
+              </button>
+            )}
+          </div>
         </motion.div>
 
         {/* Main Grid */}
@@ -329,10 +404,11 @@ const TTSOverlayPage = () => {
             </div>
           </div>
 
-          {/* Voice Tester + TTS Logs */}
+          {/* Voice Tester */}
           <div className="space-y-4">
             <div className={sectionClass}>
               <h3 className={sectionTitle}>Voice Tester</h3>
+              <p className="text-[10px] text-muted-foreground mb-2">Test locally in your browser (not sent to overlay)</p>
               <div className="flex items-center gap-2">
                 <Input className="h-8 text-[11px] bg-white/[0.03] border-white/[0.08] flex-1" placeholder="This is a test!"
                   value={testText} onChange={(e) => setTestText(e.target.value)}
@@ -342,31 +418,6 @@ const TTSOverlayPage = () => {
                   <Play size={12} /> {testing ? "Playing..." : "Play"}
                 </button>
               </div>
-            </div>
-
-            <div className={sectionClass}>
-              <h3 className={sectionTitle}>TTS Overlay URL</h3>
-              {ttsWidget ? (
-                <div className="space-y-2">
-                  <p className="text-[11px] text-muted-foreground">Add this URL as a Browser Source in OBS:</p>
-                  <div className="flex items-center gap-2">
-                    <Input className="h-7 text-[10px] bg-white/[0.03] border-white/[0.08] flex-1 font-mono" readOnly
-                      value={`${getOverlayBaseUrl()}/overlay/tts/${ttsWidget.public_token}`} />
-                    <button onClick={() => {
-                      copyToClipboard(`${getOverlayBaseUrl()}/overlay/tts/${ttsWidget.public_token}`, "URL copied!");
-                    }} className="p-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">
-                      <Copy size={12} />
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-[11px] text-muted-foreground">Creating TTS overlay...</p>
-              )}
-            </div>
-
-            <div className={sectionClass}>
-              <h3 className={sectionTitle}>TTS Logs</h3>
-              <p className="text-[11px] text-muted-foreground">No Entries</p>
             </div>
           </div>
         </div>

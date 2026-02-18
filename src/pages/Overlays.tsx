@@ -8,6 +8,7 @@ import { copyToClipboard } from "@/lib/clipboard";
 import { useState, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
+import { useFeatureFlags } from "@/hooks/use-feature-flags";
 
 const TTSOverlay = lazy(() => import("@/components/overlays/TTSOverlay"));
 const ChatOverlay = lazy(() => import("@/components/overlays/ChatOverlay"));
@@ -94,6 +95,7 @@ interface OverlayItem {
   route?: string;
   tags?: string[];
   category?: string;
+  featureKey?: string;
 }
 
 /* ── Category definitions for the main Overlays tab ── */
@@ -109,52 +111,52 @@ const OVERLAY_CATEGORIES = [
 const overlayData: Record<string, OverlayItem[]> = {
   "Overlays": [
     // Stream Essentials
-    { title: "Text-to-Speech (TTS)", description: "Floating notification bubble with soundwave animation. Premium glassmorphism design.", hasPreview: true, color: "160 100% 45%", route: "/tts", category: "stream" },
-    { title: "TikTok Chat Overlay", description: "Stacked chat messages with smooth slide-in animations and fading effects.", hasPreview: true, color: "200 100% 55%", route: "/chat-overlay", category: "stream" },
-    { title: "Sound Alert Overlay", description: "Center-screen animated alert with expanding neon rings and particle effects.", hasPreview: true, color: "350 90% 55%", route: "/sounds", category: "stream" },
-    { title: "Notifications Ticker", description: "Scrolling event ticker bar showing follows, likes, gifts in real-time.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/ticker", category: "stream" },
+    { title: "Text-to-Speech (TTS)", description: "Floating notification bubble with soundwave animation. Premium glassmorphism design.", hasPreview: true, color: "160 100% 45%", route: "/tts", category: "stream", featureKey: "/tts-overlay" },
+    { title: "TikTok Chat Overlay", description: "Stacked chat messages with smooth slide-in animations and fading effects.", hasPreview: true, color: "200 100% 55%", route: "/chat-overlay", category: "stream", featureKey: "/chat-overlay-widget" },
+    { title: "Sound Alert Overlay", description: "Center-screen animated alert with expanding neon rings and particle effects.", hasPreview: true, color: "350 90% 55%", route: "/sounds", category: "stream", featureKey: "/sound-alert-overlay" },
+    { title: "Notifications Ticker", description: "Scrolling event ticker bar showing follows, likes, gifts in real-time.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/ticker", category: "stream", featureKey: "/ticker-overlay" },
 
     // Alert Overlays
-    { title: "Like/Follow Overlay", description: "Elegant floating notifications with heart particle animations.", hasPreview: true, color: "350 90% 55%", route: "/like-alerts", category: "alerts" },
-    { title: "Gift Alert Overlay", description: "Animated gift alerts with glow pulse and ring expansion effects.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-alerts", category: "alerts" },
-    { title: "Follow Alert", description: "Clean notification when a new user follows. Slide-in animation with avatar display.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follow-alerts", category: "alerts" },
-    { title: "Share Alert", description: "Stream share notification with animated share icon and username display.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/share-alerts", category: "alerts" },
-    { title: "Like Alert", description: "Floating hearts animation triggered by viewer likes with particle burst.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/like-alerts", category: "alerts" },
-    { title: "Super Gift Combo", description: "Stacking combo counter with escalating tiers: Combo, Super, Epic, Legendary.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/gift-combo", category: "alerts" },
-    { title: "Gift Firework", description: "Cinematic firework explosions triggered by gifts with particle trails and username tags.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/gift-firework", category: "alerts" },
+    { title: "Like/Follow Overlay", description: "Elegant floating notifications with heart particle animations.", hasPreview: true, color: "350 90% 55%", route: "/like-alerts", category: "alerts", featureKey: "/like-follow-overlay" },
+    { title: "Gift Alert Overlay", description: "Animated gift alerts with glow pulse and ring expansion effects.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-alerts", category: "alerts", featureKey: "/gift-alert-overlay" },
+    { title: "Follow Alert", description: "Clean notification when a new user follows. Slide-in animation with avatar display.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follow-alerts", category: "alerts", featureKey: "/follow-alert-overlay" },
+    { title: "Share Alert", description: "Stream share notification with animated share icon and username display.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/share-alerts", category: "alerts", featureKey: "/share-alert-overlay" },
+    { title: "Like Alert", description: "Floating hearts animation triggered by viewer likes with particle burst.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/like-alerts", category: "alerts", featureKey: "/like-alert-overlay" },
+    { title: "Super Gift Combo", description: "Stacking combo counter with escalating tiers: Combo, Super, Epic, Legendary.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/gift-combo", category: "alerts", featureKey: "/gift-combo-overlay" },
+    { title: "Gift Firework", description: "Cinematic firework explosions triggered by gifts with particle trails and username tags.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/gift-firework", category: "alerts", featureKey: "/gift-firework-overlay" },
 
     // Goals & Progress
-    { title: "Goal Progress Bar", description: "Animated progress bars for likes, follows, shares & stars with shimmer effects.", hasPreview: true, color: "45 100% 55%", route: "/goal-overlays", category: "goals" },
-    { title: "Follower Goal", description: "Animated follower goal bar with milestone markers and completion celebration.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follower-goal", category: "goals" },
-    { title: "Coin Jar", description: "Watch the jar fill with gifts. A fun, visual way to track your gift goal in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/coin-jar", category: "goals" },
-    { title: "Progress Race", description: "Multiple teams race to the finish line powered by gifts and likes in real-time.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/progress-race", category: "goals" },
+    { title: "Goal Progress Bar", description: "Animated progress bars for likes, follows, shares & stars with shimmer effects.", hasPreview: true, color: "45 100% 55%", route: "/goal-overlays", category: "goals", featureKey: "/goal-progress-overlay" },
+    { title: "Follower Goal", description: "Animated follower goal bar with milestone markers and completion celebration.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/follower-goal", category: "goals", featureKey: "/follower-goal-overlay" },
+    { title: "Coin Jar", description: "Watch the jar fill with gifts. A fun, visual way to track your gift goal in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/coin-jar", category: "goals", featureKey: "/coin-jar-overlay" },
+    { title: "Progress Race", description: "Multiple teams race to the finish line powered by gifts and likes in real-time.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/progress-race", category: "goals", featureKey: "/progress-race-overlay" },
 
     // Widgets & Counters
-    { title: "Viewer Count", description: "Live viewer count display with spike animations, peak tracking, and mini graph mode.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/viewer-count", category: "widgets" },
-    { title: "Like Counter", description: "Real-time like counter with progress ring, bar, and animated digit modes.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/like-counter", category: "widgets" },
-    { title: "Leaderboard", description: "Live top gifters/fans leaderboard with animated ranking transitions.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/leaderboard", category: "widgets" },
-    { title: "Stream Timer", description: "Digital countdown/count-up timer with segment display. Extendable by gifts.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/stream-timer", category: "widgets" },
-    { title: "Custom Text", description: "Dynamic text overlay supporting real-time variable binding ({viewers}, {likes}, etc).", hasPreview: true, color: "160 100% 45%", pro: true, route: "/custom-text", category: "widgets" },
-    { title: "Social Media Rotator", description: "Animated 3D carousel of your social media links with glow effects and smooth rotation.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/social-rotator", category: "widgets" },
-    { title: "Sound Reactive", description: "Audio visualizer with peak meters and waveform backgrounds synced to stream audio.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/sound-reactive", category: "widgets" },
+    { title: "Viewer Count", description: "Live viewer count display with spike animations, peak tracking, and mini graph mode.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/viewer-count", category: "widgets", featureKey: "/viewer-count-overlay" },
+    { title: "Like Counter", description: "Real-time like counter with progress ring, bar, and animated digit modes.", hasPreview: true, color: "350 90% 55%", pro: true, route: "/like-counter", category: "widgets", featureKey: "/like-counter-overlay" },
+    { title: "Leaderboard", description: "Live top gifters/fans leaderboard with animated ranking transitions.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/leaderboard", category: "widgets", featureKey: "/leaderboard-overlay" },
+    { title: "Stream Timer", description: "Digital countdown/count-up timer with segment display. Extendable by gifts.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/stream-timer", category: "widgets", featureKey: "/stream-timer-overlay" },
+    { title: "Custom Text", description: "Dynamic text overlay supporting real-time variable binding ({viewers}, {likes}, etc).", hasPreview: true, color: "160 100% 45%", pro: true, route: "/custom-text", category: "widgets", featureKey: "/custom-text-overlay" },
+    { title: "Social Media Rotator", description: "Animated 3D carousel of your social media links with glow effects and smooth rotation.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/social-rotator", category: "widgets", featureKey: "/social-rotator-overlay" },
+    { title: "Sound Reactive", description: "Audio visualizer with peak meters and waveform backgrounds synced to stream audio.", hasPreview: true, color: "200 100% 55%", pro: true, route: "/sound-reactive", category: "widgets", featureKey: "/sound-reactive-overlay" },
 
     // Gift Actions & In-Game
-    { title: "Gift Actions Slider", description: "Scrolling carousel showing which gifts trigger which actions. Easy to edit.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-actions", category: "actions" },
-    { title: "Spin Wheel", description: "Viewers trigger spins with gifts. Land on custom dares, prizes, or actions.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/spin-wheel", category: "actions" },
-    { title: "Battle Royale", description: "Viewers enter by gifting — avatars fight on screen, last one standing wins.", hasPreview: true, color: "350 80% 55%", pro: true, route: "/battle-royale", category: "actions" },
-    { title: "Slot Machine", description: "Gift-triggered 3-reel slot machine with customizable jackpot rewards.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/slot-machine", category: "actions" },
-    { title: "Vote Battle", description: "Two-sided animated vote bar. Viewers power their team with gifts.", hasPreview: true, color: "200 80% 55%", pro: true, route: "/vote-battle", category: "actions" },
-    { title: "Stream Buddies", description: "Animated pixel-art avatars of your top supporters that walk, jump, and react to gifts and chat in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/stream-buddies", category: "actions" },
-    { title: "Pac-Man LIVE", description: "Interactive Pac-Man game controlled by chat commands. Gifts trigger power-ups, speed boosts, and shields!", hasPreview: true, color: "160 100% 45%", pro: true, route: "/pacman", category: "actions" },
+    { title: "Gift Actions Slider", description: "Scrolling carousel showing which gifts trigger which actions. Easy to edit.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/gift-actions", category: "actions", featureKey: "/gift-actions-overlay" },
+    { title: "Spin Wheel", description: "Viewers trigger spins with gifts. Land on custom dares, prizes, or actions.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/spin-wheel", category: "actions", featureKey: "/spin-wheel-overlay" },
+    { title: "Battle Royale", description: "Viewers enter by gifting — avatars fight on screen, last one standing wins.", hasPreview: true, color: "350 80% 55%", pro: true, route: "/battle-royale", category: "actions", featureKey: "/battle-royale-overlay" },
+    { title: "Slot Machine", description: "Gift-triggered 3-reel slot machine with customizable jackpot rewards.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/slot-machine", category: "actions", featureKey: "/slot-machine-overlay" },
+    { title: "Vote Battle", description: "Two-sided animated vote bar. Viewers power their team with gifts.", hasPreview: true, color: "200 80% 55%", pro: true, route: "/vote-battle", category: "actions", featureKey: "/vote-battle-overlay" },
+    { title: "Stream Buddies", description: "Animated pixel-art avatars of your top supporters that walk, jump, and react to gifts and chat in real-time.", hasPreview: true, color: "45 100% 55%", pro: true, route: "/stream-buddies", category: "actions", featureKey: "/stream-buddies-overlay" },
+    { title: "Pac-Man LIVE", description: "Interactive Pac-Man game controlled by chat commands. Gifts trigger power-ups, speed boosts, and shields!", hasPreview: true, color: "160 100% 45%", pro: true, route: "/pacman", category: "actions", featureKey: "/pacman-overlay" },
 
     // Banners & Stream Design
-    { title: "Promo Overlay", description: "Branded promo overlay with logo, animated rings, and follow CTA.", hasPreview: true, color: "160 100% 45%", route: "/promo-overlay", category: "design" },
-    { title: "Stream Border", description: "10 premium animated transparent borders: Neon Pulse, Gold Metallic, Glitch & more.", hasPreview: true, color: "210 100% 55%", pro: true, route: "/stream-border", category: "design" },
-    { title: "Webcam Frame", description: "10 premium animated webcam frames. Neon, Gold, Circuit, Holographic & more.", hasPreview: true, color: "180 100% 50%", pro: true, route: "/webcam-frame", category: "design" },
-    { title: "Video Cam Frame", description: "Animated WebM video webcam frame with glow and color options.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/video-cam-frame", category: "design" },
-    { title: "Video Label Bar", description: "Animated WebM label bar overlay. Color customizable transparent loop.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/video-label-bar", category: "design" },
-    { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/animated-bg", category: "design" },
-    { title: "Studio Backgrounds", description: "10 premium animated room backgrounds with customizable LED signs. Sofa scenes for every vibe.", hasPreview: false, color: "40 95% 55%", pro: true, route: "/backgrounds", category: "design" },
+    { title: "Promo Overlay", description: "Branded promo overlay with logo, animated rings, and follow CTA.", hasPreview: true, color: "160 100% 45%", route: "/promo-overlay", category: "design", featureKey: "/promo-overlay" },
+    { title: "Stream Border", description: "10 premium animated transparent borders: Neon Pulse, Gold Metallic, Glitch & more.", hasPreview: true, color: "210 100% 55%", pro: true, route: "/stream-border", category: "design", featureKey: "/stream-border-overlay" },
+    { title: "Webcam Frame", description: "10 premium animated webcam frames. Neon, Gold, Circuit, Holographic & more.", hasPreview: true, color: "180 100% 50%", pro: true, route: "/webcam-frame", category: "design", featureKey: "/webcam-frame-overlay" },
+    { title: "Video Cam Frame", description: "Animated WebM video webcam frame with glow and color options.", hasPreview: true, color: "160 100% 45%", pro: true, route: "/video-cam-frame", category: "design", featureKey: "/video-cam-frame-overlay" },
+    { title: "Video Label Bar", description: "Animated WebM label bar overlay. Color customizable transparent loop.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/video-label-bar", category: "design", featureKey: "/video-label-bar-overlay" },
+    { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/animated-bg", category: "design", featureKey: "/animated-bg-overlay" },
+    { title: "Studio Backgrounds", description: "10 premium animated room backgrounds with customizable LED signs. Sofa scenes for every vibe.", hasPreview: false, color: "40 95% 55%", pro: true, route: "/backgrounds", category: "design", featureKey: "/studio-bg-overlay" },
   ],
 };
 
@@ -165,8 +167,10 @@ const Overlays = () => {
   const [activeTab, setActiveTab] = useState(categoryTabs[0]);
   const [fullscreenOverlay, setFullscreenOverlay] = useState<string | null>(null);
   const FullscreenComponent = fullscreenOverlay ? overlayPreviews[fullscreenOverlay] : null;
+  const { isVisible } = useFeatureFlags();
   const activeCat = OVERLAY_CATEGORIES.find(c => c.label === activeTab);
-  const filteredItems = activeCat ? allItems.filter(o => o.category === activeCat.id) : allItems;
+  const visibleItems = allItems.filter(o => !o.featureKey || isVisible(o.featureKey));
+  const filteredItems = activeCat ? visibleItems.filter(o => o.category === activeCat.id) : visibleItems;
 
   return (
     <AppLayout>

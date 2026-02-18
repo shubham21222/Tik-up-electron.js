@@ -35,64 +35,15 @@ const GOAL_TYPES: GoalTypeConfig[] = [
   { id: "custom", icon: Star, label: "Channel Points Earned", defaultTitle: "Earned Points", defaultTarget: 50, color: "45 100% 50%", barColors: ["hsl(45 100% 50%)", "hsl(35 100% 55%)"] },
 ];
 
-const WHEN_REACHED_OPTIONS = ["Keep Goal unchanged", "Double Goal", "Reset Goal", "Hide Goal"];
-const STYLE_COUNT = 5;
-const STYLE_PRESETS = ["glass", "neon", "minimal", "gradient", "tiktok"];
+const WHEN_REACHED_OPTIONS = [
+  { label: "Keep Goal unchanged", value: "none" },
+  { label: "Reset Goal", value: "reset" },
+  { label: "Double Goal", value: "double" },
+  { label: "Hide Goal", value: "hide" },
+];
 
-/* ── Style preview bar component ── */
-const StylePreviewBar = ({ goal, styleIndex, typeConfig }: {
-  goal: Goal | null;
-  styleIndex: number;
-  typeConfig: GoalTypeConfig;
-}) => {
-  const title = goal?.title || typeConfig.defaultTitle;
-  const current = goal?.current_value || 0;
-  const target = goal?.target_value || typeConfig.defaultTarget;
-  const pct = target > 0 ? Math.min(Math.round((current / target) * 100), 100) : 0;
-  const preset = STYLE_PRESETS[styleIndex] || "glass";
-
-  const getBarBg = () => {
-    switch (preset) {
-      case "neon": return "linear-gradient(90deg, hsl(160 100% 45%), hsl(200 100% 55%))";
-      case "tiktok": return "linear-gradient(90deg, hsl(174 100% 54%), hsl(350 99% 57%))";
-      case "gradient": return `linear-gradient(90deg, ${typeConfig.barColors[0]}, ${typeConfig.barColors[1]})`;
-      case "minimal": return "linear-gradient(90deg, hsl(0 0% 70%), hsl(0 0% 90%))";
-      default: return `linear-gradient(90deg, ${typeConfig.barColors[0]}, ${typeConfig.barColors[1]})`;
-    }
-  };
-
-  return (
-    <div className="relative h-14 rounded-xl overflow-hidden" style={{ background: "rgba(0,0,0,0.5)" }}>
-      {/* Progress fill */}
-      <motion.div
-        className="absolute inset-y-0 left-0 rounded-xl"
-        initial={{ width: 0 }}
-        animate={{ width: `${Math.max(pct, 4)}%` }}
-        transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-        style={{ background: getBarBg() }}
-      >
-        {/* Shimmer */}
-        <motion.div
-          className="absolute inset-0"
-          style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.2) 50%, transparent)" }}
-          animate={{ x: ["-100%", "100%"] }}
-          transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
-        />
-      </motion.div>
-      {/* Text overlay */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <span className="text-xs font-bold text-white drop-shadow-lg">
-          {pct}%
-        </span>
-      </div>
-      <div className="absolute inset-0 flex items-end px-4 pb-2">
-        <span className="text-[11px] font-bold text-white/90 drop-shadow-lg">
-          {title} – {current.toLocaleString()} / {target.toLocaleString()} {typeConfig.label}
-        </span>
-      </div>
-    </div>
-  );
-};
+const STYLE_PRESETS = ["glass", "neon", "minimal", "gradient", "tiktok", "cyber", "flame", "ice", "festive", "rgb"];
+const STYLE_COUNT = STYLE_PRESETS.length;
 
 /* ── Individual Goal Card ── */
 const GoalTypeCard = ({
@@ -117,7 +68,7 @@ const GoalTypeCard = ({
 
   const [title, setTitle] = useState(goal?.title || typeConfig.defaultTitle);
   const [target, setTarget] = useState(goal?.target_value || typeConfig.defaultTarget);
-  const [whenReached, setWhenReached] = useState(WHEN_REACHED_OPTIONS[0]);
+  const [whenReached, setWhenReached] = useState(goal?.on_complete_action || "none");
   const [styleIndex, setStyleIndex] = useState(0);
 
   const { updateGoal } = useGoals();
@@ -127,6 +78,7 @@ const GoalTypeCard = ({
     if (goal) {
       setTitle(goal.title);
       setTarget(goal.target_value);
+      setWhenReached(goal.on_complete_action || "none");
       const presetIdx = STYLE_PRESETS.indexOf(goal.style_preset);
       if (presetIdx >= 0) setStyleIndex(presetIdx);
     }
@@ -166,16 +118,21 @@ const GoalTypeCard = ({
     }
   };
 
-  // Auto-save title/target changes
+  // Auto-save field changes
   const saveTimeout = useRef<ReturnType<typeof setTimeout>>();
-  const handleFieldChange = useCallback((field: "title" | "target", value: string | number) => {
+  const handleFieldChange = useCallback((field: "title" | "target" | "on_complete_action", value: string | number) => {
     if (field === "title") setTitle(value as string);
     if (field === "target") setTarget(value as number);
+    if (field === "on_complete_action") setWhenReached(value as string);
 
     if (goal) {
       clearTimeout(saveTimeout.current);
       saveTimeout.current = setTimeout(() => {
-        updateGoal(goal.id, field === "title" ? { title: value as string } : { target_value: value as number });
+        const update: Record<string, unknown> = {};
+        if (field === "title") update.title = value;
+        if (field === "target") update.target_value = value;
+        if (field === "on_complete_action") update.on_complete_action = value;
+        updateGoal(goal.id, update as Partial<Goal>);
       }, 800);
     }
   }, [goal, updateGoal]);
@@ -189,6 +146,9 @@ const GoalTypeCard = ({
       updateGoal(goal.id, { style_preset: STYLE_PRESETS[styleIndex] });
     }
   }, [styleIndex]);
+
+  // Check if style is pro-locked (styles beyond the first 5 are pro)
+  const isStyleProLocked = styleIndex >= 5 && !isPro;
 
   return (
     <motion.div
@@ -247,22 +207,42 @@ const GoalTypeCard = ({
             <label className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-1 block font-semibold">When reached:</label>
             <select
               value={whenReached}
-              onChange={(e) => setWhenReached(e.target.value)}
+              onChange={(e) => handleFieldChange("on_complete_action", e.target.value)}
               className="w-full bg-muted/20 border border-border/40 rounded-lg px-2 py-2 text-xs text-foreground outline-none focus:border-primary/40 transition-colors appearance-none"
             >
-              {WHEN_REACHED_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+              {WHEN_REACHED_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
             </select>
           </div>
           <div>
-            <label className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-1 block font-semibold">Action on reaching:</label>
+            <label className="text-[9px] uppercase tracking-wider text-muted-foreground/60 mb-1 block font-semibold">Actions:</label>
             <button
               onClick={handleCustomize}
               className="w-full bg-primary/10 border border-primary/20 rounded-lg px-2.5 py-2 text-xs text-primary font-medium hover:bg-primary/15 transition-colors text-left"
             >
-              Select
+              Customize
             </button>
           </div>
         </div>
+
+        {/* Live iframe preview */}
+        {goal && (
+          <div className="mb-4 rounded-xl overflow-hidden border border-border/20 relative" style={{ height: 100, background: "rgba(0,0,0,0.6)" }}>
+            <iframe
+              src={`/overlay/goal/${goal.public_token}`}
+              className="w-full h-full border-0 pointer-events-none"
+              style={{ transform: "scale(0.5)", transformOrigin: "top left", width: "200%", height: "200%" }}
+              title={`${typeConfig.label} preview`}
+            />
+            <div className="absolute top-1.5 right-1.5 flex items-center gap-1">
+              {isStyleProLocked && (
+                <span className="text-[8px] font-bold px-1.5 py-0.5 rounded" style={{ background: "hsl(280 100% 65% / 0.3)", color: "hsl(280 100% 75%)" }}>
+                  PRO STYLE
+                </span>
+              )}
+              <span className="text-[8px] font-mono text-white/30 bg-black/40 px-1.5 py-0.5 rounded">LIVE</span>
+            </div>
+          </div>
+        )}
 
         {/* URL + action buttons row */}
         <div className="flex items-center gap-2 mb-4">
@@ -295,8 +275,21 @@ const GoalTypeCard = ({
             style={{ background: "rgba(255,255,255,0.08)" }}>
             <ChevronLeft size={14} className="text-white/60" />
           </button>
-          <div className="px-9">
-            <StylePreviewBar goal={goal} styleIndex={styleIndex} typeConfig={typeConfig} />
+          <div className="px-9 flex items-center justify-center gap-2">
+            {STYLE_PRESETS.map((preset, i) => (
+              <button
+                key={preset}
+                onClick={() => setStyleIndex(i)}
+                className={`px-2.5 py-1 rounded-lg text-[10px] font-semibold capitalize transition-all duration-200 ${
+                  styleIndex === i
+                    ? "bg-primary/15 text-primary border border-primary/30"
+                    : "bg-muted/20 text-muted-foreground/60 border border-transparent hover:text-muted-foreground"
+                }`}
+              >
+                {preset}
+                {i >= 5 && !isPro && <span className="ml-0.5 text-[7px] align-super" style={{ color: "hsl(350 90% 60%)" }}>★</span>}
+              </button>
+            ))}
           </div>
           <button onClick={nextStyle}
             className="absolute right-0 top-1/2 -translate-y-1/2 z-10 w-7 h-7 rounded-full flex items-center justify-center transition-colors"
@@ -304,7 +297,6 @@ const GoalTypeCard = ({
             <ChevronRight size={14} className="text-white/60" />
           </button>
         </div>
-        <p className="text-center text-[10px] text-muted-foreground/40 mt-2">Style: {styleIndex + 1}/{STYLE_COUNT}</p>
       </div>
     </motion.div>
   );

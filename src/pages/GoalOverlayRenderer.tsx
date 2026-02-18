@@ -12,6 +12,7 @@ interface GoalData {
   current_value: number;
   style_preset: string;
   on_complete_action: string | null;
+  custom_config: Record<string, unknown> | null;
 }
 
 const AnimatedNumber = ({ value }: { value: number }) => {
@@ -24,8 +25,9 @@ const AnimatedNumber = ({ value }: { value: number }) => {
   return <motion.span>{display}</motion.span>;
 };
 
+/* ── Confetti celebration ── */
 const Confetti = () => {
-  const particles = Array.from({ length: 30 }, (_, i) => ({
+  const particles = Array.from({ length: 40 }, (_, i) => ({
     id: i,
     x: Math.random() * 100,
     color: [`hsl(160 100% 45%)`, `hsl(350 90% 55%)`, `hsl(280 100% 65%)`, `hsl(45 100% 55%)`, `hsl(200 100% 55%)`][i % 5],
@@ -49,33 +51,138 @@ const Confetti = () => {
   );
 };
 
+/* ── Fireworks celebration ── */
+const Fireworks = () => {
+  const bursts = Array.from({ length: 5 }, (_, i) => ({
+    id: i,
+    x: 15 + Math.random() * 70,
+    y: 20 + Math.random() * 40,
+    delay: i * 0.3,
+    color: [`hsl(350 90% 55%)`, `hsl(45 100% 55%)`, `hsl(160 100% 45%)`, `hsl(280 100% 65%)`, `hsl(200 100% 55%)`][i % 5],
+  }));
+
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {bursts.map(b => (
+        <motion.div
+          key={b.id}
+          className="absolute rounded-full"
+          style={{ left: `${b.x}%`, top: `${b.y}%`, width: 8, height: 8, background: b.color }}
+          initial={{ scale: 0, opacity: 1 }}
+          animate={{ scale: [0, 8, 0], opacity: [1, 0.8, 0] }}
+          transition={{ duration: 1.2, delay: b.delay, ease: "easeOut" }}
+        />
+      ))}
+    </div>
+  );
+};
+
+/* ── Progress pulse effect ── */
+const ProgressPulse = ({ color }: { color: string }) => (
+  <motion.div
+    className="absolute inset-0 rounded-2xl pointer-events-none"
+    style={{ border: `2px solid ${color}`, opacity: 0 }}
+    animate={{ opacity: [0, 0.6, 0], scale: [1, 1.03, 1] }}
+    transition={{ duration: 0.6, ease: "easeOut" }}
+  />
+);
+
+/* ── Style engine ── */
+const getStyleConfig = (preset: string, customConfig?: Record<string, unknown> | null) => {
+  const customColor = customConfig?.primary_color as string | undefined;
+  const glow = ((customConfig?.glow_intensity as number) ?? 50) / 100;
+
+  const presets: Record<string, { gradient: string; glow: string; border: string }> = {
+    glass: {
+      gradient: "linear-gradient(90deg, hsl(160 100% 45%), hsl(180 100% 42%))",
+      glow: `0 0 ${15 * glow}px hsl(160 100% 45% / ${0.3 * glow})`,
+      border: "rgba(255,255,255,0.06)",
+    },
+    neon: {
+      gradient: "linear-gradient(90deg, hsl(160 100% 45%), hsl(200 100% 55%))",
+      glow: `0 0 ${25 * glow}px hsl(160 100% 45% / ${0.5 * glow}), 0 0 ${50 * glow}px hsl(160 100% 45% / ${0.2 * glow})`,
+      border: "hsl(160 100% 45% / 0.15)",
+    },
+    tiktok: {
+      gradient: "linear-gradient(90deg, hsl(174 100% 54%), hsl(350 99% 57%))",
+      glow: `0 0 ${20 * glow}px hsl(174 100% 54% / ${0.4 * glow})`,
+      border: "hsl(174 100% 54% / 0.12)",
+    },
+    gradient: {
+      gradient: "linear-gradient(90deg, hsl(280 100% 65%), hsl(350 90% 55%))",
+      glow: `0 0 ${20 * glow}px hsl(280 100% 65% / ${0.4 * glow})`,
+      border: "hsl(280 100% 65% / 0.12)",
+    },
+    minimal: {
+      gradient: "linear-gradient(90deg, hsl(0 0% 70%), hsl(0 0% 90%))",
+      glow: "none",
+      border: "rgba(255,255,255,0.08)",
+    },
+    cyber: {
+      gradient: "linear-gradient(90deg, hsl(180 100% 50%), hsl(260 100% 65%))",
+      glow: `0 0 ${30 * glow}px hsl(180 100% 50% / ${0.5 * glow}), 0 0 ${60 * glow}px hsl(260 100% 65% / ${0.2 * glow})`,
+      border: "hsl(180 100% 50% / 0.15)",
+    },
+    flame: {
+      gradient: "linear-gradient(90deg, hsl(30 100% 50%), hsl(0 100% 50%), hsl(45 100% 55%))",
+      glow: `0 0 ${25 * glow}px hsl(30 100% 50% / ${0.5 * glow})`,
+      border: "hsl(30 100% 50% / 0.15)",
+    },
+    ice: {
+      gradient: "linear-gradient(90deg, hsl(190 100% 70%), hsl(210 100% 80%), hsl(200 60% 90%))",
+      glow: `0 0 ${20 * glow}px hsl(190 100% 70% / ${0.4 * glow})`,
+      border: "hsl(190 100% 70% / 0.12)",
+    },
+    festive: {
+      gradient: "linear-gradient(90deg, hsl(0 80% 50%), hsl(120 80% 40%), hsl(0 80% 50%))",
+      glow: `0 0 ${20 * glow}px hsl(0 80% 50% / ${0.3 * glow})`,
+      border: "hsl(0 80% 50% / 0.12)",
+    },
+    rgb: {
+      gradient: "linear-gradient(90deg, hsl(0 100% 50%), hsl(120 100% 50%), hsl(240 100% 50%), hsl(0 100% 50%))",
+      glow: `0 0 ${25 * glow}px hsl(280 100% 60% / ${0.4 * glow})`,
+      border: "hsl(280 100% 60% / 0.12)",
+    },
+  };
+
+  const base = presets[preset] || presets.glass;
+
+  // Override gradient with custom color if set
+  if (customColor && preset !== "rgb") {
+    return {
+      ...base,
+      gradient: `linear-gradient(90deg, ${customColor}, ${customColor}cc)`,
+      glow: `0 0 ${20 * glow}px ${customColor}66`,
+    };
+  }
+
+  return base;
+};
+
 const GoalOverlayRenderer = () => {
   useOverlayBody();
   const { publicToken } = useParams();
   const [goal, setGoal] = useState<GoalData | null>(null);
   const [connected, setConnected] = useState(false);
   const [showComplete, setShowComplete] = useState(false);
-  const [reconnecting, setReconnecting] = useState(false);
+  const [showPulse, setShowPulse] = useState(false);
   const prevValue = useRef(0);
 
   // Fetch initial goal data
   useEffect(() => {
     if (!publicToken) return;
-
     const fetchGoal = async () => {
       const { data, error } = await supabase
         .from("goals" as any)
         .select("*")
         .eq("public_token", publicToken)
         .single();
-
       if (!error && data) {
         const g = data as unknown as GoalData;
         setGoal(g);
         prevValue.current = g.current_value;
       }
     };
-
     fetchGoal();
   }, [publicToken]);
 
@@ -83,7 +190,6 @@ const GoalOverlayRenderer = () => {
   useEffect(() => {
     if (!publicToken) return;
 
-    // Polling fallback: refetch goal every 5 seconds for reliability
     const pollGoal = async () => {
       const { data } = await supabase
         .from("goals" as any)
@@ -93,7 +199,12 @@ const GoalOverlayRenderer = () => {
       if (data) {
         const g = data as unknown as GoalData;
         setGoal(prev => {
-          if (!prev || g.current_value !== prev.current_value || g.target_value !== prev.target_value) {
+          if (!prev || g.current_value !== prev.current_value || g.target_value !== prev.target_value || g.style_preset !== prev.style_preset || JSON.stringify(g.custom_config) !== JSON.stringify(prev.custom_config)) {
+            // Trigger progress pulse
+            if (prev && g.current_value > prev.current_value) {
+              setShowPulse(true);
+              setTimeout(() => setShowPulse(false), 700);
+            }
             if (prev && g.current_value >= g.target_value && prevValue.current < g.target_value) {
               setShowComplete(true);
               setTimeout(() => setShowComplete(false), 5000);
@@ -105,13 +216,22 @@ const GoalOverlayRenderer = () => {
         });
       }
     };
-    const pollInterval = setInterval(pollGoal, 5000);
+    const pollInterval = setInterval(pollGoal, 3000);
 
     const channel = supabase
       .channel(`goal-${publicToken}`)
       .on("broadcast", { event: "goal_update" }, (msg) => {
         const payload = msg.payload as { current_value: number; target_value: number };
-        setGoal(prev => prev ? { ...prev, current_value: payload.current_value, target_value: payload.target_value } : prev);
+        setGoal(prev => {
+          if (prev) {
+            if (payload.current_value > prev.current_value) {
+              setShowPulse(true);
+              setTimeout(() => setShowPulse(false), 700);
+            }
+            return { ...prev, current_value: payload.current_value, target_value: payload.target_value };
+          }
+          return prev;
+        });
       })
       .on("broadcast", { event: "goal_complete" }, () => {
         setShowComplete(true);
@@ -122,10 +242,8 @@ const GoalOverlayRenderer = () => {
       })
       .subscribe((status) => {
         setConnected(status === "SUBSCRIBED");
-        setReconnecting(false);
       });
 
-    // Also listen for DB changes
     const dbChannel = supabase
       .channel(`goal-db-${publicToken}`)
       .on(
@@ -134,12 +252,18 @@ const GoalOverlayRenderer = () => {
         (payload: any) => {
           if (payload.new) {
             const n = payload.new as GoalData;
-            setGoal(prev => prev ? { ...prev, ...n } : n);
-            if (n.current_value >= n.target_value && prevValue.current < n.target_value) {
-              setShowComplete(true);
-              setTimeout(() => setShowComplete(false), 5000);
-            }
-            prevValue.current = n.current_value;
+            setGoal(prev => {
+              if (prev && n.current_value > prev.current_value) {
+                setShowPulse(true);
+                setTimeout(() => setShowPulse(false), 700);
+              }
+              if (n.current_value >= n.target_value && prevValue.current < n.target_value) {
+                setShowComplete(true);
+                setTimeout(() => setShowComplete(false), 5000);
+              }
+              prevValue.current = n.current_value;
+              return prev ? { ...prev, ...n } : n;
+            });
           }
         }
       )
@@ -162,54 +286,51 @@ const GoalOverlayRenderer = () => {
 
   const pct = goal.target_value > 0 ? Math.min((goal.current_value / goal.target_value) * 100, 100) : 0;
   const isComplete = pct >= 100;
+  const styleConfig = getStyleConfig(goal.style_preset, goal.custom_config);
+  const customConfig = goal.custom_config || {};
+  const fontFamily = (customConfig.font_family as string) || "Inter, sans-serif";
+  const progressAnim = (customConfig.progress_animation as string) || "none";
+  const bgStyle = (customConfig.bg_style as string) || "glass";
 
-  // Style presets
-  const getBarGradient = () => {
-    switch (goal.style_preset) {
-      case "neon": return "linear-gradient(90deg, hsl(160 100% 45%), hsl(200 100% 55%))";
-      case "tiktok": return "linear-gradient(90deg, hsl(174 100% 54%), hsl(350 99% 57%))";
-      case "gradient": return "linear-gradient(90deg, hsl(280 100% 65%), hsl(350 90% 55%))";
-      case "minimal": return "linear-gradient(90deg, hsl(0 0% 70%), hsl(0 0% 90%))";
-      default: return "linear-gradient(90deg, hsl(160 100% 45%), hsl(180 100% 42%))";
+  const getBgStyles = () => {
+    switch (bgStyle) {
+      case "transparent": return { background: "transparent", border: "none", backdropFilter: "none" };
+      case "floating": return { background: "rgba(0,0,0,0.88)", border: `1px solid ${styleConfig.border}`, backdropFilter: "blur(24px)", boxShadow: "0 20px 60px rgba(0,0,0,0.5)" };
+      case "blurred": return { background: "rgba(0,0,0,0.4)", border: `1px solid ${styleConfig.border}`, backdropFilter: "blur(40px)" };
+      default: return { background: "rgba(0,0,0,0.78)", border: `1px solid ${styleConfig.border}`, backdropFilter: "blur(20px)" };
     }
   };
 
-  const getBarGlow = () => {
-    switch (goal.style_preset) {
-      case "neon": return "0 0 25px hsl(160 100% 45% / 0.5), 0 0 50px hsl(160 100% 45% / 0.2)";
-      case "tiktok": return "0 0 20px hsl(174 100% 54% / 0.4)";
-      case "gradient": return "0 0 20px hsl(280 100% 65% / 0.4)";
-      case "minimal": return "none";
-      default: return "0 0 15px hsl(160 100% 45% / 0.3)";
-    }
-  };
+  const completionType = goal.on_complete_action || "confetti";
 
   return (
     <div className="w-screen h-screen bg-transparent relative overflow-hidden flex items-center justify-center">
-      {/* Reconnecting overlay */}
-      {reconnecting && (
-        <div className="absolute top-2 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full bg-yellow-500/20 text-yellow-300 text-xs font-medium z-10">
-          Reconnecting...
-        </div>
-      )}
-
       {/* Connection indicator */}
       <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-20">
         <div className={`w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`} />
         <span className="text-[9px] text-white/50 font-mono">{connected ? "Live" : "..."}</span>
       </div>
 
-      {/* Completion confetti */}
+      {/* Completion celebration */}
       <AnimatePresence>
-        {showComplete && goal.on_complete_action !== "none" && <Confetti />}
+        {showComplete && completionType !== "none" && (
+          completionType === "fireworks" || completionType === "explosion"
+            ? <Fireworks />
+            : <Confetti />
+        )}
       </AnimatePresence>
 
       {/* Goal card */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          scale: showPulse && progressAnim === "shake" ? [1, 1.02, 0.98, 1] : 1,
+        }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="w-[420px] relative"
+        style={{ fontFamily }}
       >
         {/* Glow ring on complete */}
         <AnimatePresence>
@@ -219,7 +340,23 @@ const GoalOverlayRenderer = () => {
               animate={{ opacity: [0, 0.5, 0.3], scale: [0.98, 1.02, 1] }}
               transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
               className="absolute -inset-[2px] rounded-2xl"
-              style={{ background: getBarGradient(), filter: "blur(8px)" }}
+              style={{ background: styleConfig.gradient, filter: "blur(8px)" }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Progress pulse overlay */}
+        <AnimatePresence>
+          {showPulse && progressAnim === "pulse" && (
+            <ProgressPulse color={styleConfig.glow.includes("none") ? "rgba(255,255,255,0.3)" : "hsl(160 100% 45%)"} />
+          )}
+          {showPulse && progressAnim === "glow_burst" && (
+            <motion.div
+              className="absolute -inset-[3px] rounded-2xl pointer-events-none"
+              style={{ background: styleConfig.gradient, filter: "blur(12px)" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.6, 0] }}
+              transition={{ duration: 0.8 }}
             />
           )}
         </AnimatePresence>
@@ -227,10 +364,10 @@ const GoalOverlayRenderer = () => {
         {/* Outer glow */}
         <div
           className="absolute -inset-[1px] rounded-2xl blur-[1px]"
-          style={{ background: `linear-gradient(135deg, hsl(160 100% 45% / 0.15), hsl(160 100% 45% / 0.03))` }}
+          style={{ background: `linear-gradient(135deg, ${styleConfig.border}, transparent)` }}
         />
 
-        <div className="relative rounded-2xl bg-[rgba(0,0,0,0.78)] backdrop-blur-xl border border-white/[0.06] p-6">
+        <div className="relative rounded-2xl p-6" style={getBgStyles()}>
           {/* Title */}
           <div className="flex items-center justify-between mb-5">
             <h2 className="text-base font-bold text-white tracking-tight">{goal.title}</h2>
@@ -245,8 +382,8 @@ const GoalOverlayRenderer = () => {
               transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
               className="h-full rounded-full relative overflow-hidden"
               style={{
-                background: getBarGradient(),
-                boxShadow: getBarGlow(),
+                background: styleConfig.gradient,
+                boxShadow: styleConfig.glow,
               }}
             >
               {/* Shimmer */}
@@ -256,6 +393,15 @@ const GoalOverlayRenderer = () => {
                 animate={{ x: ["-100%", "100%"] }}
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
               />
+              {/* RGB cycling for rgb preset */}
+              {goal.style_preset === "rgb" && (
+                <motion.div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)", backgroundSize: "200% 100%" }}
+                  animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+              )}
             </motion.div>
           </div>
 
@@ -272,11 +418,6 @@ const GoalOverlayRenderer = () => {
           </div>
         </div>
       </motion.div>
-
-      {/* Idle watermark */}
-      {!goal && (
-        <p className="absolute bottom-2 left-1/2 -translate-x-1/2 text-white/5 text-[9px] font-mono">TikUp Goal Overlay</p>
-      )}
     </div>
   );
 };

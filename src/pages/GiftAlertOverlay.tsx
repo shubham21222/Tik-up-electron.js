@@ -237,12 +237,6 @@ const GiftAlertOverlay = () => {
                             { value: "solid", label: "Solid" },
                           ]} />
                         </SettingRow>
-                        <SettingRow label="No Background" description="Remove alert card background">
-                          <SettingToggle checked={s.no_background} onChange={v => set("no_background", v)} />
-                        </SettingRow>
-                        <SettingRow label="No Border" description="Remove alert card border">
-                          <SettingToggle checked={s.no_border} onChange={v => set("no_border", v)} />
-                        </SettingRow>
                         <SettingRow label="Alert Position" description="Where alerts appear on screen">
                           <SettingSelect value={s.alert_position || "center"} onChange={v => set("alert_position", v)} options={[
                             { value: "center", label: "Center" },

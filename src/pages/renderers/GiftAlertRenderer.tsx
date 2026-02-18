@@ -269,8 +269,8 @@ const GiftAlertRenderer = () => {
   const glowIntensity = (s.glow_intensity || 50) / 100;
   const shadowDepth = (s.shadow_depth || 30) / 100;
   const imageSize = (s.gift_image_size || 64) * 3;
-  const noBackground = s.no_background ?? false;
-  const noBorder = s.no_border ?? false;
+  const noBackground = true;
+  const noBorder = true;
   const borderGlow = s.border_glow ?? true;
   const accentColor = s.accent_color || "280 100% 65%";
   const glowColor = s.glow_color || accentColor;

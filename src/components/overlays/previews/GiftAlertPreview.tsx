@@ -86,8 +86,8 @@ const GiftAlertPreview = ({ settings = {}, testTrigger = 0 }: GiftAlertPreviewPr
   const animStyle = settings.animation_style || "bounce";
   const glowIntensity = (settings.glow_intensity || 50) / 100;
   const shadowDepth = (settings.shadow_depth || 30) / 100;
-  const noBackground = settings.no_background ?? false;
-  const noBorder = settings.no_border ?? false;
+  const noBackground = true;
+  const noBorder = true;
   const borderGlow = settings.border_glow ?? true;
   const accentColor = settings.accent_color || "280 100% 65%";
   const glowColor = settings.glow_color || accentColor;

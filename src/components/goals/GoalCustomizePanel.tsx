@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { X, Sliders, Palette, Type, Sparkles, PartyPopper } from "lucide-react";
 import { useGoals, type Goal } from "@/hooks/use-goals";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSubscription } from "@/hooks/use-subscription";
 
 const STYLE_PRESETS = ["glass", "neon", "minimal", "gradient", "tiktok", "cyber", "flame", "ice", "festive", "rgb"];
@@ -89,15 +89,30 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
             </button>
           </div>
 
-          {/* Live Preview */}
-          <div className="mb-5 rounded-xl overflow-hidden border border-border/20" style={{ height: 120, background: "rgba(0,0,0,0.6)" }}>
-            <iframe
-              src={`/overlay/goal/${goal.public_token}`}
-              className="w-full h-full border-0 pointer-events-none"
-              style={{ transform: "scale(0.45)", transformOrigin: "top left", width: "222%", height: "222%" }}
-              title="Goal Preview"
-            />
-          </div>
+          {/* Live Preview — updates instantly with every setting change */}
+          {(() => {
+            const params = new URLSearchParams({
+              t: style,
+              title,
+              target: String(target),
+              primary_color: primaryColor,
+              glow_intensity: String(glowIntensity),
+              font_family: fontFamily,
+              bg_style: bgStyle,
+              progress_animation: progressAnimation,
+              on_complete: action,
+            });
+            return (
+              <div className="mb-5 rounded-xl overflow-hidden border border-border/20" style={{ height: 120, background: "rgba(0,0,0,0.6)" }}>
+                <iframe
+                  src={`/overlay/goal/${goal.public_token}?${params.toString()}`}
+                  className="w-full h-full border-0 pointer-events-none"
+                  style={{ transform: "scale(0.45)", transformOrigin: "top left", width: "222%", height: "222%" }}
+                  title="Goal Preview"
+                />
+              </div>
+            );
+          })()}
 
           <div className="space-y-5">
             {/* Title + Target */}

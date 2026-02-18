@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from "framer-motion";
@@ -168,6 +168,15 @@ const GoalOverlayRenderer = () => {
   const [showPulse, setShowPulse] = useState(false);
   const prevValue = useRef(0);
 
+  // Read URL query param overrides for live preview in customize panel
+  const urlOverrides = useMemo(() => {
+    if (typeof window === "undefined") return {} as Record<string, string>;
+    const params = new URLSearchParams(window.location.search);
+    const o: Record<string, string> = {};
+    params.forEach((v, k) => { o[k] = v; });
+    return o;
+  }, []);
+
   // Fetch initial goal data
   useEffect(() => {
     if (!publicToken) return;
@@ -276,7 +285,25 @@ const GoalOverlayRenderer = () => {
     };
   }, [publicToken]);
 
-  if (!goal) {
+  // Apply URL overrides from customize panel for live preview
+  const effectiveGoal = useMemo(() => {
+    if (!goal) return null;
+    const g = { ...goal };
+    if (urlOverrides.t) g.style_preset = urlOverrides.t;
+    if (urlOverrides.title) g.title = urlOverrides.title;
+    if (urlOverrides.target) g.target_value = Number(urlOverrides.target) || g.target_value;
+    if (urlOverrides.on_complete) g.on_complete_action = urlOverrides.on_complete;
+    const cc = { ...(g.custom_config || {}) };
+    if (urlOverrides.primary_color) cc.primary_color = urlOverrides.primary_color;
+    if (urlOverrides.glow_intensity) cc.glow_intensity = Number(urlOverrides.glow_intensity);
+    if (urlOverrides.font_family) cc.font_family = urlOverrides.font_family;
+    if (urlOverrides.bg_style) cc.bg_style = urlOverrides.bg_style;
+    if (urlOverrides.progress_animation) cc.progress_animation = urlOverrides.progress_animation;
+    g.custom_config = cc;
+    return g;
+  }, [goal, urlOverrides]);
+
+  if (!effectiveGoal) {
     return (
       <div className="w-screen h-screen bg-transparent flex items-center justify-center">
         <p className="text-white/20 text-xs font-mono">Loading goal...</p>
@@ -284,10 +311,10 @@ const GoalOverlayRenderer = () => {
     );
   }
 
-  const pct = goal.target_value > 0 ? Math.min((goal.current_value / goal.target_value) * 100, 100) : 0;
+  const pct = effectiveGoal.target_value > 0 ? Math.min((effectiveGoal.current_value / effectiveGoal.target_value) * 100, 100) : 0;
   const isComplete = pct >= 100;
-  const styleConfig = getStyleConfig(goal.style_preset, goal.custom_config);
-  const customConfig = goal.custom_config || {};
+  const styleConfig = getStyleConfig(effectiveGoal.style_preset, effectiveGoal.custom_config);
+  const customConfig = effectiveGoal.custom_config || {};
   const fontFamily = (customConfig.font_family as string) || "Inter, sans-serif";
   const progressAnim = (customConfig.progress_animation as string) || "none";
   const bgStyle = (customConfig.bg_style as string) || "glass";
@@ -301,7 +328,7 @@ const GoalOverlayRenderer = () => {
     }
   };
 
-  const completionType = goal.on_complete_action || "confetti";
+  const completionType = effectiveGoal.on_complete_action || "confetti";
 
   return (
     <div className="w-screen h-screen bg-transparent relative overflow-hidden flex items-center justify-center">
@@ -370,7 +397,7 @@ const GoalOverlayRenderer = () => {
         <div className="relative rounded-2xl p-6" style={getBgStyles()}>
           {/* Title */}
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-bold text-white tracking-tight">{goal.title}</h2>
+            <h2 className="text-base font-bold text-white tracking-tight">{effectiveGoal.title}</h2>
             <span className="text-xl font-bold text-white">{Math.round(pct)}%</span>
           </div>
 
@@ -394,7 +421,7 @@ const GoalOverlayRenderer = () => {
                 transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
               />
               {/* RGB cycling for rgb preset */}
-              {goal.style_preset === "rgb" && (
+              {effectiveGoal.style_preset === "rgb" && (
                 <motion.div
                   className="absolute inset-0"
                   style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)", backgroundSize: "200% 100%" }}
@@ -408,11 +435,11 @@ const GoalOverlayRenderer = () => {
           {/* Counter */}
           <div className="flex items-center justify-between mt-3">
             <p className="text-sm text-white/60 font-medium">
-              <AnimatedNumber value={goal.current_value} /> / {goal.target_value.toLocaleString()}
+              <AnimatedNumber value={effectiveGoal.current_value} /> / {effectiveGoal.target_value.toLocaleString()}
             </p>
             <p className="text-xs text-white/30">
-              {goal.target_value - goal.current_value > 0
-                ? `${(goal.target_value - goal.current_value).toLocaleString()} remaining`
+              {effectiveGoal.target_value - effectiveGoal.current_value > 0
+                ? `${(effectiveGoal.target_value - effectiveGoal.current_value).toLocaleString()} remaining`
                 : "🎉 Complete!"}
             </p>
           </div>

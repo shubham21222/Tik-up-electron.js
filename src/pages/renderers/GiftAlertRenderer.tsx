@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { defaultGiftAlertSettings } from "@/hooks/use-overlay-widgets";
 import useOverlayBody from "@/hooks/use-overlay-body";
 import { applyUrlOverrides } from "@/lib/overlay-params";
+import { useQuickControlListener } from "@/hooks/use-quick-controls";
 
 interface AlertEvent {
   id: number;
@@ -105,6 +106,9 @@ const GiftAlertRenderer = () => {
   const [giftTriggers, setGiftTriggers] = useState<GiftTrigger[]>([]);
   const [ownerId, setOwnerId] = useState<string | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const controls = useQuickControlListener(ownerId);
+  const controlsRef = useRef(controls);
+  useEffect(() => { controlsRef.current = controls; }, [controls]);
 
   // Play sound
   const playSoundRef = useRef<(url: string | undefined, vol?: number) => void>(() => {});
@@ -197,6 +201,11 @@ const GiftAlertRenderer = () => {
         };
 
         console.log(`[GiftAlert] Received gift: ${giftName} from ${event.user}, sound=${!!soundUrl}`);
+
+        // Respect Quick Controls: skip alerts/sounds when paused or on cooldown
+        const c = controlsRef.current;
+        if (c.alertsPaused || c.cooldownActive) return;
+
         setAlerts(prev => {
           const recent = prev.find(a => a.user === event.user && a.gift === event.gift && (Date.now() - a.id) < 500);
           if (recent) {
@@ -204,7 +213,7 @@ const GiftAlertRenderer = () => {
           }
           return [...prev, event];
         });
-        playSound(soundUrl, soundVol);
+        if (!c.soundsMuted) playSound(soundUrl, soundVol);
       })
       .on("broadcast", { event: "test_alert" }, () => {
         const s = settingsRef.current;

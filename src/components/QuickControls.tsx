@@ -1,69 +1,79 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { VolumeX, Volume2, Mic, MicOff, Pause, Play, Timer, X, Gamepad2 } from "lucide-react";
 import { toast } from "sonner";
+import { useBroadcastQuickControls, type QuickControlState } from "@/hooks/use-quick-controls";
 
 const QuickControls = () => {
   const [open, setOpen] = useState(false);
-  const [soundsMuted, setSoundsMuted] = useState(false);
-  const [ttsMuted, setTtsMuted] = useState(false);
-  const [alertsPaused, setAlertsPaused] = useState(false);
-  const [cooldownActive, setCooldownActive] = useState(false);
+  const [state, setState] = useState<QuickControlState>({
+    soundsMuted: false,
+    ttsMuted: false,
+    alertsPaused: false,
+    cooldownActive: false,
+  });
 
-  const toggleSounds = () => {
-    setSoundsMuted(!soundsMuted);
-    toast.success(soundsMuted ? "Sound effects enabled" : "Sound effects muted");
-  };
+  const { broadcast } = useBroadcastQuickControls();
 
-  const toggleTTS = () => {
-    setTtsMuted(!ttsMuted);
-    toast.success(ttsMuted ? "TTS enabled" : "TTS muted");
-  };
+  // Broadcast every state change
+  useEffect(() => {
+    broadcast(state);
+  }, [state, broadcast]);
 
-  const toggleAlerts = () => {
-    setAlertsPaused(!alertsPaused);
-    toast.success(alertsPaused ? "Alerts resumed" : "Alerts paused for 5 minutes");
+  const toggle = (key: keyof QuickControlState, onMsg: string, offMsg: string) => {
+    setState((prev) => {
+      const next = { ...prev, [key]: !prev[key] };
+      toast.success(prev[key] ? offMsg : onMsg);
+      return next;
+    });
   };
 
   const toggleCooldown = () => {
-    setCooldownActive(!cooldownActive);
-    if (!cooldownActive) {
-      toast.success("All effects paused for 5 minutes");
-      setTimeout(() => {
-        setCooldownActive(false);
-        toast.info("Cooldown ended, effects are back!");
-      }, 5 * 60 * 1000);
-    } else {
-      toast.success("Cooldown cancelled");
-    }
+    setState((prev) => {
+      const next = { ...prev, cooldownActive: !prev.cooldownActive };
+      if (!prev.cooldownActive) {
+        toast.success("All effects paused for 5 minutes");
+        setTimeout(() => {
+          setState((p) => {
+            const reset = { ...p, cooldownActive: false };
+            broadcast(reset);
+            toast.info("Cooldown ended, effects are back!");
+            return reset;
+          });
+        }, 5 * 60 * 1000);
+      } else {
+        toast.success("Cooldown cancelled");
+      }
+      return next;
+    });
   };
 
   const controls = [
     {
-      icon: soundsMuted ? VolumeX : Volume2,
-      label: soundsMuted ? "Unmute Sounds" : "Mute Sounds",
-      active: soundsMuted,
+      icon: state.soundsMuted ? VolumeX : Volume2,
+      label: state.soundsMuted ? "Unmute Sounds" : "Mute Sounds",
+      active: state.soundsMuted,
       color: "350 90% 55%",
-      onClick: toggleSounds,
+      onClick: () => toggle("soundsMuted", "Sound effects muted", "Sound effects enabled"),
     },
     {
-      icon: ttsMuted ? MicOff : Mic,
-      label: ttsMuted ? "Enable TTS" : "Mute TTS",
-      active: ttsMuted,
+      icon: state.ttsMuted ? MicOff : Mic,
+      label: state.ttsMuted ? "Enable TTS" : "Mute TTS",
+      active: state.ttsMuted,
       color: "200 100% 55%",
-      onClick: toggleTTS,
+      onClick: () => toggle("ttsMuted", "TTS muted", "TTS enabled"),
     },
     {
-      icon: alertsPaused ? Play : Pause,
-      label: alertsPaused ? "Resume Alerts" : "Pause Alerts",
-      active: alertsPaused,
+      icon: state.alertsPaused ? Play : Pause,
+      label: state.alertsPaused ? "Resume Alerts" : "Pause Alerts",
+      active: state.alertsPaused,
       color: "45 100% 55%",
-      onClick: toggleAlerts,
+      onClick: () => toggle("alertsPaused", "Alerts paused", "Alerts resumed"),
     },
     {
       icon: Timer,
-      label: cooldownActive ? "Cancel Cooldown" : "5min Cooldown",
-      active: cooldownActive,
+      label: state.cooldownActive ? "Cancel Cooldown" : "5min Cooldown",
+      active: state.cooldownActive,
       color: "280 100% 65%",
       onClick: toggleCooldown,
     },

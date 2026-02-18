@@ -35,6 +35,7 @@ interface TTSMessage {
   interrupt: boolean;
   voiceId?: string;
   voiceProvider?: string;
+  avatarUrl?: string;
 }
 
 const TTSRenderer = () => {
@@ -65,6 +66,7 @@ const TTSRenderer = () => {
           interrupt: payload.payload.interrupt || false,
           voiceId: payload.payload.voice_id,
           voiceProvider: payload.payload.voice_provider || "browser",
+          avatarUrl: payload.payload.avatar || payload.payload.avatar_url || payload.payload.profilePictureUrl || "",
         };
 
         // Deduplicate: skip if we've seen this exact message recently
@@ -229,8 +231,12 @@ const TTSRenderer = () => {
             <div className="absolute -inset-[1px] rounded-2xl bg-gradient-to-br from-white/[0.12] to-white/[0.03] blur-[1px]" />
 
             <div className="relative flex items-center gap-4 px-5 py-3.5 rounded-2xl bg-black/60 backdrop-blur-2xl border border-white/[0.08] min-w-[300px] max-w-[400px] shadow-[0_8px_32px_rgba(0,0,0,0.4)]">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(160,100%,45%)] to-[hsl(180,100%,38%)] flex items-center justify-center flex-shrink-0 text-sm font-bold text-black shadow-[0_0_12px_rgba(37,244,238,0.25)]">
-                {current.username[0]}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[hsl(160,100%,45%)] to-[hsl(180,100%,38%)] flex items-center justify-center flex-shrink-0 text-sm font-bold text-black shadow-[0_0_12px_rgba(37,244,238,0.25)] overflow-hidden">
+                {current.avatarUrl ? (
+                  <img src={current.avatarUrl} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  current.username[0]
+                )}
               </div>
 
               <div className="flex-1 min-w-0">
@@ -238,17 +244,24 @@ const TTSRenderer = () => {
                 <p className="text-[12px] text-white/50 mt-0.5 leading-relaxed truncate">{current.text}</p>
               </div>
 
-              <motion.div
-                animate={speaking ? { opacity: [0.3, 0.7, 0.3] } : { opacity: 0.2 }}
-                transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                className="flex-shrink-0"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-                  <path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-                  <path d="M19.07 4.93a10 10 0 0 1 0 14.14" />
+              {/* Animated volume icon — arcs pulse when speaking */}
+              <div className="flex-shrink-0 w-5 h-5">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" stroke="rgba(255,255,255,0.5)" />
+                  <motion.path
+                    d="M15.54 8.46a5 5 0 0 1 0 7.07"
+                    stroke="rgba(255,255,255,0.4)"
+                    animate={speaking ? { opacity: [0.2, 0.8, 0.2], pathLength: [0.3, 1, 0.3] } : { opacity: 0.15, pathLength: 0.3 }}
+                    transition={speaking ? { duration: 0.8, repeat: Infinity, ease: "easeInOut" } : { duration: 0.4 }}
+                  />
+                  <motion.path
+                    d="M19.07 4.93a10 10 0 0 1 0 14.14"
+                    stroke="rgba(255,255,255,0.3)"
+                    animate={speaking ? { opacity: [0.1, 0.6, 0.1], pathLength: [0.2, 1, 0.2] } : { opacity: 0.1, pathLength: 0.2 }}
+                    transition={speaking ? { duration: 1, repeat: Infinity, ease: "easeInOut", delay: 0.15 } : { duration: 0.4 }}
+                  />
                 </svg>
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         )}

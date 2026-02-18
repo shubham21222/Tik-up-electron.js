@@ -26,11 +26,14 @@ interface AnimationOption {
   category: "free" | "effects" | "motion" | "scifi" | "seasonal" | "impact";
 }
 
+const UNLOCKED_ANIMATIONS = new Set(["bounce", "slide", "explosion_burst"]);
+
 const animationOptions: AnimationOption[] = [
-  { value: "tikup_signature", label: "TikUp Signature", description: "Animated brand pop + glow", emoji: "✨", premium: false, category: "free" },
   { value: "bounce", label: "Bounce In", description: "Classic bounce entrance", emoji: "🎯", premium: false, category: "free" },
   { value: "slide", label: "Slide Up", description: "Smooth slide from below", emoji: "⬆️", premium: false, category: "free" },
-  { value: "explosion", label: "Explosion", description: "Dramatic burst entrance", emoji: "💥", premium: false, category: "free" },
+  { value: "explosion_burst", label: "Explosion Burst", description: "Bright burst + debris", emoji: "💥", premium: false, category: "free" },
+  { value: "tikup_signature", label: "TikUp Signature", description: "Animated brand pop + glow", emoji: "✨", premium: true, category: "effects" },
+  { value: "explosion", label: "Explosion", description: "Dramatic burst entrance", emoji: "💥", premium: true, category: "effects" },
   { value: "neon_pulse", label: "Neon Pulse", description: "Electric glowing energy waves", emoji: "⚡", premium: true, category: "effects" },
   { value: "cosmic_burst", label: "Cosmic Burst", description: "Starburst sparkle explosion", emoji: "🌟", premium: true, category: "effects" },
   { value: "firework", label: "Firework", description: "Multi-color firework burst", emoji: "🎆", premium: true, category: "effects" },
@@ -41,7 +44,6 @@ const animationOptions: AnimationOption[] = [
   { value: "arc_reactor", label: "Arc Reactor", description: "Radial energy build + burst", emoji: "🔵", premium: true, category: "scifi" },
   { value: "cyber_pulse", label: "Cyber Pulse", description: "Electric lines + neon pulses", emoji: "⚡", premium: true, category: "scifi" },
   { value: "icy_blast", label: "Icy Blast", description: "Frost shards + ice particles", emoji: "❄️", premium: true, category: "impact" },
-  { value: "explosion_burst", label: "Explosion Burst", description: "Bright burst + debris", emoji: "💥", premium: true, category: "impact" },
   { value: "christmas_spark", label: "Christmas Spark", description: "Holiday sparkle bursts", emoji: "🎄", premium: true, category: "seasonal" },
   { value: "snowfall", label: "Snowfall", description: "Gentle snow drifting down", emoji: "🌨️", premium: true, category: "seasonal" },
 ];
@@ -61,11 +63,11 @@ const filterOptions = [
 
 const categoryLabels: Record<string, string> = {
   free: "🆓 Free",
-  effects: "🔥 PRO Effects",
-  motion: "💫 PRO Motion",
-  scifi: "🛸 PRO Sci-Fi",
-  impact: "💥 PRO Impact",
-  seasonal: "🎄 PRO Seasonal",
+  effects: "🔒 Coming Soon",
+  motion: "🔒 Coming Soon — Motion",
+  scifi: "🔒 Coming Soon — Sci-Fi",
+  impact: "🔒 Coming Soon — Impact",
+  seasonal: "🔒 Coming Soon — Seasonal",
 };
 
 const Actions = () => {
@@ -132,7 +134,7 @@ const Actions = () => {
     return items;
   }, [filtered, currentIndex]);
 
-  const currentAnimStyle = currentTrigger?.animation_effect || "tikup_signature";
+  const currentAnimStyle = currentTrigger?.animation_effect && UNLOCKED_ANIMATIONS.has(currentTrigger.animation_effect) ? currentTrigger.animation_effect : "bounce";
 
   // Group animations by category
   const groupedAnimations = useMemo(() => {
@@ -413,18 +415,20 @@ const Actions = () => {
                       {Object.entries(groupedAnimations).map(([category, options]) => (
                         <div key={category}>
                           <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{
-                            color: category === "free" ? "hsl(160 100% 50%)" : "hsl(280 100% 70%)",
+                            color: category === "free" ? "hsl(160 100% 50%)" : "hsl(0 0% 45%)",
                           }}>
                             {categoryLabels[category]}
                           </p>
                           <div className="grid grid-cols-2 gap-2">
                             {options.map(opt => {
                               const isActive = currentAnimStyle === opt.value;
+                              const isLocked = !UNLOCKED_ANIMATIONS.has(opt.value);
                               return (
                                 <button
                                   key={opt.value}
-                                  onClick={() => updateTrigger(currentGift.gift_id, { animation_effect: opt.value })}
-                                  className={`relative rounded-xl p-3 text-left transition-all group overflow-hidden ${
+                                  onClick={() => { if (!isLocked) updateTrigger(currentGift.gift_id, { animation_effect: opt.value }); }}
+                                  disabled={isLocked}
+                                  className={`relative rounded-xl p-3 text-left transition-all group overflow-hidden ${isLocked ? "opacity-40 cursor-not-allowed" : ""} ${
                                     isActive
                                       ? "ring-2 shadow-lg"
                                       : "hover:border-border/60"
@@ -591,7 +595,17 @@ const Actions = () => {
                                       <p className="text-[10px] text-muted-foreground leading-snug mt-0.5">{opt.description}</p>
                                     </div>
                                   </div>
-                                  {opt.premium && (
+                                  {isLocked && (
+                                    <div className="absolute top-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[7px] font-extrabold"
+                                      style={{
+                                        background: "rgba(255,255,255,0.06)",
+                                        color: "hsl(0 0% 55%)",
+                                        border: "1px solid rgba(255,255,255,0.08)",
+                                      }}>
+                                      <Lock size={7} /> COMING SOON
+                                    </div>
+                                  )}
+                                  {!isLocked && opt.premium && (
                                     <div className="absolute top-2 right-2 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md text-[7px] font-extrabold"
                                       style={{
                                         background: "linear-gradient(135deg, hsl(280 100% 65% / 0.2), hsl(45 100% 50% / 0.15))",

@@ -117,63 +117,60 @@ const Pro = () => {
           )}
         </div>
 
-        {/* Plans Side-by-Side */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12 max-w-2xl mx-auto">
-          {plans.map((plan) => {
-            const isCurrent = (isPro && plan.planKey === "pro") || (!isPro && plan.planKey === "free");
-            return (
-              <div
-                key={plan.name}
-                className={cn(
-                  "rounded-xl border bg-card p-6 flex flex-col relative",
-                  plan.highlight ? "border-secondary/40 glow-primary" : "border-border",
-                  isCurrent && "ring-2 ring-primary/30"
-                )}
-              >
-                {plan.badge && (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold">
-                    {plan.badge}
-                  </span>
-                )}
-                {isCurrent && (
-                  <span className="absolute top-3 right-3 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-semibold">
-                    Your Plan
-                  </span>
-                )}
-                <h3 className="font-heading font-bold text-lg text-foreground">{plan.name}</h3>
-                <p className="text-xs text-muted-foreground mt-1">{plan.description}</p>
-                <div className="mt-4 mb-5">
-                  <span className="text-3xl font-heading font-bold text-foreground">{plan.price}</span>
-                  <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
-                </div>
+        {/* Plans Side-by-Side — only show to non-Pro users */}
+        {!isPro && !isAdmin && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12 max-w-2xl mx-auto">
+            {plans.map((plan) => {
+              const isCurrent = plan.planKey === "free";
+              return (
+                <div
+                  key={plan.name}
+                  className={cn(
+                    "rounded-xl border bg-card p-6 flex flex-col relative",
+                    plan.highlight ? "border-secondary/40 glow-primary" : "border-border",
+                    isCurrent && "ring-2 ring-primary/30"
+                  )}
+                >
+                  {plan.badge && (
+                    <span className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold">
+                      {plan.badge}
+                    </span>
+                  )}
+                  {isCurrent && (
+                    <span className="absolute top-3 right-3 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-semibold">
+                      Your Plan
+                    </span>
+                  )}
+                  <h3 className="font-heading font-bold text-lg text-foreground">{plan.name}</h3>
+                  <p className="text-xs text-muted-foreground mt-1">{plan.description}</p>
+                  <div className="mt-4 mb-5">
+                    <span className="text-3xl font-heading font-bold text-foreground">{plan.price}</span>
+                    <span className="text-sm text-muted-foreground ml-1">{plan.period}</span>
+                  </div>
 
-                {plan.planKey === "pro" && !isPro && (
-                  <button
-                    onClick={handleCheckout}
-                    disabled={checkoutLoading || loading}
-                    className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-secondary text-secondary-foreground hover:opacity-90 disabled:opacity-50 mt-auto"
-                  >
-                    {checkoutLoading ? (
-                      <Loader2 size={14} className="animate-spin" />
-                    ) : (
-                      <>Upgrade to Pro <ArrowRight size={14} /></>
-                    )}
-                  </button>
-                )}
-                {plan.planKey === "free" && (
-                  <div className="w-full py-2.5 rounded-lg font-semibold text-sm text-center bg-muted text-muted-foreground cursor-not-allowed mt-auto">
-                    {isCurrent ? "Current Plan" : "Free Tier"}
-                  </div>
-                )}
-                {plan.planKey === "pro" && isPro && (
-                  <div className="w-full py-2.5 rounded-lg font-semibold text-sm text-center bg-primary/10 text-primary mt-auto">
-                    ✓ Active
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
+                  {plan.planKey === "pro" && (
+                    <button
+                      onClick={handleCheckout}
+                      disabled={checkoutLoading || loading}
+                      className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all flex items-center justify-center gap-2 bg-secondary text-secondary-foreground hover:opacity-90 disabled:opacity-50 mt-auto"
+                    >
+                      {checkoutLoading ? (
+                        <Loader2 size={14} className="animate-spin" />
+                      ) : (
+                        <>Upgrade to Pro <ArrowRight size={14} /></>
+                      )}
+                    </button>
+                  )}
+                  {plan.planKey === "free" && (
+                    <div className="w-full py-2.5 rounded-lg font-semibold text-sm text-center bg-muted text-muted-foreground cursor-not-allowed mt-auto">
+                      Current Plan
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
 
         {/* Unified Feature Comparison Table */}
         <div className="rounded-xl border border-border bg-card overflow-hidden">

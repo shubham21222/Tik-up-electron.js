@@ -15,6 +15,10 @@ const BG_OPTIONS = [
   { label: "Floating Card", value: "floating" },
   { label: "Blurred Glass", value: "blurred" },
 ];
+const LAYOUT_OPTIONS = [
+  { label: "Card", value: "card" },
+  { label: "Wide Bar", value: "wide_bar" },
+];
 
 interface Props {
   goal: Goal;
@@ -40,6 +44,7 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
   const [fontFamily, setFontFamily] = useState((customConfig.font_family as string) || "Inter");
   const [progressAnimation, setProgressAnimation] = useState((customConfig.progress_animation as string) || "none");
   const [bgStyle, setBgStyle] = useState((customConfig.bg_style as string) || "glass");
+  const [layout, setLayout] = useState((customConfig.layout as string) || "card");
 
   const save = async () => {
     await updateGoal(goal.id, {
@@ -55,6 +60,7 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
         font_family: fontFamily,
         progress_animation: progressAnimation,
         bg_style: bgStyle,
+        layout,
       },
     });
     onClose();
@@ -103,6 +109,7 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
                 font_family: fontFamily,
                 bg_style: bgStyle,
                 progress_animation: progressAnimation,
+                layout,
               }}
             />
           </div>
@@ -119,6 +126,23 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
                 <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5 block font-semibold">Target Value</label>
                 <input type="number" value={target} onChange={(e) => setTarget(Number(e.target.value))} min={1}
                   className="w-full bg-muted/30 border border-border/60 rounded-xl px-3 py-2.5 text-sm text-foreground outline-none focus:border-primary/40 transition-colors" />
+              </div>
+            </div>
+
+            {/* Layout */}
+            <div>
+              <label className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2 block font-semibold flex items-center gap-1.5">
+                <Sliders size={10} /> Layout
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {LAYOUT_OPTIONS.map(l => (
+                  <button key={l.value} onClick={() => setLayout(l.value)}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-200 ${
+                      layout === l.value ? "bg-primary/10 text-primary border border-primary/30" : "bg-muted/30 text-muted-foreground border border-border/40 hover:border-border/60"
+                    }`}>
+                    {l.label}
+                  </button>
+                ))}
               </div>
             </div>
 

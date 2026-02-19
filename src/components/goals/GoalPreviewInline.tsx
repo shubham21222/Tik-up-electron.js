@@ -117,12 +117,12 @@ const GoalPreviewInline = ({ title, currentValue, targetValue, stylePreset, cust
         <div className="relative rounded-xl p-4" style={getBgStyles()}>
           {/* Title */}
           <div className="flex items-center justify-between mb-3">
-            <h2 className="text-xs font-bold text-white tracking-tight">{title}</h2>
-            <span className="text-sm font-bold text-white">{Math.round(pct)}%</span>
+            <h2 className="text-sm font-bold text-white tracking-tight">{title}</h2>
+            <span className="text-base font-bold text-white">{Math.round(pct)}%</span>
           </div>
 
           {/* Progress bar */}
-          <div className="h-2.5 rounded-full bg-white/[0.06] overflow-hidden relative">
+          <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden relative">
             <motion.div
               key={`${stylePreset}-${customConfig.primary_color}`}
               initial={{ width: 0 }}
@@ -142,10 +142,10 @@ const GoalPreviewInline = ({ title, currentValue, targetValue, stylePreset, cust
 
           {/* Counter */}
           <div className="flex items-center justify-between mt-2">
-            <p className="text-[10px] text-white/60 font-medium">
+            <p className="text-xs text-white/60 font-medium">
               <AnimatedNumber value={currentValue} /> / {targetValue.toLocaleString()}
             </p>
-            <p className="text-[9px] text-white/30">
+            <p className="text-[10px] text-white/30">
               {targetValue - currentValue > 0
                 ? `${(targetValue - currentValue).toLocaleString()} remaining`
                 : "🎉 Complete!"}

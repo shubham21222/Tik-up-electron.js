@@ -356,7 +356,7 @@ const GoalOverlayRenderer = () => {
           scale: showPulse && progressAnim === "shake" ? [1, 1.02, 0.98, 1] : 1,
         }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="w-[420px] relative"
+        className="w-[480px] relative"
         style={{ fontFamily }}
       >
         {/* Glow ring on complete */}
@@ -397,12 +397,12 @@ const GoalOverlayRenderer = () => {
         <div className="relative rounded-2xl p-6" style={getBgStyles()}>
           {/* Title */}
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-base font-bold text-white tracking-tight">{effectiveGoal.title}</h2>
-            <span className="text-xl font-bold text-white">{Math.round(pct)}%</span>
+            <h2 className="text-xl font-bold text-white tracking-tight">{effectiveGoal.title}</h2>
+            <span className="text-2xl font-bold text-white">{Math.round(pct)}%</span>
           </div>
 
           {/* Progress bar */}
-          <div className="h-4 rounded-full bg-white/[0.06] overflow-hidden relative">
+          <div className="h-5 rounded-full bg-white/[0.06] overflow-hidden relative">
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${pct}%` }}
@@ -434,10 +434,10 @@ const GoalOverlayRenderer = () => {
 
           {/* Counter */}
           <div className="flex items-center justify-between mt-3">
-            <p className="text-sm text-white/60 font-medium">
+            <p className="text-base text-white/60 font-semibold">
               <AnimatedNumber value={effectiveGoal.current_value} /> / {effectiveGoal.target_value.toLocaleString()}
             </p>
-            <p className="text-xs text-white/30">
+            <p className="text-sm text-white/30">
               {effectiveGoal.target_value - effectiveGoal.current_value > 0
                 ? `${(effectiveGoal.target_value - effectiveGoal.current_value).toLocaleString()} remaining`
                 : "🎉 Complete!"}

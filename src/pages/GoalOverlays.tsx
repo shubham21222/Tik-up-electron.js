@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart, Share2, UserPlus, Eye, Coins, Star,
   Copy, Play, Settings2, ChevronLeft, ChevronRight,
-  Trash2, Target
+  Trash2, Target, RotateCcw
 } from "lucide-react";
 import { useGoals, type Goal } from "@/hooks/use-goals";
 import { useAuth } from "@/hooks/use-auth";
@@ -310,7 +310,7 @@ const GoalTypeCard = ({
 /* ── Main Page ── */
 const GoalOverlays = () => {
   const { user } = useAuth();
-  const { goals, loading, createGoal, deleteGoal, simulateGoal } = useGoals();
+  const { goals, loading, createGoal, deleteGoal, simulateGoal, resetAllGoals } = useGoals();
   const { isPro } = useSubscription();
   const [customizeGoalId, setCustomizeGoalId] = useState<string | null>(null);
   const customizeGoal = goals.find(g => g.id === customizeGoalId);
@@ -323,12 +323,14 @@ const GoalOverlays = () => {
   }, {});
 
   // Auto-create missing goals on first load so every card is fully populated
+  // Reset existing goals to 0 so they start fresh for the stream
   useEffect(() => {
     if (loading || autoCreatedRef.current || !user) return;
     autoCreatedRef.current = true;
     const missing = GOAL_TYPES.filter(t => !goalsByType[t.id]);
-    if (missing.length === 0) return;
-    missing.forEach(t => createGoal(t.id, t.defaultTitle, t.defaultTarget));
+    if (missing.length > 0) {
+      missing.forEach(t => createGoal(t.id, t.defaultTitle, t.defaultTarget));
+    }
   }, [loading, user]);
 
   const ensureGoal = async (type: string, title: string, target: number): Promise<Goal | null> => {
@@ -359,11 +361,18 @@ const GoalOverlays = () => {
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-3xl font-heading font-bold text-foreground">Goal Overlays</h1>
             <PageHelpButton featureKey="goal_overlays" />
+            <button
+              onClick={resetAllGoals}
+              className="ml-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors bg-muted/20 border border-border/40 text-muted-foreground hover:text-foreground hover:bg-muted/30"
+            >
+              <RotateCcw size={12} /> Reset All to 0
+            </button>
           </div>
           <p className="text-sm text-muted-foreground max-w-2xl">
             What goals do you have in your broadcast? Define Like, Share or Follow goals in the form of progress indicators.
+            Goals start at 0% and update in real-time as events come in from your TikTok LIVE stream.
             To include the goals in <strong className="text-foreground">OBS (Browser Source)</strong> or <strong className="text-foreground">LIVE Studio (Link)</strong>, simply
-            copy the URLs. You can change the colors by clicking on the "Customize" button.
+            copy the URLs.
           </p>
         </motion.div>
 

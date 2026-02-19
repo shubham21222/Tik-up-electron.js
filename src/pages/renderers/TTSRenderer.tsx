@@ -37,6 +37,7 @@ interface TTSMessage {
   voiceId?: string;
   voiceProvider?: string;
   avatarUrl?: string;
+  audioBase64?: string;
 }
 
 const TTSRenderer = () => {
@@ -79,6 +80,7 @@ const TTSRenderer = () => {
           voiceId: payload.payload.voice_id,
           voiceProvider: payload.payload.voice_provider || "browser",
           avatarUrl: payload.payload.avatar || payload.payload.avatar_url || payload.payload.profilePictureUrl || "",
+          audioBase64: payload.payload.audioBase64 || null,
         };
 
         // Deduplicate: skip if we've seen this exact message recently
@@ -108,7 +110,52 @@ const TTSRenderer = () => {
     return () => { supabase.removeChannel(channel); };
   }, [publicToken]);
 
-  /** Play audio via ElevenLabs edge function */
+  /** Play via browser Web SpeechSynthesis API (fallback) */
+  const playBrowserSpeech = useCallback((msg: TTSMessage): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      if (!("speechSynthesis" in window)) {
+        resolve();
+        return;
+      }
+
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(msg.text);
+      utterance.volume = msg.volume / 100;
+      utterance.rate = msg.speed / 50;   // map 1-100 → 0.02-2.0
+      utterance.pitch = msg.pitch / 50;  // map 1-100 → 0.02-2.0
+
+      utterance.onend = () => resolve();
+      utterance.onerror = () => resolve();
+
+      speechSynthesis.speak(utterance);
+    });
+  }, []);
+
+  /** Play pre-generated base64 audio directly (no network call needed) */
+  const playBase64Audio = useCallback((msg: TTSMessage): Promise<void> => {
+    return new Promise<void>((resolve) => {
+      const audioUrl = `data:audio/mpeg;base64,${msg.audioBase64}`;
+      const audio = new Audio(audioUrl);
+      audio.volume = msg.volume / 100;
+      audioRef.current = audio;
+
+      audio.onended = () => {
+        audioRef.current = null;
+        resolve();
+      };
+      audio.onerror = () => {
+        audioRef.current = null;
+        console.warn("Base64 audio playback failed, falling back to browser speech");
+        playBrowserSpeech(msg).then(resolve);
+      };
+
+      audio.play().catch(() => {
+        playBrowserSpeech(msg).then(resolve);
+      });
+    });
+  }, [playBrowserSpeech]);
+
+  /** Play audio via ElevenLabs edge function (fallback if no audioBase64) */
   const playElevenLabs = useCallback(async (msg: TTSMessage): Promise<void> => {
     try {
       const response = await fetch(
@@ -131,17 +178,17 @@ const TTSRenderer = () => {
 
       if (!response.ok) {
         console.warn("ElevenLabs TTS failed, falling back to browser speech");
-        playBrowserSpeech(msg);
+        await playBrowserSpeech(msg);
         return;
       }
 
       const data = await response.json();
       if (!data.audioContent) {
-        playBrowserSpeech(msg);
+        await playBrowserSpeech(msg);
         return;
       }
 
-      // Play base64 audio via data URI (avoids atob corruption)
+      // Play base64 audio via data URI
       return new Promise<void>((resolve) => {
         const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
         const audio = new Audio(audioUrl);
@@ -154,43 +201,20 @@ const TTSRenderer = () => {
         };
         audio.onerror = () => {
           audioRef.current = null;
-          console.warn("Audio playback error, falling back to browser speech");
           playBrowserSpeech(msg);
           resolve();
         };
 
         audio.play().catch(() => {
-          // Autoplay blocked — fall back to browser speech
           playBrowserSpeech(msg);
           resolve();
         });
       });
     } catch (err) {
       console.error("ElevenLabs fetch error:", err);
-      playBrowserSpeech(msg);
+      await playBrowserSpeech(msg);
     }
-  }, [publicToken]);
-
-  /** Play via browser Web SpeechSynthesis API (fallback) */
-  const playBrowserSpeech = useCallback((msg: TTSMessage): Promise<void> => {
-    return new Promise<void>((resolve) => {
-      if (!("speechSynthesis" in window)) {
-        resolve();
-        return;
-      }
-
-      window.speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(msg.text);
-      utterance.volume = msg.volume / 100;
-      utterance.rate = msg.speed / 50;   // map 1-100 → 0.02-2.0
-      utterance.pitch = msg.pitch / 50;  // map 1-100 → 0.02-2.0
-
-      utterance.onend = () => resolve();
-      utterance.onerror = () => resolve();
-
-      speechSynthesis.speak(utterance);
-    });
-  }, []);
+  }, [publicToken, playBrowserSpeech]);
 
   // Process queue — one message at a time
   useEffect(() => {
@@ -205,8 +229,11 @@ const TTSRenderer = () => {
       setCurrent(next);
       setSpeaking(true);
 
-      // Choose playback method based on voice_provider
-      if (next.voiceProvider === "elevenlabs") {
+      // Priority: use pre-generated audio from the broadcast payload
+      if (next.audioBase64) {
+        await playBase64Audio(next);
+      } else if (next.voiceProvider === "elevenlabs") {
+        // Fallback: try edge function (may fail if overlay is unauthenticated)
         await playElevenLabs(next);
       } else {
         await playBrowserSpeech(next);

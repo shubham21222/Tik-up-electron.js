@@ -1223,6 +1223,45 @@ Deno.serve(async (req) => {
 
           const ttsWidgets = widgets?.filter(w => w.widget_type === "tts") || [];
 
+          // Generate ElevenLabs audio server-side so the overlay can play directly
+          let audioBase64: string | null = null;
+          const voiceProvider = ttsSettings.voice_provider || "browser";
+
+          if (voiceProvider === "elevenlabs") {
+            const ELEVENLABS_API_KEY = Deno.env.get("ELEVENLABS_API_KEY");
+            if (ELEVENLABS_API_KEY) {
+              try {
+                const ttsSpeed = typeof speed === "number" && speed > 0 && speed <= 100 ? speed / 50 : 1.0;
+                const ttsResp = await fetch(
+                  `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "xi-api-key": ELEVENLABS_API_KEY,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      text: templatedText,
+                      model_id: "eleven_turbo_v2_5",
+                      voice_settings: { stability: 0.5, similarity_boost: 0.75, speed: ttsSpeed },
+                    }),
+                  }
+                );
+                if (ttsResp.ok) {
+                  const buf = await ttsResp.arrayBuffer();
+                  // Base64 encode using Deno standard library
+                  const bytes = new Uint8Array(buf);
+                  const binaryStr = Array.from(bytes, (b) => String.fromCharCode(b)).join("");
+                  audioBase64 = btoa(binaryStr);
+                } else {
+                  console.error("ElevenLabs TTS error:", await ttsResp.text());
+                }
+              } catch (e) {
+                console.error("ElevenLabs TTS fetch error:", e);
+              }
+            }
+          }
+
           for (const ttsWidget of ttsWidgets) {
             // Log to queue
             await supabase.from("tts_queue").insert({
@@ -1231,10 +1270,11 @@ Deno.serve(async (req) => {
               text_content: templatedText,
               username: event.username,
               voice_id: voiceId,
-              status: "pending",
+              status: audioBase64 ? "completed" : "pending",
+              ...(audioBase64 ? { processed_at: new Date().toISOString() } : {}),
             });
 
-            // Broadcast to overlay with voice settings for ElevenLabs playback
+            // Broadcast to overlay — include audio if generated
             await broadcast(`tts-${ttsWidget.public_token}`, "play_tts", {
               username: event.username,
               text: templatedText,
@@ -1243,7 +1283,9 @@ Deno.serve(async (req) => {
               speed,
               pitch,
               interrupt: ttsSettings.interrupt_mode || false,
-              voice_provider: ttsSettings.voice_provider || "browser",
+              voice_provider: voiceProvider,
+              ...(audioBase64 ? { audioBase64 } : {}),
+              avatar: (event.data.profilePictureUrl || event.data.avatar_url || event.data.avatar || "") as string,
             });
 
             ttsTriggered++;

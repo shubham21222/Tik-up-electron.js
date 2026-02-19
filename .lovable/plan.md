@@ -1,77 +1,64 @@
 
+# Fix: Capture Viewer Avatar Images
 
-## Cost-Based TTS Cap ($3/user/month)
+## The Problem
+The Points & Loyalty table shows letter-initial circles instead of real TikTok profile pictures. The database column `viewer_avatar_url` exists and the UI already renders it when available (line 243 of Points.tsx), but all 208 viewer records have `null` avatars.
 
-Instead of a rigid 500-snippet daily cap, we'll track actual ElevenLabs cost per user per billing cycle and block TTS once they exceed $3 of estimated usage.
+## Root Cause
+There are two webhook entry paths, and avatar capture may be failing in both:
 
-### How It Works
+1. **Bridge path** (desktop bridge sends events): The bridge sends `avatar` inside `event.data`, and the webhook reads it correctly on line 238. However, the EulerStream SDK field `data.user?.profilePictureUrl` may be `undefined` depending on the SDK version -- the field could be named `data.profilePictureUrl` or `data.user?.avatarThumb?.urlList?.[0]` instead.
 
-ElevenLabs charges approximately **$0.30 per 1,000 characters**. So a $3 cap equals roughly **10,000 characters per month**.
+2. **EulerStream native alert webhook path** (direct API alerts): The avatar comes in as `alert_creator_avatar_url` but may not be mapped into `eventData` correctly when calling `upsertViewerPoints`.
 
-The `tts_queue` table already logs every TTS generation with the `text_content` field, so we can calculate monthly character usage without any new tables.
+## Fix Plan
 
-### Changes
+### 1. Update Bridge Avatar Extraction (bridge/index.js)
+Add additional fallback fields for the EulerStream SDK avatar:
+- `data.user?.avatarThumb?.urlList?.[0]` (protobuf format used by newer SDK versions)
+- `data.user?.avatarMedium?.urlList?.[0]`
+- `data.profilePictureUrl`
 
-**1. New DB table: `tts_usage_monthly`** (migration)
+Apply this to all event handlers (GIFT, LIKE, FOLLOW, SHARE, CHAT).
 
-A lightweight table to track monthly character consumption per user, avoiding expensive full-table scans on `tts_queue` every request.
+### 2. Fix Native Alert Webhook Avatar Mapping (tiktok-webhook/index.ts)
+Ensure the `parseAlertPayload` function passes `avatar` / `alert_creator_avatar_url` into the event data object so that `upsertViewerPoints` can extract it.
 
-| Column | Type | Purpose |
-|--------|------|---------|
-| `id` | uuid | Primary key |
-| `user_id` | uuid | Owner |
-| `month_key` | text | e.g. `"2026-02"` |
-| `total_characters` | integer | Running total of chars used |
-| `estimated_cost_cents` | integer | Running cost in cents (chars * 0.03) |
-| `updated_at` | timestamptz | Last update |
+### 3. Backfill Script: Populate Existing Viewer Avatars
+Since 208 existing viewers have no avatar, create a one-time approach:
+- When a viewer interacts again and the avatar IS captured this time, the existing `upsertViewerPoints` update logic (line 315) already backfills it: `...(avatarUrl ? { viewer_avatar_url: avatarUrl } : {})`
+- No separate migration needed -- avatars will populate naturally as viewers interact again after the fix
 
-Unique constraint on `(user_id, month_key)`. RLS: users can read/insert/update own rows.
+### 4. No UI Changes Needed
+The Points.tsx table (line 243-253) already renders `viewer.avatar_url` as an `<img>` when it exists, with the letter-initial fallback. Once data flows in, images will appear automatically.
 
-**2. Update `tts-generate` Edge Function**
+## Technical Details
 
-Before calling ElevenLabs:
-- Query `tts_usage_monthly` for the current month
-- If `estimated_cost_cents >= 300` (i.e. $3.00), return a 429 error: "Monthly TTS budget reached"
-- After successful generation, upsert the usage row adding `text.length` characters and recalculating cost
+### Files to Modify
+- **bridge/index.js** -- Broaden avatar field extraction across all event handlers
+- **supabase/functions/tiktok-webhook/index.ts** -- Ensure `parseAlertPayload` maps avatar into event data for `upsertViewerPoints`; also add the same broader fallback fields in the webhook's own avatar extraction
 
-**3. Update `tiktok-webhook` auto-TTS path**
-
-Same check before generating auto-TTS during live streams -- query the user's monthly usage and skip TTS if the $3 cap is hit.
-
-**4. Update `use-subscription.tsx` (frontend)**
-
-- Change `daily_tts_snippets` references to a cost-based model
-- Update `FEATURE_COMPARISON` to show `"$3/mo budget*"` instead of `"500/day*"` for Pro TTS
-- Keep Free tier at a lower cap (e.g. `$0.50/mo budget`)
-
-**5. Update `Pro.tsx` disclaimer**
-
-Change the fair usage footnote from "500 snippets/day" to reference the $3/month TTS budget.
-
-### Technical Details
-
-**Cost formula used in the edge function:**
+### Changes in bridge/index.js
+For each event handler, update the avatar line from:
+```javascript
+avatar: data.user?.profilePictureUrl || data.profilePictureUrl || null
 ```
-cost_cents = Math.ceil(total_characters * 0.03)
-```
-(Since ElevenLabs = $0.30/1k chars = 0.03 cents per character)
-
-**Month key format:** `YYYY-MM` derived from `new Date().toISOString().slice(0, 7)`
-
-**Upsert pattern** (edge function, after successful TTS generation):
-```sql
-INSERT INTO tts_usage_monthly (user_id, month_key, total_characters, estimated_cost_cents)
-VALUES ($1, $2, $chars, $cost)
-ON CONFLICT (user_id, month_key)
-DO UPDATE SET
-  total_characters = tts_usage_monthly.total_characters + $chars,
-  estimated_cost_cents = CEIL((tts_usage_monthly.total_characters + $chars) * 0.03),
-  updated_at = now();
+to:
+```javascript
+avatar: data.user?.profilePictureUrl
+  || data.user?.avatarThumb?.urlList?.[0]
+  || data.user?.avatarMedium?.urlList?.[0]
+  || data.profilePictureUrl
+  || null
 ```
 
-**Free vs Pro caps:**
-- Free: $0.50/month (approx 1,667 characters)
-- Pro: $3.00/month (approx 10,000 characters)
+### Changes in tiktok-webhook/index.ts
+In `parseAlertPayload` (around line 1510), ensure `data.avatar` is set from `alert_creator_avatar_url`:
+```typescript
+const data: Record<string, unknown> = {
+  avatar: avatarUrl,
+  profilePictureUrl: avatarUrl,  // Add this fallback alias
+};
+```
 
-The edge function will check the user's plan via `check-subscription` or the local `subscriptions` table to determine which cap applies.
-
+Also add a log line to debug avatar presence during the next live session.

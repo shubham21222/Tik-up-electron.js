@@ -702,7 +702,14 @@ Deno.serve(async (req) => {
     let modBlocked = 0;
     let pointsUpdated = 0;
 
-    for (const event of events) {
+    // ── LATENCY OPTIMIZATION: Process chat events first for fastest TTS ──
+    const sortedEvents = [...events].sort((a, b) => {
+      if (a.type === "chat" && b.type !== "chat") return -1;
+      if (a.type !== "chat" && b.type === "chat") return 1;
+      return 0;
+    });
+
+    for (const event of sortedEvents) {
       const matchingAuto = automations?.find(a => a.trigger_type === event.type);
 
       // ── MODERATION: Check banned users for alert-type events ──
@@ -898,13 +905,18 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Log the event
-      await supabase.from("events_log").insert({
+      // Log the event (non-blocking for chat to reduce TTS latency)
+      const eventLogPromise = supabase.from("events_log").insert({
         user_id: userId,
         event_type: event.type,
         payload: event.data,
         triggered_automation_id: matchingAuto?.id || null,
       });
+      if (event.type !== "chat") {
+        await eventLogPromise;
+      } else {
+        eventLogPromise.then(() => {});
+      }
 
       // Broadcast to overlay widgets via REST API
       if (widgets) {
@@ -1228,18 +1240,7 @@ Deno.serve(async (req) => {
           const audioBase64: string | null = null;
 
           for (const ttsWidget of ttsWidgets) {
-            // Log to queue
-            await supabase.from("tts_queue").insert({
-              user_id: userId,
-              overlay_token: ttsWidget.public_token,
-              text_content: templatedText,
-              username: event.username,
-              voice_id: voiceId,
-              status: audioBase64 ? "completed" : "pending",
-              ...(audioBase64 ? { processed_at: new Date().toISOString() } : {}),
-            });
-
-            // Broadcast to overlay — include audio if generated
+            // ── LATENCY: Broadcast FIRST, then log to DB (non-blocking) ──
             await broadcast(`tts-${ttsWidget.public_token}`, "play_tts", {
               username: event.username,
               text: templatedText,
@@ -1252,6 +1253,17 @@ Deno.serve(async (req) => {
               ...(audioBase64 ? { audioBase64 } : {}),
               avatar: (event.data.profilePictureUrl || event.data.avatar_url || event.data.avatar || "") as string,
             });
+
+            // Fire-and-forget: log to tts_queue after broadcast
+            supabase.from("tts_queue").insert({
+              user_id: userId,
+              overlay_token: ttsWidget.public_token,
+              text_content: templatedText,
+              username: event.username,
+              voice_id: voiceId,
+              status: audioBase64 ? "completed" : "pending",
+              ...(audioBase64 ? { processed_at: new Date().toISOString() } : {}),
+            }).then(() => {});
 
             ttsTriggered++;
           }

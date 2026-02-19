@@ -11,6 +11,7 @@ import {
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
 import { useIsAdmin } from "@/hooks/use-admin";
+import { useSubscription } from "@/hooks/use-subscription";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useFeatureFlags, type FeatureFlag } from "@/hooks/use-feature-flags";
 import tikupLogo from "@/assets/tikup_logo.png";
@@ -362,6 +363,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const location = useLocation();
   const { collapsed, toggle } = useSidebarState();
   const { isAdmin } = useIsAdmin();
+  const { isPro } = useSubscription();
   const { isVisible, flags: allFlags } = useFeatureFlags();
   const isMobile = useIsMobile();
   const isCollapsed = isMobile ? false : collapsed;
@@ -555,33 +557,35 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
       </nav>
 
       {/* ── Go Pro CTA ── */}
-      <div className="px-2 pb-2">
-        <Link
-          to="/pro"
-          onClick={handleClick}
-          className={cn(
-            "sidebar-pro-cta group relative flex items-center gap-3 rounded-xl transition-all duration-300",
-            isCollapsed ? "justify-center p-2.5" : "px-3 py-2.5",
-          )}
-        >
-          <motion.div
-            whileHover={{ scale: 1.05, rotate: 3 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
+      {!isPro && !isAdmin && (
+        <div className="px-2 pb-2">
+          <Link
+            to="/pro"
+            onClick={handleClick}
+            className={cn(
+              "sidebar-pro-cta group relative flex items-center gap-3 rounded-xl transition-all duration-300",
+              isCollapsed ? "justify-center p-2.5" : "px-3 py-2.5",
+            )}
           >
-            <Crown size={18} className="flex-shrink-0 sidebar-pro-icon" />
-          </motion.div>
-          {!isCollapsed && (
-            <span className="text-[12.5px] font-extrabold tracking-wide sidebar-pro-text">
-              Go Pro
-            </span>
-          )}
-          {isCollapsed && (
-            <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
-              Go Pro
-            </div>
-          )}
-        </Link>
-      </div>
+            <motion.div
+              whileHover={{ scale: 1.05, rotate: 3 }}
+              transition={{ type: "spring", stiffness: 400, damping: 20 }}
+            >
+              <Crown size={18} className="flex-shrink-0 sidebar-pro-icon" />
+            </motion.div>
+            {!isCollapsed && (
+              <span className="text-[12.5px] font-extrabold tracking-wide sidebar-pro-text">
+                Go Pro
+              </span>
+            )}
+            {isCollapsed && (
+              <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
+                Go Pro
+              </div>
+            )}
+          </Link>
+        </div>
+      )}
 
       {/* ── Collapse toggle ── */}
       {!isMobile && (

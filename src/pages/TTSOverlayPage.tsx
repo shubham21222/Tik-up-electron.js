@@ -5,11 +5,13 @@ import { useTTSSettings, TTS_VOICES, TTS_LANGUAGES } from "@/hooks/use-tts-setti
 import type { AllowedUsers, SpecialUser } from "@/hooks/use-tts-settings";
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import { Mic, Play, Plus, Trash2, Search, Copy } from "lucide-react";
+import { Mic, Play, Plus, Trash2, Search, Copy, Volume2 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
+import VoiceSelectorModal from "@/components/tts/VoiceSelectorModal";
+import { useElevenLabsVoices } from "@/hooks/use-elevenlabs-voices";
 
 import { useAuth } from "@/hooks/use-auth";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
@@ -32,6 +34,8 @@ const TTSOverlayPage = () => {
   const [newUsername, setNewUsername] = useState("");
   const [userSearch, setUserSearch] = useState("");
   const [ttsWidget, setTtsWidget] = useState<{ public_token: string } | null>(null);
+  const [voiceModalOpen, setVoiceModalOpen] = useState(false);
+  const { voices: elVoices } = useElevenLabsVoices();
 
   useEffect(() => { setLocal(settings); }, [settings]);
 
@@ -230,9 +234,20 @@ const TTSOverlayPage = () => {
             </div>
             <div className={rowClass}>
               <span className={labelClass}>Voice</span>
-              <select className={selectClass} value={local.voice_id} onChange={(e) => update({ voice_id: e.target.value })}>
-                {TTS_VOICES.map(v => <option key={v.id} value={v.id} className="bg-[#0a0a0f]">{v.name} · {v.tag}</option>)}
-              </select>
+              <button
+                onClick={() => setVoiceModalOpen(true)}
+                className="text-[11px] px-3 py-1.5 rounded-lg border border-white/[0.08] bg-white/[0.03] text-foreground font-medium hover:border-primary/30 transition-colors min-w-[160px] text-left flex items-center gap-2"
+              >
+                <Volume2 size={11} className="text-primary flex-shrink-0" />
+                <span className="truncate">
+                  {(() => {
+                    const elVoice = elVoices.find(v => v.voice_id === local.voice_id);
+                    if (elVoice) return elVoice.name;
+                    const fallback = TTS_VOICES.find(v => v.id === local.voice_id);
+                    return fallback ? `${fallback.name} · ${fallback.tag}` : "Select Voice";
+                  })()}
+                </span>
+              </button>
             </div>
             <div className={rowClass}>
               <span className={labelClass}>Random Voice</span>
@@ -476,6 +491,16 @@ const TTSOverlayPage = () => {
           </div>
         </div>
       </div>
+
+      <VoiceSelectorModal
+        open={voiceModalOpen}
+        onOpenChange={setVoiceModalOpen}
+        selectedVoiceId={local.voice_id}
+        onSelectVoice={(voiceId) => {
+          update({ voice_id: voiceId });
+          setVoiceModalOpen(false);
+        }}
+      />
       </ProGate>
     </AppLayout>
   );

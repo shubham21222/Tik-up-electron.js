@@ -46,7 +46,7 @@ const PRO_LIMITS = {
   max_actions: Infinity,
   max_sounds: Infinity,
   max_chat_commands: Infinity,
-  daily_tts_snippets: Infinity,
+  daily_tts_snippets: 500,
   tts_enabled: true,
   premium_overlays: true,
   ai_voices: true,
@@ -72,9 +72,9 @@ export type FeatureLimitKey = keyof typeof FREE_LIMITS;
 
 /** Unified feature list for display in ProGate and Pro page */
 export const FEATURE_COMPARISON = [
-  { label: "Actions & Events", free: "5", pro: "Unlimited", key: "max_actions" },
-  { label: "Sound Alerts", free: "5", pro: "Unlimited", key: "max_sounds" },
-  { label: "Daily TTS Snippets", free: "100/day", pro: "Unlimited", key: "daily_tts_snippets" },
+  { label: "Actions & Events", free: "5", pro: "Unlimited*", key: "max_actions" },
+  { label: "Sound Alerts", free: "5", pro: "Unlimited*", key: "max_sounds" },
+  { label: "Daily TTS Snippets", free: "100/day", pro: "500/day*", key: "daily_tts_snippets" },
   { label: "Premium Overlays", free: "Preview only", pro: "Full access", key: "premium_overlays" },
   { label: "AI Voices", free: "Preview only", pro: "Full access", key: "ai_voices" },
   { label: "Experimental Features", free: "Preview", pro: "Full access", key: "experimental_features" },
@@ -90,7 +90,7 @@ export const FEATURE_COMPARISON = [
   { label: "Games", free: true, pro: true, key: "games" },
   { label: "Chatbot", free: true, pro: true, key: "chatbot" },
   { label: "Subathon Timer", free: true, pro: true, key: "subathon_timer" },
-  { label: "Text-to-Speech", free: "Limited", pro: "Unlimited", key: "tts_enabled" },
+  { label: "Text-to-Speech", free: "Limited", pro: "Unlimited*", key: "tts_enabled" },
   { label: "Minecraft Integration", free: "Preview", pro: "Full access", key: "minecraft_integration" },
   { label: "Custom CSS", free: false, pro: true, key: "custom_css" },
   { label: "Custom Branding", free: false, pro: true, key: "custom_branding" },

@@ -182,7 +182,7 @@ const Pro = () => {
               <BarChart3 size={16} className="text-secondary" /> Full Feature Comparison
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Both plans include every feature — Pro unlocks unlimited & premium access
+              Both plans include every feature — Pro unlocks premium & expanded access
             </p>
           </div>
           <div className="overflow-x-auto">
@@ -216,6 +216,16 @@ const Pro = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+          <div className="px-5 py-3 border-t border-border bg-muted/20">
+            <p className="text-[11px] text-muted-foreground leading-relaxed">
+              * "Unlimited" and high-limit features are subject to our{" "}
+              <span className="underline cursor-pointer hover:text-foreground">Fair Usage Policy</span>.
+              TikUp reserves the right to apply reasonable usage caps to prevent abuse and ensure
+              service quality for all users. Features marked with an asterisk (*) may be throttled
+              or limited if usage becomes excessive or commercially unsustainable. Current Pro TTS
+              limit: 500 snippets/day.
+            </p>
           </div>
         </div>
       </div>

@@ -363,7 +363,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
   const location = useLocation();
   const { collapsed, toggle } = useSidebarState();
   const { isAdmin } = useIsAdmin();
-  const { isPro } = useSubscription();
+  const { isPro, loading: subLoading } = useSubscription();
   const { isVisible, flags: allFlags } = useFeatureFlags();
   const isMobile = useIsMobile();
   const isCollapsed = isMobile ? false : collapsed;
@@ -557,7 +557,7 @@ const AppSidebar = ({ onNavigate }: AppSidebarProps) => {
       </nav>
 
       {/* ── Go Pro CTA ── */}
-      {!isPro && !isAdmin && (
+      {!subLoading && !isPro && !isAdmin && (
         <div className="px-2 pb-2">
           <Link
             to="/pro"

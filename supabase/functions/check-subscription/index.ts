@@ -48,6 +48,26 @@ serve(async (req) => {
       });
     }
 
+    // Check local subscriptions table first (for manually granted pro)
+    const { data: localSub } = await supabaseClient
+      .from("subscriptions")
+      .select("plan, status, current_period_end")
+      .eq("user_id", user.id)
+      .eq("status", "active")
+      .eq("plan", "pro")
+      .maybeSingle();
+
+    if (localSub) {
+      return new Response(JSON.stringify({
+        subscribed: true,
+        plan: "pro",
+        subscription_end: localSub.current_period_end || null,
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
+    }
+
     const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
       apiVersion: "2025-08-27.basil",
     });

@@ -93,7 +93,9 @@ Deno.serve(async (req) => {
     }
 
     const selectedVoice = voice_id || settings.voice_id || "JBFqnCBsd6RMkjVDRZzb";
-    const speed = settings.speed || 1.0;
+    // DB stores speed as 0-100 slider; ElevenLabs expects 0.7-1.2
+    const rawSpeed = settings.speed ?? 50;
+    const speed = rawSpeed > 1.2 ? 0.7 + (rawSpeed / 100) * 0.5 : rawSpeed;
 
     // Call ElevenLabs
     const ttsResponse = await fetch(

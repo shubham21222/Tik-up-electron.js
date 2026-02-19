@@ -29,6 +29,7 @@ interface LiveStats {
   share_count: number;
   follower_count: number;
   diamond_count: number;
+  session_followers: number;
   room_id: string;
   title: string;
   start_time: number;
@@ -446,13 +447,17 @@ const Index = () => {
   const pollingLikes = liveStats?.like_count ?? 0;
   const pollingFollowers = liveStats?.follower_count ?? 0;
   const pollingGifts = liveStats?.diamond_count ?? 0;
+  const sessionFollowersFromDB = liveStats?.session_followers ?? 0;
 
   const mergedViewers = Math.max(tikTokLive.stats.viewerCount, pollingViewers);
 
   // Never let cumulative stats decrease — track highest seen value
   const rawLikes = Math.max(tikTokLive.stats.likeCount, pollingLikes);
   const rawGifts = Math.max(tikTokLive.stats.giftCoins, pollingGifts);
-  const rawFollowers = pollingFollowers + tikTokLive.stats.followerCount;
+  // Followers: use total from API if available, otherwise use session count
+  const rawFollowers = pollingFollowers > 0 ? pollingFollowers : 0;
+  // Session followers: WS member count + DB follow events (take max to avoid double-counting)
+  const rawSessionFollowers = Math.max(sessionFollowersFromDB, tikTokLive.stats.followerCount);
 
   peakStatsRef.current.likes = Math.max(peakStatsRef.current.likes, rawLikes);
   peakStatsRef.current.gifts = Math.max(peakStatsRef.current.gifts, rawGifts);
@@ -513,7 +518,7 @@ const Index = () => {
       label: "Followers",
       value: mergedFollowers,
       icon: Users,
-      change: wsConnected ? (mergedFollowers > 0 ? `+${mergedFollowers} this stream` : "⚡ Live") : "—",
+      change: wsConnected ? (rawSessionFollowers > 0 ? `+${rawSessionFollowers} this stream` : "⚡ Live") : "—",
       changeColor: wsConnected ? "hsl(45 100% 55%)" : "hsl(0 0% 40%)",
       accentColor: "200 100% 55%",
     },

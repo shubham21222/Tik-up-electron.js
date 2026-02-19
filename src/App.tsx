@@ -107,6 +107,7 @@ import StreamBuddies from "./pages/StreamBuddies";
 import StreamBuddiesRenderer from "./pages/renderers/StreamBuddiesRenderer";
 import PacManOverlay from "./pages/PacManOverlay";
 import PacManRenderer from "./pages/renderers/PacManRenderer";
+import DownloadPage from "./pages/DownloadPage";
 
 const queryClient = new QueryClient();
 
@@ -163,6 +164,7 @@ const App = () => (
               <TikTokLiveProvider>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
+                <Route path="/download" element={<DownloadPage />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/dashboard" element={<Index />} />
                 <Route path="/setup" element={<Setup />} />

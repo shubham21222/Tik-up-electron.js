@@ -3,7 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import {
   Check, ArrowRight, Zap, Target, Volume2, BarChart3, Shield, Sparkles,
   Heart, Gift, UserPlus, Eye, Share2, Brain, Rocket, Crown, Star,
-  Monitor, Play
+  Monitor, Play, Download
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import tikupLogo from "@/assets/tikup_logo.png";
@@ -258,6 +258,10 @@ const LandingPage = () => {
           <div className="w-24" /> {/* spacer */}
           <div /> {/* center spacer - logo removed */}
           <div className="flex items-center gap-3">
+            <Link to="/download" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+              <Download size={14} />
+              Desktop App
+            </Link>
             <Link to="/auth" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
               Login
             </Link>

@@ -82,18 +82,65 @@ const TTSOverlayPage = () => {
     update({ allowed_users: next });
   };
 
-  const handleTest = () => {
+  const handleTest = async () => {
     if (testing || !testText.trim()) return;
+    setTesting(true);
+
+    // Determine voice: random picks from loaded ElevenLabs voices, otherwise use selected
+    let voiceId = local.voice_id;
+    if (local.random_voice && elVoices.length > 0) {
+      const randomVoice = elVoices[Math.floor(Math.random() * elVoices.length)];
+      voiceId = randomVoice.voice_id;
+      toast.info(`Random voice: ${randomVoice.name}`);
+    }
+
+    // Try ElevenLabs first if provider is elevenlabs
+    if (local.voice_provider === "elevenlabs") {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) throw new Error("Not authenticated");
+
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tts-generate`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+              Authorization: `Bearer ${session.access_token}`,
+            },
+            body: JSON.stringify({ text: testText, voice_id: voiceId }),
+          }
+        );
+
+        if (!response.ok) throw new Error(`TTS failed: ${response.status}`);
+        const data = await response.json();
+        if (!data.audioContent) throw new Error("No audio returned");
+
+        const audioUrl = `data:audio/mpeg;base64,${data.audioContent}`;
+        const audio = new Audio(audioUrl);
+        audio.volume = local.volume / 100;
+        audio.onended = () => { setTesting(false); toast.success("TTS played!"); };
+        audio.onerror = () => { setTesting(false); toast.error("Playback failed"); };
+        await audio.play();
+        return;
+      } catch (err: any) {
+        console.error("ElevenLabs test error:", err);
+        toast.error("ElevenLabs failed, falling back to browser voice");
+      }
+    }
+
+    // Fallback: browser speech
     if (!('speechSynthesis' in window)) {
       toast.error("Browser doesn't support speech synthesis");
+      setTesting(false);
       return;
     }
-    setTesting(true);
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(testText);
     utterance.volume = local.volume / 100;
-    utterance.rate = local.speed / 50; // map 1-100 to 0.02-2.0
-    utterance.pitch = local.pitch / 50; // map 1-100 to 0.02-2.0
+    utterance.rate = local.speed / 50;
+    utterance.pitch = local.pitch / 50;
     utterance.onend = () => { setTesting(false); toast.success("TTS played!"); };
     utterance.onerror = () => { setTesting(false); toast.error("TTS playback failed"); };
     window.speechSynthesis.speak(utterance);

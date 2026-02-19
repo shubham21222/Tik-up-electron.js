@@ -241,7 +241,7 @@ const TTSRenderer = () => {
 
       setSpeaking(false);
       // Brief pause between messages
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 200));
       setCurrent(null);
       processingRef.current = false;
     };

@@ -59,8 +59,14 @@ export function useTikTokLive() {
   const queueWebhookEvent = useCallback((type: string, username: string, data: Record<string, unknown>) => {
     eventBatchRef.current.push({ type, username, data });
 
-    // Flush batch every 3 seconds
-    if (!batchTimerRef.current) {
+    // Chat events flush immediately for low-latency TTS; others batch every 3s
+    if (type === "chat") {
+      if (batchTimerRef.current) {
+        clearTimeout(batchTimerRef.current);
+        batchTimerRef.current = null;
+      }
+      flushEventBatch();
+    } else if (!batchTimerRef.current) {
       batchTimerRef.current = setTimeout(() => flushEventBatch(), 3000);
     }
   }, []);

@@ -223,8 +223,8 @@ const Pro = () => {
               <span className="underline cursor-pointer hover:text-foreground">Fair Usage Policy</span>.
               TikUp reserves the right to apply reasonable usage caps to prevent abuse and ensure
               service quality for all users. Features marked with an asterisk (*) may be throttled
-              or limited if usage becomes excessive or commercially unsustainable. Current Pro TTS
-              limit: 500 snippets/day.
+              or limited if usage becomes excessive or commercially unsustainable. TTS is capped at
+              $3/month for Pro ($0.50/month for Free) based on ElevenLabs character usage. Budget resets monthly.
             </p>
           </div>
         </div>

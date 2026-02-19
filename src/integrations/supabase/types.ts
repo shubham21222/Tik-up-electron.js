@@ -1453,6 +1453,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tts_usage_monthly: {
+        Row: {
+          estimated_cost_cents: number
+          id: string
+          month_key: string
+          total_characters: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          estimated_cost_cents?: number
+          id?: string
+          month_key: string
+          total_characters?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          estimated_cost_cents?: number
+          id?: string
+          month_key?: string
+          total_characters?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_gift_triggers: {
         Row: {
           alert_sound_url: string | null

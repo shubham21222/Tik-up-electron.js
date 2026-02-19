@@ -46,8 +46,40 @@ Deno.serve(async (req) => {
     }
     const userId = claimsData.claims.sub;
 
-    // No PRO check — TTS is available to all users
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+
+    // ── Check monthly TTS budget ──────────────────────────────────
+    const monthKey = new Date().toISOString().slice(0, 7); // "YYYY-MM"
+
+    // Determine user plan
+    const { data: subscription } = await serviceClient
+      .from("subscriptions")
+      .select("plan, status")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .maybeSingle();
+
+    const isPro = subscription?.plan === "pro";
+    const budgetCapCents = isPro ? 300 : 50; // $3.00 Pro, $0.50 Free
+
+    const { data: usageRow } = await serviceClient
+      .from("tts_usage_monthly")
+      .select("estimated_cost_cents")
+      .eq("user_id", userId)
+      .eq("month_key", monthKey)
+      .maybeSingle();
+
+    const currentCostCents = usageRow?.estimated_cost_cents || 0;
+    if (currentCostCents >= budgetCapCents) {
+      const budgetLabel = isPro ? "$3.00" : "$0.50";
+      return new Response(JSON.stringify({
+        error: `Monthly TTS budget reached (${budgetLabel}). Resets next month.`,
+        budget_exceeded: true,
+      }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     // Get TTS settings
     const { data: ttsSettings } = await serviceClient
@@ -129,6 +161,27 @@ Deno.serve(async (req) => {
 
     const audioBuffer = await ttsResponse.arrayBuffer();
     const audioBase64 = base64Encode(audioBuffer);
+
+    // ── Upsert monthly usage tracking ─────────────────────────────
+    const charsUsed = truncatedText.length;
+    const existingChars = (usageRow as any)?.total_characters || 0;
+    const newTotalChars = existingChars + charsUsed;
+    const newCostCents = Math.ceil(newTotalChars * 0.03);
+
+    if (usageRow) {
+      await serviceClient.from("tts_usage_monthly").update({
+        total_characters: newTotalChars,
+        estimated_cost_cents: newCostCents,
+        updated_at: new Date().toISOString(),
+      }).eq("user_id", userId).eq("month_key", monthKey);
+    } else {
+      await serviceClient.from("tts_usage_monthly").insert({
+        user_id: userId,
+        month_key: monthKey,
+        total_characters: charsUsed,
+        estimated_cost_cents: Math.ceil(charsUsed * 0.03),
+      });
+    }
 
     // Log to TTS queue
     await serviceClient.from("tts_queue").insert({

@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { X, Sliders, Palette, Type, Sparkles, PartyPopper } from "lucide-react";
 import { useGoals, type Goal } from "@/hooks/use-goals";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSubscription } from "@/hooks/use-subscription";
 import GoalPreviewInline from "./GoalPreviewInline";
 
@@ -45,6 +45,8 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
   const [progressAnimation, setProgressAnimation] = useState((customConfig.progress_animation as string) || "none");
   const [bgStyle, setBgStyle] = useState((customConfig.bg_style as string) || "glass");
   const [layout, setLayout] = useState((customConfig.layout as string) || "card");
+  const [previewPct, setPreviewPct] = useState(Math.min(Math.round((goal.current_value / (goal.target_value || 1)) * 100), 100));
+  const previewValue = useMemo(() => Math.round((previewPct / 100) * target), [previewPct, target]);
 
   const save = async () => {
     await updateGoal(goal.id, {
@@ -100,7 +102,7 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
           <div className="mb-5 rounded-xl overflow-hidden border border-border/20" style={{ background: "rgba(0,0,0,0.6)" }}>
             <GoalPreviewInline
               title={title}
-              currentValue={goal.current_value}
+              currentValue={previewValue}
               targetValue={target}
               stylePreset={style}
               customConfig={{
@@ -112,6 +114,20 @@ const GoalCustomizePanel = ({ goal, onClose }: Props) => {
                 layout,
               }}
             />
+            {/* Preview progress slider */}
+            <div className="px-3 pb-3 flex items-center gap-3">
+              <span className="text-[10px] text-white/40 font-mono w-8 text-right">{previewPct}%</span>
+              <input type="range" min={0} max={100} value={previewPct} onChange={(e) => setPreviewPct(Number(e.target.value))}
+                className="flex-1 accent-primary h-1" />
+              <div className="flex gap-1">
+                {[25, 50, 75, 100].map(v => (
+                  <button key={v} onClick={() => setPreviewPct(v)}
+                    className={`px-1.5 py-0.5 rounded text-[9px] font-medium transition-colors ${previewPct === v ? "bg-primary/20 text-primary" : "bg-white/5 text-white/30 hover:text-white/50"}`}>
+                    {v}%
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="space-y-5">

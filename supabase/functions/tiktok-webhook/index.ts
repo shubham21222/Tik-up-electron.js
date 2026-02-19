@@ -1507,7 +1507,7 @@ function parseEulerAlert(body: Record<string, any>): { tiktok_username: string; 
 
   // Detect event type from dynamic properties
   let eventType: TikTokEvent["type"];
-  const data: Record<string, unknown> = { avatar: avatarUrl };
+  const data: Record<string, unknown> = { avatar: avatarUrl, profilePictureUrl: avatarUrl, avatar_url: avatarUrl };
 
   if (dynamicProps.giftName || dynamicProps.gift_name || dynamicProps.giftId || dynamicProps.gift_id) {
     eventType = "gift";

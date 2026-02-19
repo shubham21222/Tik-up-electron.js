@@ -54,10 +54,11 @@ Deno.serve(async (req) => {
     // Use connection timestamp to scope gift counting to the current session only
     const connectedAt = (profile as Record<string, unknown>).tiktok_connected_at as string | null;
 
-    // Fetch WebSocket stats and DB coins in parallel (skip diamond map - often 401)
-    const [wsStats, dbCoins] = await Promise.all([
+    // Fetch WebSocket stats, DB coins, and session followers in parallel
+    const [wsStats, dbCoins, dbFollowers] = await Promise.all([
       fetchLiveStats(uniqueId, apiKey),
       fetchAccumulatedCoins(adminClient, user.id, connectedAt),
+      fetchSessionFollowers(adminClient, user.id, connectedAt),
     ]);
 
     const stats = { ...wsStats } as Record<string, unknown>;
@@ -68,7 +69,10 @@ Deno.serve(async (req) => {
     const finalCoins = Math.max(wsCoins, dbCoins);
     stats.diamond_count = finalCoins;
 
-    console.log(`Coin sources: WS=${wsCoins}, DB=${dbCoins}, final=${finalCoins}`);
+    // Follower count: use API total followers as main, session follows separate
+    stats.session_followers = dbFollowers;
+
+    console.log(`Coin sources: WS=${wsCoins}, DB=${dbCoins}, final=${finalCoins}, sessionFollowers=${dbFollowers}`);
 
     return new Response(JSON.stringify(stats), {
       status: 200,
@@ -187,13 +191,19 @@ async function fetchLiveStats(
             gotRoomInfo = true;
             collected.is_live = true;
 
+            // Log full roomInfo keys to debug available fields
+            console.log(`roomInfo keys: ${Object.keys(ri).join(', ')}`);
+            if (ri.owner) console.log(`roomInfo.owner keys: ${Object.keys(ri.owner).join(', ')}`);
+
             if (ri.id) collected.room_id = String(ri.id);
             if (ri.title) collected.title = ri.title;
             if (ri.startTime) collected.start_time = Number(ri.startTime);
             collected.viewer_count = Number(ri.currentViewers || ri.viewerCount || collected.viewer_count) || 0;
             collected.like_count = Number(ri.likeCount || ri.totalLikes || collected.like_count) || 0;
             collected.share_count = Number(ri.shareCount || ri.totalShares || collected.share_count) || 0;
-            collected.follower_count = Number(ri.followerCount || collected.follower_count) || 0;
+            // Try multiple field paths for follower count
+            const ownerFollowers = ri.owner?.followerCount || ri.owner?.fan_count || ri.owner?.followCount || 0;
+            collected.follower_count = Number(ri.followerCount || ri.fanCount || ri.fan_count || ownerFollowers || collected.follower_count) || 0;
 
             if (ri.liveRoomStats) {
               const s = ri.liveRoomStats;
@@ -267,4 +277,27 @@ async function fetchLiveStats(
       }
     };
   });
+}
+
+/** Count follow events from events_log for the current session */
+async function fetchSessionFollowers(
+  adminClient: ReturnType<typeof createClient>,
+  userId: string,
+  connectedAt: string | null
+): Promise<number> {
+  try {
+    const since = connectedAt || new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString();
+    const { count, error } = await adminClient
+      .from("events_log")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("event_type", "follow")
+      .gte("created_at", since);
+
+    if (error) return 0;
+    return count || 0;
+  } catch (e) {
+    console.error("Failed to fetch session followers:", e);
+    return 0;
+  }
 }

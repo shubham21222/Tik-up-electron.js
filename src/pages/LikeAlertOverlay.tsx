@@ -1,6 +1,7 @@
 import AppLayout from "@/components/AppLayout";
 import { useState, useCallback, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
 import { Heart, Plus } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useOverlayWidgets, defaultLikeAlertSettings } from "@/hooks/use-overlay-widgets";
@@ -75,7 +76,14 @@ const LikeAlertOverlay = () => {
                     onDelete={() => deleteWidget(widget.id)}
                     onReset={() => updateSettings(widget.id, defaultLikeAlertSettings)}
                     onToggleActive={() => toggleActive(widget.id)}
-                    onTest={() => setTestTrigger(prev => prev + 1)}
+                    onTest={() => {
+                      setTestTrigger(prev => prev + 1);
+                      // Also broadcast to the live overlay channel
+                      const ch = supabase.channel(`like-alert-${widget.public_token}`);
+                      ch.send({ type: "broadcast", event: "like_alert", payload: { username: "TestUser", likeCount: 5, count: 5 } });
+                      ch.send({ type: "broadcast", event: "test_alert", payload: {} });
+                      setTimeout(() => supabase.removeChannel(ch), 2000);
+                    }}
                     previewSlot={<Suspense fallback={null}><LikeAlertPreview settings={s} testTrigger={testTrigger} /></Suspense>}
                     settingsSlot={
                       <div className="space-y-4">

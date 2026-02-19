@@ -151,5 +151,24 @@ export const useGoals = () => {
     toast.success("Goal reset");
   };
 
-  return { goals, loading, createGoal, updateGoal, deleteGoal, simulateGoal, resetGoal, refetch: fetchGoals };
+  const resetAllGoals = async () => {
+    if (!user) return;
+    for (const goal of goals) {
+      await supabase
+        .from("goals" as any)
+        .update({ current_value: 0 } as any)
+        .eq("id", goal.id);
+
+      const channel = supabase.channel(`goal-${goal.public_token}`);
+      await channel.send({
+        type: "broadcast",
+        event: "reset_goal",
+        payload: { goal_id: goal.id },
+      });
+    }
+    toast.success("All goals reset to 0");
+    fetchGoals();
+  };
+
+  return { goals, loading, createGoal, updateGoal, deleteGoal, simulateGoal, resetGoal, resetAllGoals, refetch: fetchGoals };
 };

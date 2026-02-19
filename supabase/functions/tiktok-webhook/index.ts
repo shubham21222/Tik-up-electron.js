@@ -777,8 +777,8 @@ Deno.serve(async (req) => {
         console.error("Failed to upsert viewer points:", e);
       }
 
-      // ── GOAL UPDATES for non-gift events (likes, follows, shares) ──
-      if (["like", "follow", "share"].includes(event.type)) {
+      // ── GOAL UPDATES for non-gift events (likes, follows, shares, viewer_count) ──
+      if (["like", "follow", "share", "viewer_count"].includes(event.type)) {
         try {
           const { data: activeGoals } = await supabase
             .from("goals")
@@ -789,16 +789,40 @@ Deno.serve(async (req) => {
           if (activeGoals && activeGoals.length > 0) {
             for (const goal of activeGoals) {
               let increment = 0;
+              let absoluteValue: number | null = null;
               if (goal.goal_type === "likes" && event.type === "like") {
                 increment = Number(event.data.likeCount || event.data.like_count || event.data.count || 1);
-              } else if (goal.goal_type === "followers" && event.type === "follow") {
+              } else if ((goal.goal_type === "follows" || goal.goal_type === "followers") && event.type === "follow") {
                 increment = 1;
               } else if (goal.goal_type === "shares" && event.type === "share") {
                 increment = 1;
+              } else if (goal.goal_type === "viewers" && event.type === "viewer_count") {
+                // Viewer count is an absolute value, not incremental — use peak logic
+                const viewerCount = Number(event.data.viewer_count || event.data.viewerCount || event.data.count || 0);
+                absoluteValue = viewerCount;
+              } else if (goal.goal_type === "custom" && pointsConfig) {
+                // Channel points earned from non-gift events
+                if (event.type === "like" && pointsConfig.points_per_like_enabled !== false) {
+                  increment = Number(event.data.likeCount || event.data.like_count || event.data.count || 1) * Number(pointsConfig.points_per_like ?? 0.1);
+                } else if (event.type === "follow" && pointsConfig.points_per_follow_enabled !== false) {
+                  increment = Number(pointsConfig.points_per_follow ?? 5);
+                } else if (event.type === "share" && pointsConfig.points_per_share_enabled) {
+                  increment = Number(pointsConfig.points_per_share || 3);
+                }
+                increment = Math.round(increment);
               }
 
-              if (increment > 0) {
-                const newValue = Math.min(Number(goal.current_value) + increment, goal.target_value * 2);
+              let newValue: number;
+              if (absoluteValue !== null) {
+                // For viewer count: track peak value seen
+                newValue = Math.max(Number(goal.current_value), absoluteValue);
+              } else if (increment > 0) {
+                newValue = Math.min(Number(goal.current_value) + increment, goal.target_value * 2);
+              } else {
+                continue;
+              }
+
+              if (newValue !== Number(goal.current_value)) {
                 await supabase.from("goals").update({ current_value: newValue }).eq("id", goal.id);
                 await broadcast(`goal-${goal.public_token}`, "goal_update", {
                   current_value: newValue,
@@ -845,6 +869,11 @@ Deno.serve(async (req) => {
                 increment = coinValue;
               } else if (goal.goal_type === "gifts") {
                 increment = 1;
+              } else if (goal.goal_type === "custom") {
+                // Channel points earned from gifts — use the points earned value
+                if (pointsConfig?.points_per_coin_enabled) {
+                  increment = coinValue * Number(pointsConfig.points_per_coin || 1);
+                }
               }
 
               if (increment > 0) {

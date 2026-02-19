@@ -318,6 +318,7 @@ const GoalOverlayRenderer = () => {
   const fontFamily = (customConfig.font_family as string) || "Inter, sans-serif";
   const progressAnim = (customConfig.progress_animation as string) || "none";
   const bgStyle = (customConfig.bg_style as string) || "glass";
+  const layout = (customConfig.layout as string) || "card";
 
   const getBgStyles = () => {
     switch (bgStyle) {
@@ -330,6 +331,79 @@ const GoalOverlayRenderer = () => {
 
   const completionType = effectiveGoal.on_complete_action || "confetti";
 
+  /* ── Wide Bar Layout ── */
+  if (layout === "wide_bar") {
+    const pctColor = styleConfig.gradient.includes("hsl") ? "hsl(160 100% 45%)" : (customConfig.primary_color as string) || "hsl(160 100% 45%)";
+    return (
+      <div className="w-screen h-screen bg-transparent relative overflow-hidden flex items-end justify-center pb-8">
+        {/* Connection indicator */}
+        <div className="absolute top-2 right-2 flex items-center gap-1.5 opacity-20">
+          <div className={`w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`} />
+          <span className="text-[9px] text-white/50 font-mono">{connected ? "Live" : "..."}</span>
+        </div>
+
+        {/* Completion celebration */}
+        <AnimatePresence>
+          {showComplete && completionType !== "none" && (
+            completionType === "fireworks" || completionType === "explosion"
+              ? <Fireworks />
+              : <Confetti />
+          )}
+        </AnimatePresence>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="w-full px-6"
+          style={{ fontFamily }}
+        >
+          {/* Title + Percentage */}
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-lg font-bold text-white/90">{effectiveGoal.title}</span>
+            <span className="text-lg font-bold" style={{ color: pctColor }}>
+              {Math.round(pct)}%
+            </span>
+          </div>
+
+          {/* Full-width progress bar */}
+          <div className="h-6 rounded-full bg-white/[0.08] overflow-hidden relative">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${pct}%` }}
+              transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+              className="h-full rounded-full relative overflow-hidden"
+              style={{ background: styleConfig.gradient, boxShadow: styleConfig.glow }}
+            >
+              <motion.div
+                className="absolute inset-0"
+                style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25) 50%, transparent)" }}
+                animate={{ x: ["-100%", "100%"] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+              />
+              {effectiveGoal.style_preset === "rgb" && (
+                <motion.div
+                  className="absolute inset-0"
+                  style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent)", backgroundSize: "200% 100%" }}
+                  animate={{ backgroundPosition: ["0% 0%", "200% 0%"] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                />
+              )}
+            </motion.div>
+          </div>
+
+          {/* Counter centered */}
+          <div className="text-center mt-2">
+            <p className="text-sm text-white/50 font-medium">
+              <AnimatedNumber value={effectiveGoal.current_value} /> / {effectiveGoal.target_value.toLocaleString()}
+            </p>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
+  /* ── Card Layout (default) ── */
   return (
     <div className="w-screen h-screen bg-transparent relative overflow-hidden flex items-center justify-center">
       {/* Connection indicator */}

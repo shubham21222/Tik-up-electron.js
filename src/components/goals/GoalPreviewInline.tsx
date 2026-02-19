@@ -90,7 +90,53 @@ interface Props {
   customConfig: Record<string, unknown>;
 }
 
-const GoalPreviewInline = ({ title, currentValue, targetValue, stylePreset, customConfig }: Props) => {
+/* ── Wide Bar Layout ── */
+const WideBarLayout = ({ title, currentValue, targetValue, stylePreset, customConfig }: Props) => {
+  const pct = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
+  const styleConfig = getStyleConfig(stylePreset, customConfig);
+  const fontFamily = (customConfig.font_family as string) || "Inter, sans-serif";
+
+  return (
+    <div className="w-full px-2 py-3" style={{ fontFamily }}>
+      {/* Title + Percentage */}
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-xs font-semibold text-white/80">{title}</span>
+        <span className="text-xs font-bold" style={{ color: styleConfig.gradient.includes("hsl") ? "hsl(160 100% 45%)" : (customConfig.primary_color as string) || "hsl(160 100% 45%)" }}>
+          {Math.round(pct)}%
+        </span>
+      </div>
+
+      {/* Full-width progress bar */}
+      <div className="h-4 rounded-full bg-white/[0.08] overflow-hidden relative">
+        <motion.div
+          key={`${stylePreset}-${customConfig.primary_color}`}
+          initial={{ width: 0 }}
+          animate={{ width: `${pct}%` }}
+          transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          className="h-full rounded-full relative overflow-hidden"
+          style={{ background: styleConfig.gradient, boxShadow: styleConfig.glow }}
+        >
+          <motion.div
+            className="absolute inset-0"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25) 50%, transparent)" }}
+            animate={{ x: ["-100%", "100%"] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", repeatDelay: 1.5 }}
+          />
+        </motion.div>
+      </div>
+
+      {/* Counter centered below */}
+      <div className="text-center mt-1.5">
+        <p className="text-[10px] text-white/40 font-medium">
+          <AnimatedNumber value={currentValue} /> / {targetValue.toLocaleString()}
+        </p>
+      </div>
+    </div>
+  );
+};
+
+/* ── Card Layout (original) ── */
+const CardLayout = ({ title, currentValue, targetValue, stylePreset, customConfig }: Props) => {
   const pct = targetValue > 0 ? Math.min((currentValue / targetValue) * 100, 100) : 0;
   const styleConfig = getStyleConfig(stylePreset, customConfig);
   const fontFamily = (customConfig.font_family as string) || "Inter, sans-serif";
@@ -108,20 +154,15 @@ const GoalPreviewInline = ({ title, currentValue, targetValue, stylePreset, cust
   return (
     <div className="w-full flex items-center justify-center py-3" style={{ fontFamily }}>
       <div className="w-full max-w-[360px] relative">
-        {/* Outer glow */}
         <div
           className="absolute -inset-[1px] rounded-xl blur-[1px]"
           style={{ background: `linear-gradient(135deg, ${styleConfig.border}, transparent)` }}
         />
-
         <div className="relative rounded-xl p-4" style={getBgStyles()}>
-          {/* Title */}
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-sm font-bold text-white tracking-tight">{title}</h2>
             <span className="text-base font-bold text-white">{Math.round(pct)}%</span>
           </div>
-
-          {/* Progress bar */}
           <div className="h-3 rounded-full bg-white/[0.06] overflow-hidden relative">
             <motion.div
               key={`${stylePreset}-${customConfig.primary_color}`}
@@ -139,8 +180,6 @@ const GoalPreviewInline = ({ title, currentValue, targetValue, stylePreset, cust
               />
             </motion.div>
           </div>
-
-          {/* Counter */}
           <div className="flex items-center justify-between mt-2">
             <p className="text-xs text-white/60 font-medium">
               <AnimatedNumber value={currentValue} /> / {targetValue.toLocaleString()}
@@ -155,6 +194,11 @@ const GoalPreviewInline = ({ title, currentValue, targetValue, stylePreset, cust
       </div>
     </div>
   );
+};
+
+const GoalPreviewInline = (props: Props) => {
+  const layout = (props.customConfig.layout as string) || "card";
+  return layout === "wide_bar" ? <WideBarLayout {...props} /> : <CardLayout {...props} />;
 };
 
 export default GoalPreviewInline;

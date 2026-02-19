@@ -1235,9 +1235,53 @@ Deno.serve(async (req) => {
 
           const ttsWidgets = widgets?.filter(w => w.widget_type === "tts") || [];
 
-          // Voice provider — always use browser speech (user preference)
-          const voiceProvider = "browser";
-          const audioBase64: string | null = null;
+          // Voice provider — use ElevenLabs when configured, otherwise browser speech
+          const voiceProvider = ttsSettings.voice_provider || "browser";
+          let audioBase64: string | null = null;
+
+          if (voiceProvider === "elevenlabs") {
+            const elevenLabsKey = Deno.env.get("ELEVENLABS_API_KEY");
+            if (elevenLabsKey) {
+              try {
+                // Normalize speed: DB stores 0-100 slider, ElevenLabs expects 0.7-1.2
+                const rawSpeed = speed ?? 50;
+                const normalizedSpeed = rawSpeed > 1.2 ? 0.7 + (rawSpeed / 100) * 0.5 : rawSpeed;
+
+                const ttsRes = await fetch(
+                  `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}?output_format=mp3_44100_128`,
+                  {
+                    method: "POST",
+                    headers: {
+                      "xi-api-key": elevenLabsKey,
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      text: templatedText,
+                      model_id: "eleven_turbo_v2_5",
+                      voice_settings: { stability: 0.5, similarity_boost: 0.75, speed: normalizedSpeed },
+                    }),
+                  }
+                );
+
+                if (ttsRes.ok) {
+                  const buf = await ttsRes.arrayBuffer();
+                  // Encode to base64 for broadcast
+                  const bytes = new Uint8Array(buf);
+                  let binary = "";
+                  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+                  audioBase64 = btoa(binary);
+                  console.log(`🗣️ ElevenLabs audio generated (${bytes.length} bytes) for "${event.username}"`);
+                } else {
+                  const errText = await ttsRes.text();
+                  console.warn(`⚠️ ElevenLabs TTS failed (${ttsRes.status}), falling back to browser: ${errText}`);
+                }
+              } catch (e) {
+                console.error("ElevenLabs TTS error in webhook:", e);
+              }
+            } else {
+              console.warn("⚠️ ELEVENLABS_API_KEY not configured, falling back to browser speech");
+            }
+          }
 
           for (const ttsWidget of ttsWidgets) {
             // ── LATENCY: Broadcast FIRST, then log to DB (non-blocking) ──

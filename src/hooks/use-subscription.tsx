@@ -19,7 +19,7 @@ const FREE_LIMITS = {
   max_actions: 5,
   max_sounds: 5,
   max_chat_commands: Infinity,
-  daily_tts_snippets: 100,
+  monthly_tts_budget_cents: 50,  // $0.50/month
   tts_enabled: true,
   premium_overlays: false,
   ai_voices: false,
@@ -46,7 +46,7 @@ const PRO_LIMITS = {
   max_actions: Infinity,
   max_sounds: Infinity,
   max_chat_commands: Infinity,
-  daily_tts_snippets: 500,
+  monthly_tts_budget_cents: 300,  // $3.00/month
   tts_enabled: true,
   premium_overlays: true,
   ai_voices: true,
@@ -74,7 +74,7 @@ export type FeatureLimitKey = keyof typeof FREE_LIMITS;
 export const FEATURE_COMPARISON = [
   { label: "Actions & Events", free: "5", pro: "Unlimited*", key: "max_actions" },
   { label: "Sound Alerts", free: "5", pro: "Unlimited*", key: "max_sounds" },
-  { label: "Daily TTS Snippets", free: "100/day", pro: "500/day*", key: "daily_tts_snippets" },
+  { label: "TTS Budget", free: "$0.50/mo", pro: "$3/mo*", key: "monthly_tts_budget_cents" },
   { label: "Premium Overlays", free: "Preview only", pro: "Full access", key: "premium_overlays" },
   { label: "AI Voices", free: "Preview only", pro: "Full access", key: "ai_voices" },
   { label: "Experimental Features", free: "Preview", pro: "Full access", key: "experimental_features" },

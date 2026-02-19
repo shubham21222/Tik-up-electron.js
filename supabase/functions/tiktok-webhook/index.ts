@@ -1242,6 +1242,29 @@ Deno.serve(async (req) => {
           if (voiceProvider === "elevenlabs") {
             const elevenLabsKey = Deno.env.get("ELEVENLABS_API_KEY");
             if (elevenLabsKey) {
+              // ── Check monthly TTS budget before calling ElevenLabs ──
+              const monthKey = new Date().toISOString().slice(0, 7);
+              const { data: sub } = await supabase
+                .from("subscriptions")
+                .select("plan, status")
+                .eq("user_id", userId)
+                .eq("status", "active")
+                .maybeSingle();
+              const userIsPro = sub?.plan === "pro";
+              const budgetCapCents = userIsPro ? 300 : 50;
+
+              const { data: usageRow } = await supabase
+                .from("tts_usage_monthly")
+                .select("total_characters, estimated_cost_cents")
+                .eq("user_id", userId)
+                .eq("month_key", monthKey)
+                .maybeSingle();
+
+              const currentCost = usageRow?.estimated_cost_cents || 0;
+              if (currentCost >= budgetCapCents) {
+                console.log(`🚫 TTS budget exceeded for user ${userId} (${currentCost}¢ >= ${budgetCapCents}¢)`);
+                // Skip ElevenLabs, fall through to browser speech
+              } else {
               try {
                 // Normalize speed: DB stores 0-100 slider, ElevenLabs expects 0.7-1.2
                 const rawSpeed = speed ?? 50;
@@ -1271,6 +1294,26 @@ Deno.serve(async (req) => {
                   for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
                   audioBase64 = btoa(binary);
                   console.log(`🗣️ ElevenLabs audio generated (${bytes.length} bytes) for "${event.username}"`);
+
+                  // ── Upsert monthly usage tracking ──
+                  const charsUsed = templatedText.length;
+                  const existingChars = (usageRow as any)?.total_characters || 0;
+                  const newTotalChars = existingChars + charsUsed;
+                  const newCostCents = Math.ceil(newTotalChars * 0.03);
+                  if (usageRow) {
+                    await supabase.from("tts_usage_monthly").update({
+                      total_characters: newTotalChars,
+                      estimated_cost_cents: newCostCents,
+                      updated_at: new Date().toISOString(),
+                    }).eq("user_id", userId).eq("month_key", monthKey);
+                  } else {
+                    await supabase.from("tts_usage_monthly").insert({
+                      user_id: userId,
+                      month_key: monthKey,
+                      total_characters: charsUsed,
+                      estimated_cost_cents: Math.ceil(charsUsed * 0.03),
+                    });
+                  }
                 } else {
                   const errText = await ttsRes.text();
                   console.warn(`⚠️ ElevenLabs TTS failed (${ttsRes.status}), falling back to browser: ${errText}`);
@@ -1278,6 +1321,7 @@ Deno.serve(async (req) => {
               } catch (e) {
                 console.error("ElevenLabs TTS error in webhook:", e);
               }
+              } // end budget-ok else block
             } else {
               console.warn("⚠️ ELEVENLABS_API_KEY not configured, falling back to browser speech");
             }

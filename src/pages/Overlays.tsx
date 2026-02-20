@@ -46,6 +46,9 @@ const VoteBattlePreview = lazy(() => import("@/components/overlays/previews/Vote
 const ProgressRacePreview = lazy(() => import("@/components/overlays/previews/ProgressRacePreview"));
 const StreamBuddiesPreview = lazy(() => import("@/components/overlays/previews/StreamBuddiesPreview"));
 const PacManPreview = lazy(() => import("@/components/overlays/previews/PacManPreview"));
+const NeonEventListPreview = lazy(() => import("@/components/overlays/previews/NeonEventListPreview"));
+const GlowAlertPopupPreview = lazy(() => import("@/components/overlays/previews/GlowAlertPopupPreview"));
+const CircularProfileWidgetPreview = lazy(() => import("@/components/overlays/previews/CircularProfileWidgetPreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -83,6 +86,9 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Progress Race": ProgressRacePreview,
   "Stream Buddies": StreamBuddiesPreview,
   "Pac-Man LIVE": PacManPreview,
+  "Neon Event List": NeonEventListPreview,
+  "Glow Alert Popup": GlowAlertPopupPreview,
+  "Circular Profile Widget": CircularProfileWidgetPreview,
 };
 
 
@@ -96,6 +102,7 @@ interface OverlayItem {
   tags?: string[];
   category?: string;
   featureKey?: string;
+  isNew?: boolean;
 }
 
 /* ── Category definitions for the main Overlays tab ── */
@@ -157,6 +164,11 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Video Label Bar", description: "Animated WebM label bar overlay. Color customizable transparent loop.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/video-label-bar", category: "design", featureKey: "/video-label-bar-overlay" },
     { title: "Animated Background", description: "Looping animated backgrounds: gradients, particles, aurora, grid, waves.", hasPreview: true, color: "280 100% 65%", pro: true, route: "/animated-bg", category: "design", featureKey: "/animated-bg-overlay" },
     { title: "Studio Backgrounds", description: "10 premium animated room backgrounds with customizable LED signs. Sofa scenes for every vibe.", hasPreview: false, color: "40 95% 55%", pro: true, route: "/backgrounds", category: "design", featureKey: "/studio-bg-overlay" },
+
+    // Premium UI Frames
+    { title: "Neon Event List", description: "Real-time scrolling event feed with glowing tech-corner borders. Gifts, follows, and likes animate in sequentially.", hasPreview: true, color: "200 100% 60%", pro: true, route: "/gift-alerts", category: "design", tags: ["new"] },
+    { title: "Glow Alert Popup", description: "High-impact pop-in notification box with animated glow border, scan-line effect, and icon ring. Perfect for gifts and follows.", hasPreview: true, color: "350 90% 60%", pro: true, route: "/gift-alerts", category: "alerts", tags: ["new"] },
+    { title: "Circular Profile Widget", description: "Rotating circular widget showing top gifters with animated ring, segmented wheel, and glow corner markers.", hasPreview: true, color: "45 100% 58%", pro: true, route: "/leaderboard", category: "widgets", tags: ["new"] },
   ],
 };
 
@@ -413,6 +425,11 @@ const Overlays = () => {
                     {overlay.pro && (
                       <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-secondary/15 backdrop-blur-sm px-2 py-1 rounded-lg border border-secondary/20">
                         <Crown size={9} /> PRO
+                      </span>
+                    )}
+                    {overlay.tags?.includes("new") && (
+                      <span className="absolute top-3 left-3 inline-flex items-center gap-1 text-[9px] font-bold text-primary bg-primary/15 backdrop-blur-sm px-2 py-1 rounded-lg border border-primary/20" style={{ left: overlay.pro ? "64px" : "12px" }}>
+                        ✦ NEW
                       </span>
                     )}
                   </div>

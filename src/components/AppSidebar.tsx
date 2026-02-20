@@ -2,11 +2,11 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, Gift, MessageCircle, Users, BarChart3, Timer,
-  Sparkles, Volume2, Activity, Target, Trophy, Terminal,
+  Sparkles, Activity, Target, Trophy, Terminal,
   Shield, Link2, Palette, Settings, CreditCard, SlidersHorizontal,
   ChevronLeft, ChevronRight, Crown, Layers,
   Star, Keyboard, Coins, Image, Building2, Mic, Music,
-  Monitor, Clock, Share2
+  Monitor, Clock, Share2, List, Bell, CircleDot
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useSidebarState } from "@/hooks/use-sidebar-state";
@@ -80,6 +80,9 @@ const sections: SidebarSection[] = [
     items: [
       { id: "/backgrounds", label: "Backgrounds", icon: Image },
       { id: "/overlays", label: "Premium Overlays", icon: Layers },
+      { id: "/neon-event-list", label: "Neon Event List", icon: List, pro: true },
+      { id: "/glow-alert-popup", label: "Glow Alert Popup", icon: Bell, pro: true },
+      { id: "/circular-profile-widget", label: "Circular Profile Widget", icon: CircleDot, pro: true },
       { id: "/sounds", label: "AI Voice Packs", icon: Music, pro: true },
     ],
   },

@@ -617,58 +617,6 @@ export const defaultStreamBuddiesSettings = {
   custom_css: "",
 };
 
-// Neon Event List
-export const defaultNeonEventListSettings = {
-  max_events: 5,
-  event_types: ["gift", "follow", "like", "share"] as string[],
-  accent_color: "200 100% 60%",
-  glow_intensity: 60,
-  show_header: true,
-  header_text: "Live Events",
-  corner_style: "tech" as "tech" | "rounded" | "sharp",
-  row_animation: "slide" as "slide" | "fade" | "pop",
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-};
-
-// Glow Alert Popup
-export const defaultGlowAlertPopupSettings = {
-  accent_color: "350 90% 60%",
-  glow_intensity: 70,
-  show_icon: true,
-  icon_size: 48,
-  show_label: true,
-  show_sub_text: true,
-  entry_animation: "pop" as "pop" | "slide_down" | "fade" | "bounce",
-  duration: 4,
-  corner_style: "tech" as "tech" | "rounded" | "sharp",
-  scan_line: true,
-  ring_animation: true,
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-};
-
-// Circular Profile Widget
-export const defaultCircularProfileWidgetSettings = {
-  accent_color: "45 100% 58%",
-  glow_intensity: 60,
-  max_profiles: 5,
-  rotation_speed: 3,
-  show_rank: true,
-  show_coins: true,
-  show_username: true,
-  leaderboard_type: "gifters" as "gifters" | "likers" | "fans",
-  wheel_segments: 6,
-  transparent_bg: true,
-  dark_bg: false,
-  fps_limit: 60,
-  custom_css: "",
-};
-
 // Map type → defaults
 export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   gift_alert: defaultGiftAlertSettings,
@@ -704,7 +652,4 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   event_feed: defaultEventFeedSettings,
   stream_buddies: defaultStreamBuddiesSettings,
   pacman: { theme: "tikup", ghost_count: 4, chaos_mode: true, ai_mode: true, base_escape_chance: 95, vote_interval: 1.5, speed_boost_duration: 3, shield_duration: 5, power_duration: 7, slow_pac_duration: 3, freeze_duration: 1.5, reverse_duration: 4, ghost_speed_duration: 5, swarm_duration: 8, slow_ghost_duration: 4, confusion_duration: 5, transparent_bg: true, custom_css: "" },
-  neon_event_list: defaultNeonEventListSettings,
-  glow_alert_popup: defaultGlowAlertPopupSettings,
-  circular_profile_widget: defaultCircularProfileWidgetSettings,
 };

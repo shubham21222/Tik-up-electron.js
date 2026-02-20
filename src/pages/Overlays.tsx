@@ -166,9 +166,9 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Studio Backgrounds", description: "10 premium animated room backgrounds with customizable LED signs. Sofa scenes for every vibe.", hasPreview: false, color: "40 95% 55%", pro: true, route: "/backgrounds", category: "design", featureKey: "/studio-bg-overlay" },
 
     // Premium UI Frames
-    { title: "Neon Event List", description: "Real-time scrolling event feed with glowing tech-corner borders. Gifts, follows, and likes animate in sequentially.", hasPreview: true, color: "200 100% 60%", pro: true, route: "/neon-event-list", category: "design", tags: ["new"] },
-    { title: "Glow Alert Popup", description: "High-impact pop-in notification box with animated glow border, scan-line effect, and icon ring. Perfect for gifts and follows.", hasPreview: true, color: "350 90% 60%", pro: true, route: "/glow-alert-popup", category: "alerts", tags: ["new"] },
-    { title: "Circular Profile Widget", description: "Rotating circular widget showing top gifters with animated ring, segmented wheel, and glow corner markers.", hasPreview: true, color: "45 100% 58%", pro: true, route: "/circular-profile-widget", category: "widgets", tags: ["new"] },
+    { title: "Neon Event List", description: "Real-time scrolling event feed with glowing tech-corner borders. Gifts, follows, and likes animate in sequentially.", hasPreview: true, color: "200 100% 60%", pro: true, route: "/gift-alerts", category: "design", tags: ["new"] },
+    { title: "Glow Alert Popup", description: "High-impact pop-in notification box with animated glow border, scan-line effect, and icon ring. Perfect for gifts and follows.", hasPreview: true, color: "350 90% 60%", pro: true, route: "/gift-alerts", category: "alerts", tags: ["new"] },
+    { title: "Circular Profile Widget", description: "Rotating circular widget showing top gifters with animated ring, segmented wheel, and glow corner markers.", hasPreview: true, color: "45 100% 58%", pro: true, route: "/leaderboard", category: "widgets", tags: ["new"] },
   ],
 };
 

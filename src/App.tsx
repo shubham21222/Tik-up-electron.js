@@ -108,6 +108,12 @@ import StreamBuddiesRenderer from "./pages/renderers/StreamBuddiesRenderer";
 import PacManOverlay from "./pages/PacManOverlay";
 import PacManRenderer from "./pages/renderers/PacManRenderer";
 import DownloadPage from "./pages/DownloadPage";
+import NeonEventListOverlay from "./pages/NeonEventListOverlay";
+import GlowAlertPopupOverlay from "./pages/GlowAlertPopupOverlay";
+import CircularProfileWidgetOverlay from "./pages/CircularProfileWidgetOverlay";
+import NeonEventListRenderer from "./pages/renderers/NeonEventListRenderer";
+import GlowAlertPopupRenderer from "./pages/renderers/GlowAlertPopupRenderer";
+import CircularProfileWidgetRenderer from "./pages/renderers/CircularProfileWidgetRenderer";
 
 const queryClient = new QueryClient();
 
@@ -155,6 +161,9 @@ const App = () => (
           <Route path="/overlay/video-label-bar/:publicToken" element={<VideoLabelBarRenderer />} />
           <Route path="/overlay/stream-buddies/:publicToken" element={<StreamBuddiesRenderer />} />
           <Route path="/overlay/pacman/:publicToken" element={<PacManRenderer />} />
+          <Route path="/overlay/neon-event-list/:publicToken" element={<NeonEventListRenderer />} />
+          <Route path="/overlay/glow-alert-popup/:publicToken" element={<GlowAlertPopupRenderer />} />
+          <Route path="/overlay/circular-profile-widget/:publicToken" element={<CircularProfileWidgetRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
           <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 
@@ -227,6 +236,9 @@ const App = () => (
                 <Route path="/agency/:id" element={<AgencyDetail />} />
                 <Route path="/stream-buddies" element={<StreamBuddies />} />
                 <Route path="/pacman" element={<PacManOverlay />} />
+                <Route path="/neon-event-list" element={<NeonEventListOverlay />} />
+                <Route path="/glow-alert-popup" element={<GlowAlertPopupOverlay />} />
+                <Route path="/circular-profile-widget" element={<CircularProfileWidgetOverlay />} />
                 <Route path="/enterprise" element={<EnterpriseDashboard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

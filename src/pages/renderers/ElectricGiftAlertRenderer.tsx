@@ -414,7 +414,7 @@ const ElectricGiftAlertRenderer = () => {
   useEffect(() => {
     if (!publicToken) return;
     supabase
-      .from("overlay_widgets" as any)
+      .from("overlay_widgets")
       .select("settings")
       .eq("public_token", publicToken)
       .single()
@@ -486,7 +486,7 @@ const ElectricGiftAlertRenderer = () => {
     // Settings live update
     const dbChannel = supabase
       .channel(`electric-db-${publicToken}`)
-      .on("postgres_changes" as any, {
+      .on("postgres_changes", {
         event: "UPDATE", schema: "public", table: "overlay_widgets",
         filter: `public_token=eq.${publicToken}`,
       }, (payload: any) => {
@@ -523,10 +523,10 @@ const ElectricGiftAlertRenderer = () => {
           style={{ backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 4px)" }} />
       )}
 
-      {/* Dark radial background behind the alert */}
+      {/* Subtle vignette — fully transparent-safe for OBS / Live Studio */}
       {queue.length > 0 && (
         <div className="absolute inset-0 pointer-events-none"
-          style={{ background: "radial-gradient(ellipse at 50% 45%, #1a1a1a 0%, #0a0a0a 100%)" }} />
+          style={{ background: "radial-gradient(ellipse at 50% 45%, rgba(0,0,0,0.15) 0%, transparent 70%)" }} />
       )}
 
       {/* Connection dot */}

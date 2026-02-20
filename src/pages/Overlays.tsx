@@ -163,6 +163,122 @@ const overlayData: Record<string, OverlayItem[]> = {
 const categoryTabs = ["All", ...OVERLAY_CATEGORIES.map(c => c.label)];
 const allItems = overlayData["Overlays"];
 
+/* ── Per-gift animated card ── */
+interface GiftData { gift: string; emoji: string; img: string; color: string; coins: number; vibe: string; }
+
+const GiftAnimCard = ({ gift: g, index }: { gift: GiftData; index: number }) => {
+  const [active, setActive] = useState(false);
+  const [particles, setParticles] = useState<number[]>([]);
+
+  const trigger = () => {
+    setActive(true);
+    setParticles([...Array(8)].map((_, i) => i));
+    setTimeout(() => { setActive(false); setParticles([]); }, 1800);
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.05 + index * 0.04 }}
+      className="relative rounded-2xl border overflow-hidden cursor-pointer group"
+      style={{ borderColor: `hsl(${g.color} / 0.2)`, background: `hsl(${g.color} / 0.04)` }}
+      onClick={trigger}
+    >
+      {/* Ambient bg glow */}
+      <div className="absolute inset-0 pointer-events-none transition-opacity duration-500"
+        style={{ background: `radial-gradient(ellipse at 50% 30%, hsl(${g.color} / ${active ? 0.22 : 0.06}), transparent 70%)` }} />
+
+      <div className="relative p-4 flex flex-col items-center gap-2 min-h-[160px] justify-center">
+        {/* Expanding ring on trigger */}
+        <AnimatePresence>
+          {active && (
+            <motion.div
+              className="absolute rounded-full pointer-events-none"
+              style={{ border: `1px solid hsl(${g.color} / 0.5)`, width: 56, height: 56 }}
+              initial={{ scale: 1, opacity: 0.8 }}
+              animate={{ scale: 3.5, opacity: 0 }}
+              exit={{}}
+              transition={{ duration: 1.2, ease: "easeOut" }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Particles */}
+        <AnimatePresence>
+          {active && particles.map(i => (
+            <motion.div
+              key={i}
+              className="absolute w-1.5 h-1.5 rounded-full pointer-events-none"
+              style={{ background: `hsl(${g.color})`, top: "50%", left: "50%" }}
+              initial={{ x: 0, y: 0, opacity: 1 }}
+              animate={{
+                x: Math.cos((i * 45) * Math.PI / 180) * (55 + Math.random() * 25),
+                y: Math.sin((i * 45) * Math.PI / 180) * (55 + Math.random() * 25),
+                opacity: 0, scale: 0,
+              }}
+              transition={{ duration: 1 + Math.random() * 0.4, ease: "easeOut" }}
+            />
+          ))}
+        </AnimatePresence>
+
+        {/* Gift icon */}
+        <motion.div
+          className="relative w-14 h-14 rounded-2xl flex items-center justify-center"
+          style={{ background: `hsl(${g.color} / 0.1)`, border: `1px solid hsl(${g.color} / 0.25)` }}
+          animate={active ? { scale: [1, 1.35, 1], rotate: [0, -8, 8, 0] } : {}}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        >
+          {/* Glow behind icon */}
+          <motion.div
+            className="absolute inset-0 rounded-2xl blur-lg"
+            style={{ background: `hsl(${g.color} / 0.3)` }}
+            animate={{ opacity: active ? 1 : 0 }}
+            transition={{ duration: 0.3 }}
+          />
+          <img src={g.img} alt={g.gift} className="w-9 h-9 object-contain relative z-10 drop-shadow-lg" onError={e => { (e.target as HTMLImageElement).style.display = "none"; }} />
+          {/* Fallback emoji */}
+          <span className="text-2xl relative z-10">{g.emoji}</span>
+        </motion.div>
+
+        {/* Gift name */}
+        <motion.p
+          className="text-[11px] font-bold text-center leading-tight"
+          style={{ color: `hsl(${g.color})` }}
+          animate={active ? { scale: [1, 1.15, 1] } : {}}
+          transition={{ duration: 0.4 }}
+        >
+          {g.gift}
+        </motion.p>
+        <p className="text-[9px] text-muted-foreground text-center">{g.vibe}</p>
+
+        {/* Coin badge */}
+        <span className="text-[9px] px-1.5 py-0.5 rounded-full font-bold"
+          style={{ background: `hsl(${g.color} / 0.12)`, color: `hsl(${g.color})`, border: `1px solid hsl(${g.color} / 0.2)` }}>
+          🪙 {g.coins.toLocaleString()}
+        </span>
+
+        {/* Tap hint */}
+        <span className="absolute bottom-2 right-2 text-[8px] text-muted-foreground/40 opacity-0 group-hover:opacity-100 transition-opacity">Tap to preview</span>
+      </div>
+
+      {/* Active flash */}
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            className="absolute inset-0 pointer-events-none rounded-2xl"
+            style={{ border: `1px solid hsl(${g.color} / 0.6)`, boxShadow: `0 0 20px hsl(${g.color} / 0.3), inset 0 0 20px hsl(${g.color} / 0.05)` }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          />
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+};
+
 const Overlays = () => {
   const [activeTab, setActiveTab] = useState(categoryTabs[0]);
   const [fullscreenOverlay, setFullscreenOverlay] = useState<string | null>(null);
@@ -207,6 +323,67 @@ const Overlays = () => {
         </motion.div>
 
         <TabNav tabs={categoryTabs} activeTab={activeTab} onTabChange={setActiveTab} />
+
+        {/* ── Premium Gift Animations Section ── */}
+        {(activeTab === categoryTabs[0] || activeTab === "🔔 Alert Overlays") && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-10"
+          >
+            {/* Section header */}
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🎁</span>
+                <h2 className="text-base font-heading font-bold text-foreground">Premium Gift Animations</h2>
+                <span className="inline-flex items-center gap-1 text-[9px] font-bold text-secondary bg-secondary/15 px-2 py-0.5 rounded-full border border-secondary/20">
+                  <Crown size={8} /> PRO
+                </span>
+              </div>
+              <div className="flex-1 h-px bg-border/40" />
+              <Link to="/gift-alerts" className="text-xs text-primary hover:underline font-medium">Configure All →</Link>
+            </div>
+            <p className="text-xs text-muted-foreground mb-5">Each TikTok gift triggers its own luxury animated overlay — with particle effects, glow, and sound — in real time. Paste one URL into OBS and every gift is handled automatically.</p>
+
+            {/* Gift animation cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {[
+                { gift: "Rose", emoji: "🌹", img: "/gifts/rose.png", color: "350 90% 60%", coins: 1, vibe: "Elegant & romantic" },
+                { gift: "Flame Heart", emoji: "❤️‍🔥", img: "/gifts/flame_heart.png", color: "20 100% 58%", coins: 500, vibe: "Fiery & passionate" },
+                { gift: "Fluffy Heart", emoji: "☁️", img: "/gifts/fluffy_heart.png", color: "200 80% 65%", coins: 1000, vibe: "Soft & dreamy" },
+                { gift: "Love You So Much", emoji: "💖", img: "/gifts/love_you_so_much.png", color: "320 100% 65%", coins: 2000, vibe: "Explosive love burst" },
+                { gift: "Morning Bloom", emoji: "🌸", img: "/gifts/morning_bloom.png", color: "30 100% 65%", coins: 50, vibe: "Fresh & bright" },
+                { gift: "Wink Wink", emoji: "😉", img: "/gifts/wink_wink.png", color: "55 100% 60%", coins: 200, vibe: "Playful & cheeky" },
+                { gift: "You're Awesome", emoji: "⭐", img: "/gifts/youre_awesome.png", color: "45 100% 58%", coins: 100, vibe: "Golden & triumphant" },
+                { gift: "Blow a Kiss", emoji: "💋", img: "/gifts/blow_a_kiss.png", color: "340 100% 62%", coins: 30, vibe: "Sweet & flirtatious" },
+              ].map((g, i) => (
+                <GiftAnimCard key={g.gift} gift={g} index={i} />
+              ))}
+            </div>
+
+            {/* Pipeline info strip */}
+            <div className="mt-4 p-4 rounded-2xl border border-primary/10 bg-primary/[0.03] flex flex-wrap gap-6 items-center">
+              {[
+                { step: "1", label: "Gift received", icon: "🎁" },
+                { step: "2", label: "Gift matched", icon: "⚡" },
+                { step: "3", label: "Animation plays", icon: "✨" },
+                { step: "4", label: "Auto-queued", icon: "🔄" },
+              ].map((s, i) => (
+                <div key={i} className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-primary/10 text-primary text-[9px] font-bold flex items-center justify-center border border-primary/20">{s.step}</span>
+                  <span className="text-[10px] text-muted-foreground">{s.icon} {s.label}</span>
+                  {i < 3 && <span className="text-muted-foreground/30 text-xs">→</span>}
+                </div>
+              ))}
+              <div className="ml-auto">
+                <Link to="/gift-alerts" className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 text-primary text-xs font-semibold border border-primary/20 transition-colors">
+                  <Settings size={11} /> Configure Gifts
+                </Link>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {filteredItems.filter(o => overlayPreviews[o.title]).map((overlay, i) => {

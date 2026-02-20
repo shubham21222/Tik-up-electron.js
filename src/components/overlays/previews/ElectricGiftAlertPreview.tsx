@@ -1,120 +1,156 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { useState, useEffect, useCallback, useRef } from "react";
 
-/* ── Mock gift data cycling through different gifts ── */
+const CYAN = "180 100% 55%";
+
 const mockGifts = [
-  { user: "NightOwl_Pro", gift: "Lion 🦁", img: null, emoji: "🦁", color: "45 100% 58%", coins: 29999, tier: "legendary" },
-  { user: "StreamKing99", gift: "Rose 🌹", img: "/gifts/rose.png", emoji: "🌹", color: "350 90% 60%", coins: 1, tier: "common" },
-  { user: "GiftGod_X", gift: "Drama Queen 👑", img: null, emoji: "👑", color: "280 100% 70%", coins: 5000, tier: "epic" },
-  { user: "TikUp_Fan42", gift: "Flame Heart ❤️‍🔥", img: "/gifts/flame_heart.png", emoji: "❤️‍🔥", color: "20 100% 60%", coins: 500, tier: "rare" },
-  { user: "ProStreamer_X", gift: "Love You 💖", img: "/gifts/love_you_so_much.png", emoji: "💖", color: "320 100% 65%", coins: 2000, tier: "epic" },
+  { user: "NightOwl_Pro",   gift: "Lion",        emoji: "🦁", img: null,                          coins: 29999, tier: "legendary" },
+  { user: "StreamKing99",   gift: "Rose",         emoji: "🌹", img: "/gifts/rose.png",              coins: 1,     tier: "common"   },
+  { user: "GiftGod_X",      gift: "Drama Queen",  emoji: "👑", img: null,                          coins: 5000,  tier: "epic"     },
+  { user: "TikUp_Fan42",    gift: "Flame Heart",  emoji: "❤️‍🔥", img: "/gifts/flame_heart.png",   coins: 500,   tier: "rare"     },
+  { user: "ProStreamer_X",  gift: "Love You",     emoji: "💖", img: "/gifts/love_you_so_much.png", coins: 2000,  tier: "epic"     },
 ];
 
-/* ── Particle shard ── */
-const Shard = ({ i, color, active }: { i: number; color: string; active: boolean }) => {
-  const angle = (i / 16) * 360;
-  const dist = 90 + Math.random() * 50;
-  const size = 3 + Math.random() * 5;
+/* ── Crystal shard — large jagged polygon SVG ── */
+const CrystalShard = ({
+  angle, dist, size, delay, active,
+}: { angle: number; dist: number; size: number; delay: number; active: boolean }) => {
+  const rad = (angle * Math.PI) / 180;
+  const tx = Math.cos(rad) * dist;
+  const ty = Math.sin(rad) * dist;
+  const rotate = angle + 90 + (Math.random() - 0.5) * 40;
+
+  // Polygon points for a jagged crystal shape
+  const w = size;
+  const h = size * 2.4;
+  const pts = `${w * 0.5},0 ${w},${h * 0.35} ${w * 0.75},${h} ${w * 0.25},${h} 0,${h * 0.35}`;
+
+  return (
+    <AnimatePresence>
+      {active && (
+        <motion.div
+          className="absolute pointer-events-none"
+          style={{ top: "50%", left: "50%", translateX: "-50%", translateY: "-50%" }}
+          initial={{ x: 0, y: 0, opacity: 0, scale: 0.2, rotate: rotate - 30 }}
+          animate={{ x: tx, y: ty, opacity: [0, 1, 1, 0.8, 0], scale: [0.2, 1.1, 1, 0.95, 0.7], rotate }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1.6 + delay * 0.3, ease: [0.16, 1, 0.3, 1] }}
+        >
+          <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: "visible" }}>
+            <defs>
+              <linearGradient id={`cg${Math.round(angle)}`} x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="hsl(180 100% 80%)" stopOpacity="0.95" />
+                <stop offset="40%" stopColor="hsl(180 100% 55%)" stopOpacity="0.85" />
+                <stop offset="100%" stopColor="hsl(190 100% 35%)" stopOpacity="0.6" />
+              </linearGradient>
+              <filter id={`gf${Math.round(angle)}`}>
+                <feGaussianBlur stdDeviation="2" result="blur" />
+                <feComposite in="SourceGraphic" in2="blur" operator="over" />
+              </filter>
+            </defs>
+            {/* Main facet */}
+            <polygon points={pts} fill={`url(#cg${Math.round(angle)})`} filter={`url(#gf${Math.round(angle)})`} />
+            {/* Inner highlight */}
+            <polygon points={`${w*0.5},${h*0.05} ${w*0.8},${h*0.3} ${w*0.6},${h*0.55} ${w*0.4},${h*0.55} ${w*0.2},${h*0.3}`}
+              fill="rgba(255,255,255,0.3)" />
+            {/* Edge glow */}
+            <polygon points={pts} fill="none"
+              stroke="hsl(180 100% 75%)" strokeWidth="0.8"
+              style={{ filter: "drop-shadow(0 0 4px hsl(180 100% 60%))" }} />
+          </svg>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
+/* ── Small spark chip ── */
+const Spark = ({ angle, dist, delay, active }: { angle: number; dist: number; delay: number; active: boolean }) => {
+  const rad = (angle * Math.PI) / 180;
+  const tx = Math.cos(rad) * dist;
+  const ty = Math.sin(rad) * dist;
   return (
     <AnimatePresence>
       {active && (
         <motion.div
           className="absolute rounded-full pointer-events-none"
           style={{
-            width: size, height: size,
-            background: `hsl(${color})`,
-            boxShadow: `0 0 ${size * 2}px hsl(${color})`,
+            width: 4, height: 4,
+            background: "hsl(180 100% 80%)",
+            boxShadow: "0 0 6px hsl(180 100% 55%), 0 0 12px hsl(180 100% 55%)",
             top: "50%", left: "50%",
-            marginTop: -size / 2, marginLeft: -size / 2,
+            marginTop: -2, marginLeft: -2,
           }}
           initial={{ x: 0, y: 0, opacity: 1, scale: 1 }}
-          animate={{
-            x: Math.cos((angle * Math.PI) / 180) * dist,
-            y: Math.sin((angle * Math.PI) / 180) * dist,
-            opacity: [1, 1, 0],
-            scale: [1, 1.5, 0],
-          }}
+          animate={{ x: tx, y: ty, opacity: [1, 1, 0], scale: [1, 1.5, 0] }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.1 + Math.random() * 0.5, delay: Math.random() * 0.15, ease: "easeOut" }}
+          transition={{ duration: 0.9 + delay * 0.2, ease: "easeOut" }}
         />
       )}
     </AnimatePresence>
   );
 };
 
-/* ── Electric arc shard (long thin streaks) ── */
-const ElectricShard = ({ i, color, active }: { i: number; color: string; active: boolean }) => {
-  const angle = (i / 8) * 360 + Math.random() * 20;
-  const len = 40 + Math.random() * 60;
-  const width = 1 + Math.random() * 1.5;
+/* ── Electric lightning bolt inside ring ── */
+const LightningBolt = ({ angle, active, delay }: { angle: number; active: boolean; delay: number }) => {
+  const r = (angle * Math.PI) / 180;
+  const x1 = 50 + Math.cos(r) * 55;
+  const y1 = 50 + Math.sin(r) * 55;
+  const x2 = 50 + Math.cos(r) * 10;
+  const y2 = 50 + Math.sin(r) * 10;
+  const mx = (x1 + x2) / 2 + (Math.random() - 0.5) * 20;
+  const my = (y1 + y2) / 2 + (Math.random() - 0.5) * 20;
+
   return (
     <AnimatePresence>
       {active && (
-        <motion.div
-          className="absolute pointer-events-none origin-left"
-          style={{
-            width: len, height: width,
-            background: `linear-gradient(90deg, hsl(${color}), transparent)`,
-            boxShadow: `0 0 4px hsl(${color})`,
-            top: "50%", left: "50%",
-            marginTop: -width / 2,
-            transformOrigin: "0 50%",
-            rotate: angle,
-          }}
-          initial={{ scaleX: 0, opacity: 1 }}
-          animate={{ scaleX: [0, 1, 1, 0], opacity: [0, 1, 0.7, 0] }}
+        <motion.svg
+          className="absolute inset-0 pointer-events-none"
+          viewBox="0 0 100 100"
+          style={{ width: "100%", height: "100%" }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: [0, 1, 0.7, 0, 0.8, 0] }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.6 + Math.random() * 0.4, delay: Math.random() * 0.2, ease: "easeOut" }}
-        />
+          transition={{ duration: 0.8 + delay * 0.15, ease: "easeInOut" }}
+        >
+          <path
+            d={`M${x1},${y1} Q${mx},${my} ${x2},${y2}`}
+            stroke="hsl(180 100% 70%)" strokeWidth="0.8" fill="none"
+            style={{ filter: "drop-shadow(0 0 3px hsl(180 100% 55%))" }}
+          />
+        </motion.svg>
       )}
     </AnimatePresence>
   );
 };
 
-/* ── Rotating ring ── */
-const Ring = ({ size, color, speed, opacity, dash, gap }: {
-  size: number; color: string; speed: number; opacity: number; dash?: number; gap?: number;
-}) => (
-  <motion.div
-    className="absolute rounded-full pointer-events-none"
-    style={{
-      width: size, height: size,
-      top: "50%", left: "50%",
-      marginTop: -size / 2, marginLeft: -size / 2,
-      border: `${dash ?? 1.5}px dashed hsl(${color} / ${opacity})`,
-      boxShadow: `0 0 12px hsl(${color} / ${opacity * 0.4})`,
-    }}
-    animate={{ rotate: 360 }}
-    transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
-  />
-);
-
-/* ── Pulse ring (expands out on activation) ── */
-const PulseRing = ({ color, active, delay = 0 }: { color: string; active: boolean; delay?: number }) => (
+/* ── Pulse ring ── */
+const PulseRing = ({ active, delay = 0 }: { active: boolean; delay?: number }) => (
   <AnimatePresence>
     {active && (
       <motion.div
         className="absolute rounded-full pointer-events-none"
         style={{
-          width: 100, height: 100,
+          width: 220, height: 220,
           top: "50%", left: "50%",
-          marginTop: -50, marginLeft: -50,
-          border: `2px solid hsl(${color})`,
-          boxShadow: `0 0 20px hsl(${color} / 0.6), inset 0 0 10px hsl(${color} / 0.2)`,
+          marginTop: -110, marginLeft: -110,
+          border: "2px solid hsl(180 100% 55%)",
+          boxShadow: "0 0 30px hsl(180 100% 55% / 0.8)",
         }}
-        initial={{ scale: 0.5, opacity: 1 }}
-        animate={{ scale: 4, opacity: 0 }}
+        initial={{ scale: 0.7, opacity: 1 }}
+        animate={{ scale: 2.2, opacity: 0 }}
         exit={{ opacity: 0 }}
-        transition={{ duration: 1.2, delay, ease: "easeOut" }}
+        transition={{ duration: 1.4, delay, ease: "easeOut" }}
       />
     )}
   </AnimatePresence>
 );
 
+/* ── Main component ── */
 const ElectricGiftAlertPreview = () => {
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState<"enter" | "idle" | "exit">("enter");
-  const [particlesActive, setParticlesActive] = useState(false);
+  const [burst, setBurst] = useState(false);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   const triggerNext = useCallback(() => {
@@ -122,182 +158,268 @@ const ElectricGiftAlertPreview = () => {
     setTimeout(() => {
       setIdx(p => (p + 1) % mockGifts.length);
       setPhase("enter");
-      setParticlesActive(true);
-      setTimeout(() => {
-        setParticlesActive(false);
-        setPhase("idle");
-      }, 1400);
+      setBurst(true);
+      setTimeout(() => { setBurst(false); setPhase("idle"); }, 1800);
     }, 500);
   }, []);
 
   useEffect(() => {
-    setParticlesActive(true);
-    setTimeout(() => { setParticlesActive(false); setPhase("idle"); }, 1400);
-    timerRef.current = setInterval(triggerNext, 3800);
+    setBurst(true);
+    setTimeout(() => { setBurst(false); setPhase("idle"); }, 1800);
+    timerRef.current = setInterval(triggerNext, 4200);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [triggerNext]);
 
   const gift = mockGifts[idx];
-  const tierGlow = { legendary: 1, epic: 0.8, rare: 0.6, common: 0.4 }[gift.tier] ?? 0.5;
+
+  // Crystal shard burst positions — asymmetric like the reference
+  const shards = [
+    { angle: -55,  dist: 145, size: 18, delay: 0    },
+    { angle: -20,  dist: 160, size: 24, delay: 0.05 },
+    { angle: 15,   dist: 150, size: 20, delay: 0.1  },
+    { angle: 50,   dist: 140, size: 16, delay: 0.15 },
+    { angle: 80,   dist: 155, size: 22, delay: 0.08 },
+    { angle: 115,  dist: 145, size: 14, delay: 0.12 },
+    { angle: -85,  dist: 130, size: 12, delay: 0.18 },
+    { angle: -120, dist: 150, size: 20, delay: 0.06 },
+    { angle: 150,  dist: 160, size: 26, delay: 0.02 },
+    { angle: -145, dist: 145, size: 18, delay: 0.09 },
+    { angle: 175,  dist: 130, size: 14, delay: 0.2  },
+    { angle: -170, dist: 140, size: 22, delay: 0.04 },
+  ];
+
+  const sparks = Array.from({ length: 20 }, (_, i) => ({
+    angle: (i / 20) * 360, dist: 100 + Math.sin(i) * 40, delay: i * 0.03,
+  }));
+
+  const bolts = Array.from({ length: 8 }, (_, i) => ({
+    angle: (i / 8) * 360 + 22, delay: i * 0.08,
+  }));
 
   return (
-    <div className="w-full h-full flex items-center justify-center relative overflow-hidden"
-      style={{ background: "radial-gradient(ellipse at 50% 50%, rgba(0,15,30,0.95), rgba(0,0,0,0.98))" }}>
+    <div
+      className="w-full h-full flex flex-col items-center justify-center relative overflow-hidden"
+      style={{ background: "radial-gradient(ellipse at 50% 45%, #1a1a1a 0%, #0a0a0a 100%)" }}
+    >
+      {/* Orbitron font */}
+      <style>{`@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');`}</style>
 
-      {/* Background radial pulse */}
-      <motion.div className="absolute inset-0 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse at 50% 50%, hsl(${gift.color} / 0.08), transparent 65%)` }}
-        animate={{ opacity: [0.6, 1, 0.6] }}
-        transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+      {/* Ambient background cyan bloom */}
+      <motion.div
+        className="absolute pointer-events-none"
+        style={{
+          width: 380, height: 380,
+          borderRadius: "50%",
+          background: "radial-gradient(circle, hsl(180 100% 45% / 0.12) 0%, transparent 70%)",
+          top: "50%", left: "50%",
+          transform: "translate(-50%, -58%)",
+        }}
+        animate={{ opacity: [0.6, 1, 0.6], scale: [0.95, 1.05, 0.95] }}
+        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Scan-line overlay */}
-      <div className="absolute inset-0 pointer-events-none opacity-[0.04]"
-        style={{
-          backgroundImage: "repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.5) 3px, rgba(255,255,255,0.5) 4px)",
-        }} />
-
-      {/* Corner tech accents */}
-      {[
-        "top-4 left-4 border-t-2 border-l-2",
-        "top-4 right-4 border-t-2 border-r-2",
-        "bottom-4 left-4 border-b-2 border-l-2",
-        "bottom-4 right-4 border-b-2 border-r-2",
-      ].map((cls, i) => (
-        <div key={i} className={`absolute w-6 h-6 pointer-events-none ${cls}`}
-          style={{ borderColor: `hsl(${gift.color} / 0.6)` }} />
-      ))}
-
-      {/* Main alert container */}
       <AnimatePresence mode="wait">
         {phase !== "exit" && (
           <motion.div
             key={idx}
-            className="relative flex flex-col items-center"
-            initial={{ scale: 0.4, opacity: 0, y: 30 }}
-            animate={{ scale: 1, opacity: 1, y: 0 }}
-            exit={{ scale: 0.7, opacity: 0, y: -20 }}
-            transition={{ type: "spring", stiffness: 380, damping: 22 }}
+            className="flex flex-col items-center"
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.75, opacity: 0, y: -20 }}
+            transition={{ type: "spring", stiffness: 320, damping: 20 }}
           >
-            {/* ── Icon Area ── */}
-            <div className="relative" style={{ width: 160, height: 160 }}>
+            {/* ── Icon frame area ── */}
+            <div className="relative" style={{ width: 240, height: 240 }}>
 
-              {/* Outer rotating rings */}
-              <Ring size={160} color={gift.color} speed={8} opacity={0.35 * tierGlow} />
-              <Ring size={140} color={gift.color} speed={-12} opacity={0.2 * tierGlow} dash={2} />
-              <Ring size={180} color={gift.color} speed={20} opacity={0.12 * tierGlow} dash={1} gap={4} />
+              {/* Crystal shards */}
+              {shards.map((s, i) => (
+                <CrystalShard key={`${idx}-${i}`} {...s} active={burst} />
+              ))}
 
-              {/* Glow ring (solid, animated from thin → full on enter) */}
+              {/* Spark chips */}
+              {sparks.map((s, i) => (
+                <Spark key={`${idx}-sp-${i}`} {...s} active={burst} />
+              ))}
+
+              {/* Pulse rings */}
+              <PulseRing active={burst} delay={0} />
+              <PulseRing active={burst} delay={0.18} />
+              <PulseRing active={burst} delay={0.36} />
+
+              {/* ── Outer metallic ring ── */}
+              {/* Dark 3D ring base */}
+              <div
+                className="absolute rounded-full"
+                style={{
+                  width: 220, height: 220,
+                  top: "50%", left: "50%",
+                  marginTop: -110, marginLeft: -110,
+                  background: "conic-gradient(from 0deg, #1c1c1e, #3a3a3c, #0e0e10, #3a3a3c, #1c1c1e, #2c2c2e, #0e0e10, #1c1c1e)",
+                  boxShadow: "0 0 0 6px #111, 0 0 40px hsl(180 100% 35% / 0.5), inset 0 2px 8px rgba(255,255,255,0.08), inset 0 -2px 8px rgba(0,0,0,0.6)",
+                }}
+              />
+
+              {/* Cyan glow ring animated */}
               <motion.div
                 className="absolute rounded-full pointer-events-none"
                 style={{
-                  width: 150, height: 150,
+                  width: 220, height: 220,
                   top: "50%", left: "50%",
-                  marginTop: -75, marginLeft: -75,
-                  border: `2px solid hsl(${gift.color})`,
-                  boxShadow: `0 0 30px hsl(${gift.color} / 0.7), 0 0 60px hsl(${gift.color} / 0.3), inset 0 0 30px hsl(${gift.color} / 0.1)`,
+                  marginTop: -110, marginLeft: -110,
+                  border: "2px solid hsl(180 100% 55% / 0.9)",
+                  boxShadow: "0 0 20px hsl(180 100% 55% / 0.8), 0 0 50px hsl(180 100% 45% / 0.4), 0 0 80px hsl(180 100% 35% / 0.2), inset 0 0 30px hsl(180 100% 45% / 0.1)",
                 }}
-                initial={{ opacity: 0, scale: 0.6 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+                animate={{ opacity: [0.8, 1, 0.8] }}
+                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
               />
 
-              {/* Radial light streaks */}
-              {[...Array(6)].map((_, i) => {
-                const angle = (i / 6) * 360;
-                return (
-                  <motion.div key={i}
-                    className="absolute pointer-events-none"
-                    style={{
-                      width: 2, height: 24,
-                      background: `linear-gradient(to top, hsl(${gift.color}), transparent)`,
-                      boxShadow: `0 0 8px hsl(${gift.color} / 0.8)`,
-                      top: "50%", left: "50%",
-                      marginLeft: -1,
-                      transformOrigin: "50% 100%",
-                      transform: `rotate(${angle}deg) translateY(-90px)`,
-                    }}
-                    animate={{ opacity: [0.4, 1, 0.4], scaleY: [0.6, 1.2, 0.6] }}
-                    transition={{ duration: 1.8 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
-                  />
-                );
-              })}
-
-              {/* Pulse rings on activation */}
-              <PulseRing color={gift.color} active={particlesActive} delay={0} />
-              <PulseRing color={gift.color} active={particlesActive} delay={0.2} />
-              <PulseRing color={gift.color} active={particlesActive} delay={0.4} />
-
-              {/* Particle shards */}
-              {[...Array(16)].map((_, i) => <Shard key={i} i={i} color={gift.color} active={particlesActive} />)}
-              {[...Array(8)].map((_, i) => <ElectricShard key={i} i={i} color={gift.color} active={particlesActive} />)}
-
-              {/* Gift icon emblem */}
-              <motion.div
-                className="absolute rounded-full flex items-center justify-center"
+              {/* Inner ring highlight */}
+              <div
+                className="absolute rounded-full"
                 style={{
-                  width: 120, height: 120,
+                  width: 198, height: 198,
                   top: "50%", left: "50%",
-                  marginTop: -60, marginLeft: -60,
-                  background: "rgba(0,0,0,0.85)",
-                  backdropFilter: "blur(12px)",
-                  border: `1px solid hsl(${gift.color} / 0.3)`,
-                  boxShadow: `0 0 40px hsl(${gift.color} / 0.35), inset 0 0 20px hsl(${gift.color} / 0.08)`,
+                  marginTop: -99, marginLeft: -99,
+                  border: "1px solid hsl(180 100% 60% / 0.3)",
+                  boxShadow: "inset 0 0 20px hsl(180 100% 55% / 0.15)",
                 }}
-                animate={phase === "idle" ? { scale: [1, 1.04, 1] } : undefined}
-                transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
+              />
+
+              {/* Ring rotation segments (mimics the aperture look) */}
+              <motion.div
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  width: 220, height: 220,
+                  top: "50%", left: "50%",
+                  marginTop: -110, marginLeft: -110,
+                  border: "3px dashed hsl(180 100% 55% / 0.15)",
+                }}
+                animate={{ rotate: 360 }}
+                transition={{ duration: 16, repeat: Infinity, ease: "linear" }}
+              />
+              <motion.div
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  width: 208, height: 208,
+                  top: "50%", left: "50%",
+                  marginTop: -104, marginLeft: -104,
+                  border: "1px dashed hsl(180 100% 45% / 0.12)",
+                }}
+                animate={{ rotate: -360 }}
+                transition={{ duration: 24, repeat: Infinity, ease: "linear" }}
+              />
+
+              {/* Lightning bolts inside ring */}
+              {bolts.map((b, i) => (
+                <LightningBolt key={`${idx}-bolt-${i}`} angle={b.angle} delay={b.delay} active={burst} />
+              ))}
+
+              {/* Idle lightning flicker */}
+              {phase === "idle" && bolts.slice(0, 4).map((b, i) => (
+                <motion.svg
+                  key={`idle-bolt-${i}`}
+                  className="absolute inset-0 pointer-events-none"
+                  viewBox="0 0 100 100"
+                  style={{ width: "100%", height: "100%" }}
+                  animate={{ opacity: [0, 0.6, 0] }}
+                  transition={{ duration: 2.5, delay: i * 0.7, repeat: Infinity, ease: "easeInOut" }}
+                >
+                  {(() => {
+                    const r = (b.angle * Math.PI) / 180;
+                    const x1 = 50 + Math.cos(r) * 52;
+                    const y1 = 50 + Math.sin(r) * 52;
+                    const x2 = 50 + Math.cos(r) * 12;
+                    const y2 = 50 + Math.sin(r) * 12;
+                    const mx = (x1+x2)/2 + 8;
+                    const my = (y1+y2)/2 - 6;
+                    return <path d={`M${x1},${y1} Q${mx},${my} ${x2},${y2}`}
+                      stroke="hsl(180 100% 65%)" strokeWidth="0.6" fill="none"
+                      style={{ filter: "drop-shadow(0 0 2px hsl(180 100% 55%))" }} />;
+                  })()}
+                </motion.svg>
+              ))}
+
+              {/* ── Gift icon circle (fills inner ring) ── */}
+              <motion.div
+                className="absolute rounded-full flex items-center justify-center overflow-hidden"
+                style={{
+                  width: 190, height: 190,
+                  top: "50%", left: "50%",
+                  marginTop: -95, marginLeft: -95,
+                  background: "radial-gradient(circle at 40% 35%, #2a2a2a, #0d0d0d)",
+                  boxShadow: "inset 0 0 40px hsl(180 100% 30% / 0.25), inset 0 -10px 30px rgba(0,0,0,0.8)",
+                }}
+                animate={phase === "idle" ? { scale: [1, 1.02, 1] } : undefined}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
               >
-                {/* Inner glow disc */}
-                <div className="absolute inset-0 rounded-full pointer-events-none"
+                {/* Inner cyan crack glow overlay */}
+                <div
+                  className="absolute inset-0 rounded-full pointer-events-none"
                   style={{
-                    background: `radial-gradient(circle, hsl(${gift.color} / 0.15) 0%, transparent 70%)`,
-                  }} />
+                    background: "radial-gradient(circle at 50% 50%, hsl(180 100% 45% / 0.12) 0%, transparent 65%)",
+                  }}
+                />
                 {gift.img ? (
-                  <img src={gift.img} alt={gift.gift}
-                    className="object-contain drop-shadow-lg relative z-10"
-                    style={{ width: 68, height: 68, filter: `drop-shadow(0 0 12px hsl(${gift.color} / 0.8))` }} />
+                  <img
+                    src={gift.img} alt={gift.gift}
+                    className="object-contain relative z-10"
+                    style={{
+                      width: 130, height: 130,
+                      filter: "drop-shadow(0 0 16px hsl(180 100% 55% / 0.6)) drop-shadow(0 4px 20px rgba(0,0,0,0.8))",
+                    }}
+                  />
                 ) : (
-                  <span className="relative z-10" style={{ fontSize: 52, filter: `drop-shadow(0 0 14px hsl(${gift.color} / 0.9))` }}>
+                  <span
+                    className="relative z-10 select-none"
+                    style={{
+                      fontSize: 90,
+                      lineHeight: 1,
+                      filter: "drop-shadow(0 0 20px hsl(180 100% 55% / 0.7)) drop-shadow(0 8px 24px rgba(0,0,0,0.9))",
+                    }}
+                  >
                     {gift.emoji}
                   </span>
                 )}
               </motion.div>
 
-              {/* Coin tier badge (top right) */}
-              <motion.div
-                className="absolute top-0 right-0 rounded-full flex items-center justify-center"
-                style={{
-                  width: 34, height: 34,
-                  background: `linear-gradient(135deg, hsl(${gift.color} / 0.9), hsl(${gift.color} / 0.5))`,
-                  boxShadow: `0 0 12px hsl(${gift.color} / 0.7)`,
-                  border: "1px solid rgba(255,255,255,0.2)",
-                }}
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ delay: 0.3, type: "spring", stiffness: 500 }}
-              >
-                <span className="text-[8px] font-black text-black">🪙{gift.coins >= 1000 ? `${(gift.coins / 1000).toFixed(0)}K` : gift.coins}</span>
-              </motion.div>
+              {/* Corner tech markers on ring */}
+              {[0, 90, 180, 270].map((a, i) => {
+                const r2 = (a * Math.PI) / 180;
+                const cx = 120 + Math.cos(r2) * 110 - 4;
+                const cy = 120 + Math.sin(r2) * 110 - 4;
+                return (
+                  <motion.div
+                    key={i}
+                    className="absolute rounded-full"
+                    style={{
+                      width: 8, height: 8,
+                      left: cx, top: cy,
+                      background: "hsl(180 100% 55%)",
+                      boxShadow: "0 0 8px hsl(180 100% 55%), 0 0 16px hsl(180 100% 40%)",
+                    }}
+                    animate={{ opacity: [1, 0.3, 1] }}
+                    transition={{ duration: 1.5 + i * 0.3, repeat: Infinity, ease: "easeInOut" }}
+                  />
+                );
+              })}
             </div>
 
-            {/* ── Text Area ── */}
-            <div className="mt-5 text-center relative" style={{ minWidth: 260 }}>
-              {/* Sender name */}
+            {/* ── Text block ── */}
+            <div className="mt-6 text-center" style={{ minWidth: 280 }}>
+
+              {/* Username */}
               <motion.div
-                initial={{ y: 16, opacity: 0 }}
+                initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ delay: 0.15, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
               >
                 <span
                   className="block font-black tracking-tight leading-none"
                   style={{
-                    fontSize: 26,
+                    fontSize: 30,
                     fontFamily: "'Orbitron', monospace",
-                    background: `linear-gradient(135deg, #ffffff, hsl(${gift.color}))`,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                    filter: `drop-shadow(0 0 12px hsl(${gift.color} / 0.7))`,
+                    color: "#ffffff",
+                    textShadow: "0 0 20px rgba(255,255,255,0.6), 0 0 40px hsl(180 100% 55% / 0.4), 0 2px 8px rgba(0,0,0,0.8)",
                     letterSpacing: "-0.02em",
                   }}
                 >
@@ -305,82 +427,93 @@ const ElectricGiftAlertPreview = () => {
                 </span>
               </motion.div>
 
-              {/* "sent a" label */}
-              <motion.div
-                initial={{ y: 12, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="mt-1"
+              {/* "sent a" */}
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.28 }}
+                style={{
+                  fontSize: 11,
+                  color: "hsl(180 100% 75% / 0.8)",
+                  letterSpacing: "0.2em",
+                  textTransform: "uppercase",
+                  marginTop: 4,
+                  fontWeight: 600,
+                  textShadow: "0 0 8px hsl(180 100% 55%)",
+                }}
               >
-                <span className="text-white/50 font-semibold tracking-widest uppercase"
-                  style={{ fontSize: 10, letterSpacing: "0.18em" }}>
-                  sent a
-                </span>
-              </motion.div>
+                sent a
+              </motion.p>
 
               {/* Gift name */}
               <motion.div
-                initial={{ scale: 0.7, opacity: 0 }}
+                initial={{ scale: 0.6, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ delay: 0.35, type: "spring", stiffness: 400, damping: 18 }}
-                className="mt-0.5"
+                transition={{ delay: 0.32, type: "spring", stiffness: 380, damping: 18 }}
               >
                 <span
                   className="block font-black"
                   style={{
-                    fontSize: 22,
+                    fontSize: 26,
                     fontFamily: "'Orbitron', monospace",
-                    color: `hsl(${gift.color})`,
-                    textShadow: `0 0 20px hsl(${gift.color} / 0.8), 0 0 40px hsl(${gift.color} / 0.4)`,
-                    letterSpacing: "-0.01em",
+                    color: "hsl(180 100% 60%)",
+                    textShadow: "0 0 16px hsl(180 100% 55%), 0 0 40px hsl(180 100% 40% / 0.7), 0 0 80px hsl(180 100% 30% / 0.4)",
+                    letterSpacing: "0.01em",
+                    marginTop: 2,
                   }}
                 >
-                  {gift.gift}
+                  {gift.gift}!
                 </span>
               </motion.div>
 
-              {/* Electric underline bar */}
+              {/* Electric underline */}
               <motion.div
-                className="mx-auto mt-2 h-px rounded-full"
+                className="mx-auto mt-3 h-px"
                 style={{
-                  background: `linear-gradient(90deg, transparent, hsl(${gift.color}), transparent)`,
-                  boxShadow: `0 0 8px hsl(${gift.color} / 0.8)`,
+                  background: "linear-gradient(90deg, transparent, hsl(180 100% 55%), hsl(180 100% 75%), hsl(180 100% 55%), transparent)",
+                  boxShadow: "0 0 8px hsl(180 100% 55%), 0 0 20px hsl(180 100% 40% / 0.5)",
                 }}
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: "80%", opacity: 1 }}
-                transition={{ delay: 0.45, duration: 0.6, ease: "easeOut" }}
+                animate={{ width: "75%", opacity: 1 }}
+                transition={{ delay: 0.42, duration: 0.7, ease: "easeOut" }}
               />
 
-              {/* Tier badge */}
+              {/* Coin badge */}
               <motion.div
-                className="inline-flex items-center gap-1 mt-3 px-3 py-1 rounded-full"
+                className="inline-flex items-center gap-1.5 mt-3 px-4 py-1.5 rounded-full"
                 style={{
-                  background: `hsl(${gift.color} / 0.15)`,
-                  border: `1px solid hsl(${gift.color} / 0.35)`,
-                  boxShadow: `0 0 10px hsl(${gift.color} / 0.15)`,
+                  background: "hsl(180 100% 45% / 0.12)",
+                  border: "1px solid hsl(180 100% 55% / 0.4)",
+                  boxShadow: "0 0 12px hsl(180 100% 45% / 0.2)",
                 }}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
               >
                 <motion.span
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ background: `hsl(${gift.color})`, boxShadow: `0 0 4px hsl(${gift.color})` }}
+                  className="w-2 h-2 rounded-full"
+                  style={{
+                    background: "hsl(180 100% 55%)",
+                    boxShadow: "0 0 6px hsl(180 100% 55%)",
+                  }}
                   animate={{ opacity: [1, 0.3, 1] }}
                   transition={{ duration: 1, repeat: Infinity }}
                 />
-                <span className="text-[9px] font-bold tracking-widest uppercase"
-                  style={{ color: `hsl(${gift.color})` }}>
-                  {gift.tier}
+                <span style={{
+                  fontSize: 11,
+                  fontWeight: 700,
+                  letterSpacing: "0.15em",
+                  textTransform: "uppercase",
+                  color: "hsl(180 100% 65%)",
+                  textShadow: "0 0 6px hsl(180 100% 55%)",
+                }}>
+                  🪙 {gift.coins >= 1000 ? `${(gift.coins / 1000).toFixed(0)}K` : gift.coins} coins · {gift.tier}
                 </span>
               </motion.div>
             </div>
           </motion.div>
         )}
       </AnimatePresence>
-
-      {/* Orbitron font loader */}
-      <style>{`@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap');`}</style>
     </div>
   );
 };

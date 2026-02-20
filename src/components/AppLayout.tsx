@@ -3,7 +3,7 @@ import AppSidebar from "./AppSidebar";
 import StatusBar from "./StatusBar";
 import QuickControls from "./QuickControls";
 import ProfileDropdown from "./ProfileDropdown";
-import { Search, User, Menu } from "lucide-react";
+import { Search, User, Menu, Download } from "lucide-react";
 import NotificationBell from "./NotificationBell";
 import TutorialsPanel from "./TutorialsPanel";
 import ThemeToggle from "./ThemeToggle";
@@ -75,6 +75,13 @@ const LayoutInner = ({ children }: AppLayoutProps) => {
             <ThemeToggle />
             <NotificationBell />
             {!isMobile && <TutorialsPanel />}
+            <Link
+              to="/download"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary/10 hover:bg-primary/20 transition-colors text-primary text-sm font-semibold border border-primary/20"
+            >
+              <Download size={14} />
+              {!isMobile && <span>Desktop App</span>}
+            </Link>
             {user ? (
               <ProfileDropdown />
             ) : (

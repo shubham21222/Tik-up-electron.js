@@ -150,15 +150,15 @@ const ElectricGiftAlertPreview = ({ settings = {} }: Props) => {
   // Compute glow factor from 0-100
   const glowFactor = (glow_intensity ?? 80) / 100;
 
-  const resolveColor = useCallback((gift: typeof gifts[0], forceColor?: string) => {
-    if (forceColor) return forceColor;
+  const resolveColor = useCallback((gift: typeof gifts[0]) => {
     if (color_mode === "random") return RANDOM_PALETTE[Math.floor(Math.random() * RANDOM_PALETTE.length)];
     if (color_mode === "gift_match") return (gift as any).color || TIER_COLORS[gift.tier] || ring_color;
     return ring_color;
   }, [color_mode, ring_color]);
 
   const triggerBurst = useCallback((gift: typeof gifts[0]) => {
-    setActiveColor(resolveColor(gift));
+    const c = resolveColor(gift);
+    setActiveColor(c);
     setBurst(true);
     setTimeout(() => { setBurst(false); setPhase("idle"); }, 1800);
   }, [resolveColor]);
@@ -175,16 +175,15 @@ const ElectricGiftAlertPreview = ({ settings = {} }: Props) => {
     }, 500);
   }, [gifts, triggerBurst]);
 
+  // Restart cycle whenever key settings change so preview updates instantly
   useEffect(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+    setIdx(0);
     triggerBurst(gifts[0]);
     timerRef.current = setInterval(triggerNext, 4200);
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []);  // only on mount
-
-  // When ring_color setting changes externally, update activeColor if in fixed mode
-  useEffect(() => {
-    if (color_mode === "fixed") setActiveColor(ring_color);
-  }, [ring_color, color_mode]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ring_color, color_mode, animation_style, ring_count, glow_intensity, particles, electric_shards, scanlines, previewGifts]);
 
   const gift = gifts[idx];
   const color = activeColor;

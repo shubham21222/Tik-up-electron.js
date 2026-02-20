@@ -111,9 +111,11 @@ import DownloadPage from "./pages/DownloadPage";
 import NeonEventListOverlay from "./pages/NeonEventListOverlay";
 import GlowAlertPopupOverlay from "./pages/GlowAlertPopupOverlay";
 import CircularProfileWidgetOverlay from "./pages/CircularProfileWidgetOverlay";
+import ElectricGiftAlertOverlay from "./pages/ElectricGiftAlertOverlay";
 import NeonEventListRenderer from "./pages/renderers/NeonEventListRenderer";
 import GlowAlertPopupRenderer from "./pages/renderers/GlowAlertPopupRenderer";
 import CircularProfileWidgetRenderer from "./pages/renderers/CircularProfileWidgetRenderer";
+import ElectricGiftAlertRenderer from "./pages/renderers/ElectricGiftAlertRenderer";
 
 const queryClient = new QueryClient();
 
@@ -164,6 +166,7 @@ const App = () => (
           <Route path="/overlay/neon-event-list/:publicToken" element={<NeonEventListRenderer />} />
           <Route path="/overlay/glow-alert-popup/:publicToken" element={<GlowAlertPopupRenderer />} />
           <Route path="/overlay/circular-profile-widget/:publicToken" element={<CircularProfileWidgetRenderer />} />
+          <Route path="/overlay/electric-gift-alert/:publicToken" element={<ElectricGiftAlertRenderer />} />
           <Route path="/overlay/backgrounds/:theme" element={<BackgroundRenderer />} />
           <Route path="/widget/backgrounds/:theme" element={<BackgroundRenderer />} />
 
@@ -239,6 +242,7 @@ const App = () => (
                 <Route path="/neon-event-list" element={<NeonEventListOverlay />} />
                 <Route path="/glow-alert-popup" element={<GlowAlertPopupOverlay />} />
                 <Route path="/circular-profile-widget" element={<CircularProfileWidgetOverlay />} />
+                <Route path="/electric-gift-alert" element={<ElectricGiftAlertOverlay />} />
                 <Route path="/enterprise" element={<EnterpriseDashboard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>

@@ -1,7 +1,7 @@
 import AppLayout from "@/components/AppLayout";
 import PageHelpButton from "@/components/PageHelpButton";
 import TabNav from "@/components/TabNav";
-import { Info, Eye, Maximize2, X, Target, Copy, ExternalLink, Settings, Crown, Sparkles, Lock } from "lucide-react";
+import { Info, Eye, Maximize2, X, Target, Copy, ExternalLink, Settings, Crown, Sparkles, Lock, Zap } from "lucide-react";
 import { toast } from "sonner";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
 import { copyToClipboard } from "@/lib/clipboard";
@@ -49,6 +49,7 @@ const PacManPreview = lazy(() => import("@/components/overlays/previews/PacManPr
 const NeonEventListPreview = lazy(() => import("@/components/overlays/previews/NeonEventListPreview"));
 const GlowAlertPopupPreview = lazy(() => import("@/components/overlays/previews/GlowAlertPopupPreview"));
 const CircularProfileWidgetPreview = lazy(() => import("@/components/overlays/previews/CircularProfileWidgetPreview"));
+const ElectricGiftAlertPreview = lazy(() => import("@/components/overlays/previews/ElectricGiftAlertPreview"));
 
 const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Text-to-Speech (TTS)": TTSOverlay,
@@ -89,6 +90,7 @@ const overlayPreviews: Record<string, React.LazyExoticComponent<any>> = {
   "Neon Event List": NeonEventListPreview,
   "Glow Alert Popup": GlowAlertPopupPreview,
   "Circular Profile Widget": CircularProfileWidgetPreview,
+  "⚡ Electric Gift Alert": ElectricGiftAlertPreview,
 };
 
 
@@ -169,6 +171,7 @@ const overlayData: Record<string, OverlayItem[]> = {
     { title: "Neon Event List", description: "Real-time scrolling event feed with glowing tech-corner borders. Gifts, follows, and likes animate in sequentially.", hasPreview: true, color: "200 100% 60%", pro: true, route: "/neon-event-list", category: "design", tags: ["new"] },
     { title: "Glow Alert Popup", description: "High-impact pop-in notification box with animated glow border, scan-line effect, and icon ring. Perfect for gifts and follows.", hasPreview: true, color: "350 90% 60%", pro: true, route: "/glow-alert-popup", category: "alerts", tags: ["new"] },
     { title: "Circular Profile Widget", description: "Rotating circular widget showing top gifters with animated ring, segmented wheel, and glow corner markers.", hasPreview: true, color: "45 100% 58%", pro: true, route: "/circular-profile-widget", category: "widgets", tags: ["new"] },
+    { title: "⚡ Electric Gift Alert", description: "AAA-quality cinematic alert: electric rotating rings, particle shard bursts, bold HD sender name. The most premium gift overlay on TikTok LIVE.", hasPreview: true, color: "180 100% 50%", pro: true, route: "/electric-gift-alert", category: "alerts", tags: ["new"] },
   ],
 };
 

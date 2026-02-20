@@ -5,12 +5,14 @@
  */
 export function getOverlayBaseUrl(): string {
   const origin = window.location.origin;
-  // Only use origin if we're on the actual custom domain (tikup.xyz)
-  if (
-    origin.includes("tikup.xyz")
-  ) {
+  // Use origin if we're on the actual custom domain (tikup.xyz)
+  if (origin.includes("tikup.xyz")) {
     return origin;
   }
-  // Always fall back to the production custom domain for OBS/TikTok Live Studio compatibility
-  return "https://tikup.xyz";
+  // Use origin if we're on the published lovable.app domain
+  if (origin.includes("tik-pro-suite.lovable.app")) {
+    return origin;
+  }
+  // For preview/dev, fall back to the published domain
+  return "https://tik-pro-suite.lovable.app";
 }

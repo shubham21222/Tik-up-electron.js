@@ -652,4 +652,7 @@ export const overlayDefaultsMap: Record<string, Record<string, any>> = {
   event_feed: defaultEventFeedSettings,
   stream_buddies: defaultStreamBuddiesSettings,
   pacman: { theme: "tikup", ghost_count: 4, chaos_mode: true, ai_mode: true, base_escape_chance: 95, vote_interval: 1.5, speed_boost_duration: 3, shield_duration: 5, power_duration: 7, slow_pac_duration: 3, freeze_duration: 1.5, reverse_duration: 4, ghost_speed_duration: 5, swarm_duration: 8, slow_ghost_duration: 4, confusion_duration: 5, transparent_bg: true, custom_css: "" },
+  neon_event_list: { max_events: 6, show_gifts: true, show_follows: true, show_likes: true, show_shares: false, animation_style: "slide", accent_color: "200 100% 55%", scroll_speed: 3, show_count: true, transparent_bg: true, glow_intensity: 70, custom_css: "" },
+  glow_alert_popup: { trigger: "gift", duration: 4, glow_color: "160 100% 50%", glow_intensity: 80, scanline_effect: true, show_icon_ring: true, position: "center", animation: "pop", transparent_bg: true, sound_enabled: false, custom_css: "" },
+  circular_profile_widget: { max_profiles: 5, rank_by: "coins", rotation_speed: 8, ring_color: "45 100% 55%", show_username: true, show_coins: true, show_rank: true, glow_markers: true, transparent_bg: true, show_segments: true, custom_css: "" },
 };

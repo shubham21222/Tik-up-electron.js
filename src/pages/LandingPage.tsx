@@ -254,18 +254,18 @@ const LandingPage = () => {
           borderBottom: scrolled ? "1px solid hsl(0 0% 10% / 0.6)" : "1px solid transparent",
         }}
       >
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="w-24" /> {/* spacer */}
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
+          <div className="hidden md:block w-24" /> {/* spacer */}
           <div /> {/* center spacer - logo removed */}
-          <div className="flex items-center gap-3">
-            <Link to="/download" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5">
+          <div className="flex items-center gap-2 md:gap-3">
+            <Link to="/download" className="px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 rounded-xl border border-border/40 whitespace-nowrap">
               <Download size={14} />
-              Desktop App
+              Download
             </Link>
-            <Link to="/auth" className="px-4 py-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
-              Login
+            <Link to="/auth" className="px-3 md:px-4 py-2 text-xs md:text-sm font-medium text-muted-foreground hover:text-foreground transition-colors rounded-xl border border-border/40 whitespace-nowrap text-center">
+              Log in
             </Link>
-            <Link to="/auth" className="group px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:-translate-y-0.5 transition-all duration-300 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.3)] relative overflow-hidden">
+            <Link to="/auth" className="group px-3 md:px-5 py-2 rounded-xl bg-primary text-primary-foreground text-xs md:text-sm font-semibold hover:-translate-y-0.5 transition-all duration-300 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.3)] relative overflow-hidden whitespace-nowrap">
               <span className="relative z-10 flex items-center gap-1.5">
                 Sign Up
                 <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />

@@ -1,5 +1,34 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
+/* ═══════════════════════════════════════════════════════════════════════
+ * In-Memory Sliding Window Rate Limiter
+ * Protects against burst abuse per warm edge-function instance.
+ * ═══════════════════════════════════════════════════════════════════════ */
+const rateLimitBuckets = new Map<string, number[]>();
+
+function isRateLimited(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitBuckets.get(key) || [];
+  const valid = timestamps.filter(t => now - t < windowMs);
+  if (valid.length >= maxRequests) {
+    rateLimitBuckets.set(key, valid);
+    return true;
+  }
+  valid.push(now);
+  rateLimitBuckets.set(key, valid);
+  return false;
+}
+
+// Periodic cleanup to prevent memory leaks (every 60s)
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamps] of rateLimitBuckets) {
+    const valid = timestamps.filter(t => now - t < 120_000);
+    if (valid.length === 0) rateLimitBuckets.delete(key);
+    else rateLimitBuckets.set(key, valid);
+  }
+}, 60_000);
+
 /** Inline subset of GIFT_VALUE_MAP for accurate coin normalization */
 const GIFT_COINS: Record<string, { name: string; coins: number }> = {
   "5655": { name: "Rose", coins: 1 }, "5487": { name: "GG", coins: 1 }, "5879": { name: "Heart", coins: 1 },
@@ -469,6 +498,17 @@ async function trackSessionGift(
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
+  }
+
+  // ── Rate limit: 120 requests per 60s per IP ──────────────────────
+  const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
+    || req.headers.get("cf-connecting-ip")
+    || "unknown";
+  if (isRateLimited(`ip:${clientIp}`, 120, 60_000)) {
+    return new Response(JSON.stringify({ error: "Too many requests" }), {
+      status: 429,
+      headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "30" },
+    });
   }
 
   try {

@@ -2,10 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { Trophy, RefreshCw, Loader2 } from "lucide-react";
 
-/* ── Glass card wrapper ── */
-const GlassCard = ({ children, className = "", ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`glass-card ${className}`} {...rest}>{children}</div>
-);
+import GlassCard from "@/components/ui/glass-card";
 
 const formatCompact = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;

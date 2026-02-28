@@ -4,10 +4,7 @@ import { Link } from "react-router-dom";
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
 
-/* ── Glass card wrapper ── */
-const GlassCard = ({ children, className = "", ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`glass-card ${className}`} {...rest}>{children}</div>
-);
+import GlassCard from "@/components/ui/glass-card";
 
 interface ConnectionBannerProps {
   connectionStatus: ConnectionStatus;

@@ -15,10 +15,7 @@ const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; p
   return <motion.span>{display}</motion.span>;
 };
 
-/* ── Glass card wrapper ── */
-const GlassCard = ({ children, className = "", ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`glass-card ${className}`} {...rest}>{children}</div>
-);
+import GlassCard from "@/components/ui/glass-card";
 
 export interface StatCardData {
   label: string;

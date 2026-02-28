@@ -3,10 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Gift } from "lucide-react";
 import { useGiftCatalog } from "@/hooks/use-gift-catalog";
 
-/* ── Glass card wrapper ── */
-const GlassCard = ({ children, className = "", ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`glass-card ${className}`} {...rest}>{children}</div>
-);
+import GlassCard from "@/components/ui/glass-card";
 
 const formatTimeAgo = (ts: number) => {
   const diff = Math.floor((Date.now() - ts) / 1000);

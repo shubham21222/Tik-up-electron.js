@@ -455,7 +455,7 @@ const LandingPage = () => {
             transition={{ duration: 0.6, delay: 0.15 }}
             className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-10 leading-relaxed"
           >
-            Set up your live effects in under 60 seconds. No downloads, no wiring, no tech skills needed. Just pick a vibe and go live.
+            Set up live effects in under 60 seconds. No downloads, no wiring or tech skills needed. Just pick a vibe and go live.
           </motion.p>
 
           {/* CTAs */}

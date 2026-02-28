@@ -254,15 +254,14 @@ const LandingPage = () => {
           borderBottom: scrolled ? "1px solid hsl(0 0% 100% / 0.06)" : "1px solid transparent",
         }}
       >
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-end">
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-between">
+          <Link
+            to="/download"
+            className="h-9 w-9 flex items-center justify-center text-muted-foreground/80 hover:text-foreground transition-all duration-200 rounded-lg border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04]"
+          >
+            <Download size={15} strokeWidth={2} />
+          </Link>
           <div className="flex items-center gap-2">
-            <Link
-              to="/download"
-              className="h-9 px-4 text-[13px] font-medium tracking-wide text-muted-foreground/80 hover:text-foreground transition-all duration-200 flex items-center gap-1.5 rounded-lg border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] whitespace-nowrap"
-            >
-              <Download size={13} strokeWidth={2} />
-              Download
-            </Link>
             <Link
               to="/auth"
               className="h-9 px-4 text-[13px] font-medium tracking-wide text-muted-foreground/80 hover:text-foreground transition-all duration-200 flex items-center gap-1.5 rounded-lg border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] whitespace-nowrap"

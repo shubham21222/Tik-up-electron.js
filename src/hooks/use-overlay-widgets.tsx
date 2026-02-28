@@ -49,11 +49,11 @@ export function useOverlayWidgets(widgetType?: string) {
 
   const fetchWidgets = useCallback(async () => {
     if (!user) { setLoading(false); return; }
-    let query = supabase.from("overlay_widgets" as any).select("*").eq("user_id", user.id);
+    let query = supabase.from("overlay_widgets").select("*").eq("user_id", user.id);
     if (widgetType) query = query.eq("widget_type", widgetType);
     query = query.order("created_at", { ascending: false });
     const { data, error } = await query;
-    if (!error && data) setWidgets(data as unknown as OverlayWidget[]);
+    if (!error && data) setWidgets(data as OverlayWidget[]);
     setLoading(false);
   }, [user, widgetType]);
 
@@ -63,12 +63,12 @@ export function useOverlayWidgets(widgetType?: string) {
     if (!user) return null;
     const defaults = overlayDefaultsMap[type] || {};
     const { data, error } = await supabase
-      .from("overlay_widgets" as any)
-      .insert({ user_id: user.id, widget_type: type, name, settings: defaults } as any)
+      .from("overlay_widgets")
+      .insert({ user_id: user.id, widget_type: type, name, settings: defaults })
       .select()
       .single();
     if (error) { toast.error("Failed to create overlay"); return null; }
-    const widget = data as unknown as OverlayWidget;
+    const widget = data as OverlayWidget;
     setWidgets(prev => [widget, ...prev]);
     toast.success("Overlay created!");
     return widget;
@@ -76,8 +76,8 @@ export function useOverlayWidgets(widgetType?: string) {
 
   const updateSettings = async (id: string, settings: Record<string, any>) => {
     const { error } = await supabase
-      .from("overlay_widgets" as any)
-      .update({ settings } as any)
+      .from("overlay_widgets")
+      .update({ settings })
       .eq("id", id);
     if (error) { toast.error("Failed to save"); return; }
     setWidgets(prev => prev.map(w => w.id === id ? { ...w, settings } : w));
@@ -85,7 +85,7 @@ export function useOverlayWidgets(widgetType?: string) {
   };
 
   const deleteWidget = async (id: string) => {
-    const { error } = await supabase.from("overlay_widgets" as any).delete().eq("id", id);
+    const { error } = await supabase.from("overlay_widgets").delete().eq("id", id);
     if (error) { toast.error("Failed to delete"); return; }
     setWidgets(prev => prev.filter(w => w.id !== id));
     toast.success("Overlay deleted!");
@@ -95,8 +95,8 @@ export function useOverlayWidgets(widgetType?: string) {
     const widget = widgets.find(w => w.id === id);
     if (!widget) return;
     const { error } = await supabase
-      .from("overlay_widgets" as any)
-      .update({ is_active: !widget.is_active } as any)
+      .from("overlay_widgets")
+      .update({ is_active: !widget.is_active })
       .eq("id", id);
     if (!error) setWidgets(prev => prev.map(w => w.id === id ? { ...w, is_active: !w.is_active } : w));
   };

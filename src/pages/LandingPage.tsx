@@ -249,28 +249,33 @@ const LandingPage = () => {
       <motion.nav
         className="fixed top-0 left-0 right-0 z-50 transition-all duration-300"
         style={{
-          background: scrolled ? "rgba(0,0,0,0.85)" : "rgba(0,0,0,0.4)",
-          backdropFilter: "blur(20px)",
-          borderBottom: scrolled ? "1px solid hsl(0 0% 10% / 0.6)" : "1px solid transparent",
+          background: scrolled ? "rgba(0,0,0,0.9)" : "rgba(0,0,0,0.5)",
+          backdropFilter: "blur(24px)",
+          borderBottom: scrolled ? "1px solid hsl(0 0% 100% / 0.06)" : "1px solid transparent",
         }}
       >
-        <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 flex items-center justify-between">
-          <div className="hidden md:block w-24" /> {/* spacer */}
-          <div /> {/* center spacer - logo removed */}
-          <div className="flex items-center gap-2 md:gap-3">
-            <Link to="/download" className="px-4 md:px-5 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 rounded-xl border border-border/40 whitespace-nowrap">
-              <Download size={14} />
+        <div className="max-w-6xl mx-auto px-4 md:px-6 h-14 flex items-center justify-end">
+          <div className="flex items-center gap-2">
+            <Link
+              to="/download"
+              className="h-9 px-4 text-[13px] font-medium tracking-wide text-muted-foreground/80 hover:text-foreground transition-all duration-200 flex items-center gap-1.5 rounded-lg border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] whitespace-nowrap"
+            >
+              <Download size={13} strokeWidth={2} />
               Download
             </Link>
-            <Link to="/auth" className="px-4 md:px-5 py-2 text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 rounded-xl border border-border/40 whitespace-nowrap">
-              <User size={14} />
+            <Link
+              to="/auth"
+              className="h-9 px-4 text-[13px] font-medium tracking-wide text-muted-foreground/80 hover:text-foreground transition-all duration-200 flex items-center gap-1.5 rounded-lg border border-white/[0.08] hover:border-white/[0.15] hover:bg-white/[0.04] whitespace-nowrap"
+            >
+              <User size={13} strokeWidth={2} />
               Log in
             </Link>
-            <Link to="/auth" className="group px-4 md:px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:-translate-y-0.5 transition-all duration-300 hover:shadow-[0_0_25px_hsl(160_100%_45%/0.3)] relative overflow-hidden whitespace-nowrap">
-              <span className="relative z-10 flex items-center gap-1.5">
-                <ArrowRight size={14} className="group-hover:translate-x-0.5 transition-transform" />
-                Sign Up
-              </span>
+            <Link
+              to="/auth"
+              className="h-9 px-5 text-[13px] font-semibold tracking-wide text-primary-foreground flex items-center gap-1.5 rounded-lg bg-primary hover:brightness-110 transition-all duration-200 whitespace-nowrap"
+            >
+              Sign Up
+              <ArrowRight size={13} strokeWidth={2.5} />
             </Link>
           </div>
         </div>

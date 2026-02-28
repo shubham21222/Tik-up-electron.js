@@ -6,6 +6,7 @@ import { defaultGiftAlertSettings } from "@/hooks/use-overlay-widgets";
 import useOverlayBody from "@/hooks/use-overlay-body";
 import { applyUrlOverrides } from "@/lib/overlay-params";
 import { useQuickControlListener } from "@/hooks/use-quick-controls";
+import { devLog } from "@/lib/dev-log";
 
 interface AlertEvent {
   id: number;
@@ -163,7 +164,7 @@ const GiftAlertRenderer = () => {
   // Realtime subscription
   useEffect(() => {
     if (!publicToken) return;
-    console.log(`[GiftAlert] Subscribing to gift-alert-${publicToken}`);
+    devLog(`[GiftAlert] Subscribing to gift-alert-${publicToken}`);
 
     const channel = supabase
       .channel(`gift-alert-${publicToken}`)
@@ -200,7 +201,7 @@ const GiftAlertRenderer = () => {
           message: p.comment || p.message || undefined,
         };
 
-        console.log(`[GiftAlert] Received gift: ${giftName} from ${event.user}, sound=${!!soundUrl}`);
+        devLog(`[GiftAlert] Received gift: ${giftName} from ${event.user}, sound=${!!soundUrl}`);
 
         // Respect Quick Controls: skip alerts/sounds when paused or on cooldown
         const c = controlsRef.current;
@@ -226,7 +227,7 @@ const GiftAlertRenderer = () => {
         playSound(s.sound_url || undefined);
       })
       .subscribe(status => {
-        console.log(`[GiftAlert] Channel status: ${status}`);
+        devLog(`[GiftAlert] Channel status: ${status}`);
         setConnected(status === "SUBSCRIBED");
       });
 

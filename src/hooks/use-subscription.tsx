@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { devError } from "@/lib/dev-log";
 
 export const TIKUP_PRO = {
   price_id: "price_1T0elJFDweiUKVfYEBKZna3E",
@@ -114,7 +115,7 @@ export function useSubscription() {
       if (error) throw error;
       setSubState(data as SubscriptionState);
     } catch (e) {
-      console.error("Failed to check subscription:", e);
+      devError("Failed to check subscription:", e);
       setSubState({ subscribed: false, plan: "free", subscription_end: null });
     }
     setLoading(false);

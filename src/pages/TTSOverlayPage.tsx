@@ -1,5 +1,6 @@
 import AppLayout from "@/components/AppLayout";
 import ProGate from "@/components/ProGate";
+import { devError } from "@/lib/dev-log";
 import PageHelpButton from "@/components/PageHelpButton";
 import { useTTSSettings, TTS_VOICES, TTS_LANGUAGES } from "@/hooks/use-tts-settings";
 import type { AllowedUsers, SpecialUser } from "@/hooks/use-tts-settings";
@@ -125,7 +126,7 @@ const TTSOverlayPage = () => {
         await audio.play();
         return;
       } catch (err: any) {
-        console.error("ElevenLabs test error:", err);
+        devError("ElevenLabs test error:", err);
         toast.error("ElevenLabs failed, falling back to browser voice");
       }
     }

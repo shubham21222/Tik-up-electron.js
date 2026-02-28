@@ -513,17 +513,19 @@ const LandingPage = () => {
             className="rounded-2xl p-[1px]"
             style={{ background: "linear-gradient(90deg, hsl(160 100% 45% / 0.12), hsl(280 100% 65% / 0.06), hsl(160 100% 45% / 0.12))" }}
           >
-            <div className="rounded-2xl px-6 py-4 flex items-center justify-between gap-6"
+            <div className="rounded-2xl px-4 md:px-6 py-4 overflow-x-auto scrollbar-hide"
               style={{ background: "rgba(8,12,18,0.8)", backdropFilter: "blur(20px)" }}>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <div className="relative">
-                  <div className="w-2 h-2 rounded-full bg-primary" />
-                  <div className="w-2 h-2 rounded-full bg-primary absolute inset-0 animate-ping" />
+              <div className="flex items-center gap-4 md:gap-6 min-w-max">
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="relative">
+                    <div className="w-2 h-2 rounded-full bg-primary" />
+                    <div className="w-2 h-2 rounded-full bg-primary absolute inset-0 animate-ping" />
+                  </div>
+                  <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Live Preview</span>
                 </div>
-                <span className="text-[11px] font-bold text-primary uppercase tracking-wider">Live Preview</span>
-              </div>
-              <div className="flex-1 overflow-hidden">
-                <LiveEventStrip />
+                <div className="flex-1 overflow-hidden">
+                  <LiveEventStrip />
+                </div>
               </div>
             </div>
           </motion.div>

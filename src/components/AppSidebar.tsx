@@ -132,45 +132,37 @@ function buildFilteredSections(
 }
 
 /* ── Nav item component ── */
-const SidebarNavItem = React.memo(({
-  item,
-  isActive,
-  isCollapsed,
-  onClick,
-  isHidden,
-}: {
+interface SidebarNavItemProps {
   item: NavItem;
   isActive: boolean;
   isCollapsed: boolean;
   onClick: () => void;
   isHidden?: boolean;
-}) => {
+}
+
+const SidebarNavItemInner = ({
+  item,
+  isActive,
+  isCollapsed,
+  onClick,
+  isHidden,
+}: SidebarNavItemProps) => {
   if (isHidden) {
     return (
       <div
         className={cn(
-          "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200 opacity-40 cursor-not-allowed select-none",
-          isCollapsed ? "justify-center p-2.5" : "px-3 py-2",
+          "relative flex items-center gap-3 rounded-xl transition-all duration-200 group cursor-not-allowed select-none",
+          isCollapsed ? "px-2 py-2.5 justify-center" : "px-3 py-2.5",
+          "opacity-40 pointer-events-none"
         )}
       >
-        <div className={cn(
-          "flex items-center justify-center rounded-lg flex-shrink-0 sidebar-icon-glass opacity-50",
-          isCollapsed ? "w-8 h-8" : "w-7 h-7",
-        )}>
-          <item.icon size={isCollapsed ? 17 : 15} className="flex-shrink-0" />
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+          <item.icon size={18} className="text-muted-foreground" />
         </div>
         {!isCollapsed && (
-          <>
-            <span className="text-[12.5px] font-semibold tracking-wide truncate text-muted-foreground/50">{item.label}</span>
-            <span className="ml-auto text-[7px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 bg-muted/30 text-muted-foreground/60">
-              SOON
-            </span>
-          </>
-        )}
-        {isCollapsed && (
-          <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
-            {item.label} (Coming Soon)
-          </div>
+          <span className="text-[13px] font-medium text-muted-foreground truncate">
+            {item.label}
+          </span>
         )}
       </div>
     );
@@ -179,58 +171,51 @@ const SidebarNavItem = React.memo(({
   return (
     <Link
       to={item.id}
-      onClick={onClick}
+      onClick={(e) => {
+        onClick();
+      }}
       className={cn(
-        "sidebar-nav-item group relative flex items-center gap-3 rounded-xl transition-all duration-200",
-        isCollapsed ? "justify-center p-2.5" : "px-3 py-2",
+        "relative flex items-center gap-3 rounded-xl transition-all duration-200 group",
+        isCollapsed ? "px-2 py-2.5 justify-center" : "px-3 py-2.5",
         isActive
-          ? "sidebar-nav-active"
-          : "text-muted-foreground/70 hover:text-foreground/90"
+          ? "bg-primary/10 text-primary"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted/40"
       )}
     >
-      {/* Active indicator bar */}
-      <AnimatePresence>
-        {isActive && (
-          <motion.div
-            layoutId="sidebar-active-bar"
-            className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-5 rounded-r-full bg-secondary"
-            style={{ boxShadow: "0 0 8px hsl(var(--secondary) / 0.6)" }}
-            initial={{ opacity: 0, scaleY: 0 }}
-            animate={{ opacity: 1, scaleY: 1 }}
-            exit={{ opacity: 0, scaleY: 0 }}
-            transition={{ duration: 0.2, ease: "easeOut" }}
-          />
-        )}
-      </AnimatePresence>
-
-      {/* Icon in glass card */}
-      <motion.div
-        className={cn(
-          "flex items-center justify-center rounded-lg transition-all duration-200 flex-shrink-0",
-          isCollapsed ? "w-8 h-8" : "w-7 h-7",
-          isActive
-            ? "sidebar-icon-active"
-            : "sidebar-icon-glass"
-        )}
-        whileHover={{ scale: 1.08 }}
-        transition={{ type: "spring", stiffness: 400, damping: 20 }}
-      >
-        <item.icon size={isCollapsed ? 17 : 15} className="flex-shrink-0" />
-      </motion.div>
-
-      {!isCollapsed && (
-        <>
-          <span className="text-[12.5px] font-semibold tracking-wide truncate">{item.label}</span>
-          {item.pro && (
-            <span className="sidebar-pro-badge ml-auto text-[7px] font-extrabold px-1.5 py-0.5 rounded-md flex-shrink-0 inline-flex items-center gap-0.5">
-              <Star size={6} />
-              PRO
-            </span>
-          )}
-        </>
+      {isActive && (
+        <motion.div
+          layoutId="sidebar-active"
+          className="absolute inset-0 rounded-xl bg-primary/10 border border-primary/15"
+          transition={{ type: "spring", bounce: 0.2, duration: 0.4 }}
+        />
       )}
 
-      {/* Collapsed tooltip */}
+      <div className={cn(
+        "relative z-10 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-200",
+        isActive ? "bg-primary/15" : "bg-transparent group-hover:bg-muted/50"
+      )}>
+        <item.icon size={18} className={cn(
+          "transition-all",
+          isActive ? "text-primary" : "text-muted-foreground group-hover:text-foreground"
+        )} />
+      </div>
+
+      {!isCollapsed && (
+        <span className={cn(
+          "relative z-10 text-[13px] font-medium truncate transition-colors flex-1",
+          isActive ? "text-primary font-semibold" : "text-muted-foreground group-hover:text-foreground"
+        )}>
+          {item.label}
+        </span>
+      )}
+
+      {!isCollapsed && item.pro && (
+        <span className="relative z-10 text-[9px] font-bold px-1.5 py-0.5 rounded-md uppercase tracking-wide bg-purple-500/10 text-purple-400">
+          Pro
+        </span>
+      )}
+
+      {/* Tooltip for collapsed mode */}
       {isCollapsed && (
         <div className="sidebar-tooltip absolute left-full ml-3 px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-all duration-200 z-[60]">
           {item.label}
@@ -238,7 +223,9 @@ const SidebarNavItem = React.memo(({
       )}
     </Link>
   );
-}));
+};
+
+const SidebarNavItem = React.memo(SidebarNavItemInner);
 
 /* ── Section group component ── */
 const SidebarSectionGroup = ({

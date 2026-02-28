@@ -1,14 +1,12 @@
 import AppLayout from "@/components/AppLayout";
-import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { devError } from "@/lib/dev-log";
 import {
-  Eye, Heart, Share2, UserPlus, Radio,
-  TrendingUp, ArrowUpRight, Activity, Gift, Star,
+  Eye, Heart, Users, Gift, Star,
   Download, Mic, Gamepad2, Timer, Globe, Crown, ArrowRight,
-  Wifi, WifiOff, Loader2, AlertCircle, CheckCircle2, Settings,
-  Clock, Gem, RefreshCw, Trophy, Medal, HelpCircle, DollarSign,
-  Users, MessageSquare
+  Wifi, UserPlus, Radio, CheckCircle2,
+  TrendingUp
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -19,8 +17,11 @@ import FeatureGuideModal, { type GuideStep } from "@/components/FeatureGuideModa
 import tikupLogo from "@/assets/tikup_logo.png";
 import DashboardModeration from "@/components/dashboard/DashboardModeration";
 import DashboardFeatures from "@/components/dashboard/DashboardFeatures";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { useGiftCatalog, type TikTokGift } from "@/hooks/use-gift-catalog";
+import DashboardHeader from "@/components/dashboard/DashboardHeader";
+import ConnectionBanner from "@/components/dashboard/ConnectionBanner";
+import DashboardStatCards, { type StatCardData } from "@/components/dashboard/DashboardStatCards";
+import GiftActivityFeed from "@/components/dashboard/GiftActivityFeed";
+import DashboardRankings, { type RankEntry } from "@/components/dashboard/DashboardRankings";
 
 interface LiveStats {
   is_live: boolean;
@@ -37,109 +38,10 @@ interface LiveStats {
   error?: string;
 }
 
-interface RankEntry {
-  rank: number;
-  diamonds: number;
-  diamonds_description: string;
-  nickname: string;
-  unique_id: string;
-  avatar: string;
-  dollars?: string;
-}
-
-const AnimatedCounter = ({ value, prefix = "", suffix = "" }: { value: number; prefix?: string; suffix?: string }) => {
-  const mv = useMotionValue(0);
-  const display = useTransform(mv, (v) => `${prefix}${Math.round(v).toLocaleString()}${suffix}`);
-
-  useEffect(() => {
-    const ctrl = animate(mv, value, { duration: 2, ease: [0.22, 1, 0.36, 1] });
-    return ctrl.stop;
-  }, [value, mv]);
-
-  return <motion.span>{display}</motion.span>;
-};
-
 const formatCompact = (n: number) => {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
   if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
   return n.toLocaleString();
-};
-
-const eventIconMap: Record<string, { icon: typeof Gift; color: string }> = {
-  gift:   { icon: Gift, color: "280 100% 65%" },
-  like:   { icon: Heart, color: "350 90% 55%" },
-  follow: { icon: UserPlus, color: "160 100% 45%" },
-  share:  { icon: Share2, color: "200 100% 55%" },
-  chat:   { icon: MessageSquare, color: "45 100% 55%" },
-  join:   { icon: Users, color: "120 70% 45%" },
-};
-
-const formatTimeAgo = (ts: number) => {
-  const diff = Math.floor((Date.now() - ts) / 1000);
-  if (diff < 5) return "just now";
-  if (diff < 60) return `${diff}s ago`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  return `${Math.floor(diff / 3600)}h ago`;
-};
-
-const getEventAction = (type: string, data: Record<string, unknown>) => {
-  switch (type) {
-    case "gift": return `sent ${data.giftName || "a gift"}${(data.repeatCount as number) > 1 ? ` x${data.repeatCount}` : ""}`;
-    case "like": return "liked the stream";
-    case "follow": return "just followed";
-    case "share": return "shared the stream";
-    case "chat": return String(data.message || "commented");
-    case "join": return "joined the stream";
-    default: return type;
-  }
-};
-
-const staticEvents = [
-  { icon: Gift, user: "StreamFan42", action: "sent", giftName: "Rose", time: "1s ago", color: "280 100% 65%", coins: 1 },
-  { icon: Gift, user: "GiftKing", action: "sent", giftName: "Lion", time: "3s ago", color: "280 100% 65%", coins: 500 },
-  { icon: Gift, user: "TikTokPro", action: "sent", giftName: "Star", time: "8s ago", color: "45 100% 55%", coins: 250 },
-  { icon: Gift, user: "MusicLover", action: "sent", giftName: "TikTok Universe", time: "15s ago", color: "280 100% 65%", coins: 10000 },
-  { icon: Gift, user: "CoolViewer", action: "sent", giftName: "Rose Carriage", time: "22s ago", color: "280 100% 65%", coins: 5000 },
-  { icon: Gift, user: "NightOwl", action: "sent", giftName: "Rose", time: "30s ago", color: "280 100% 65%", coins: 1 },
-];
-
-const updates = [
-  { icon: Download, title: "Desktop App Available", description: "TikUp is now available as a Desktop App for Windows.", tag: "New" },
-  { icon: Mic, title: "Voicemod Integration", description: "Let viewers change your voice with Voicemod.", tag: "New" },
-  { icon: Gamepad2, title: "GTA 5 Plugin", description: "Let viewers control your GTA 5 game!", tag: "Popular" },
-  { icon: Timer, title: "Stream Countdown", description: "Let viewers extend your stream with gifts!" },
-  { icon: Globe, title: "Streamer.bot Integration", description: "Connect with Streamer.bot for more features." },
-];
-
-// Build engagement chart from live WS events grouped into time buckets
-const buildEngagementChart = (events: Array<{ type: string; timestamp: number }>) => {
-  if (events.length === 0) return [];
-
-  // Group events into 5-minute buckets over the last 2 hours
-  const now = Date.now();
-  const bucketSize = 5 * 60 * 1000; // 5 minutes
-  const numBuckets = 24;
-  const buckets: Array<{ time: string; likes: number; gifts: number; follows: number; chats: number }> = [];
-
-  for (let i = numBuckets - 1; i >= 0; i--) {
-    const bucketEnd = now - i * bucketSize;
-    const bucketStart = bucketEnd - bucketSize;
-    const d = new Date(bucketEnd);
-    const timeLabel = `${d.getHours().toString().padStart(2, "0")}:${d.getMinutes().toString().padStart(2, "0")}`;
-
-    let likes = 0, gifts = 0, follows = 0, chats = 0;
-    for (const ev of events) {
-      if (ev.timestamp >= bucketStart && ev.timestamp < bucketEnd) {
-        if (ev.type === "like") likes++;
-        else if (ev.type === "gift") gifts++;
-        else if (ev.type === "follow") follows++;
-        else if (ev.type === "chat") chats++;
-      }
-    }
-    buckets.push({ time: timeLabel, likes, gifts, follows, chats });
-  }
-
-  return buckets;
 };
 
 type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error";
@@ -158,31 +60,21 @@ function formatDuration(startTime: number): string {
 
 /* ── Glass card wrapper ── */
 const GlassCard = ({ children, className = "", style = {}, ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={`glass-card ${className}`}
-    style={style}
-    {...rest}
-  >
-    {children}
-  </div>
+  <div className={`glass-card ${className}`} style={style} {...rest}>{children}</div>
 );
+
+const updates = [
+  { icon: Download, title: "Desktop App Available", description: "TikUp is now available as a Desktop App for Windows.", tag: "New" },
+  { icon: Mic, title: "Voicemod Integration", description: "Let viewers change your voice with Voicemod.", tag: "New" },
+  { icon: Gamepad2, title: "GTA 5 Plugin", description: "Let viewers control your GTA 5 game!", tag: "Popular" },
+  { icon: Timer, title: "Stream Countdown", description: "Let viewers extend your stream with gifts!" },
+  { icon: Globe, title: "Streamer.bot Integration", description: "Connect with Streamer.bot for more features." },
+];
 
 const Index = () => {
   const { user } = useAuth();
   const tikTokLive = useTikTokLiveGlobal();
-  const { gifts: giftCatalog } = useGiftCatalog();
 
-  // Build a lookup map: gift_id → image_url and name → image_url
-  const giftImageMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    for (const g of giftCatalog) {
-      if (g.image_url) {
-        map[g.gift_id] = g.image_url;
-        map[g.name.toLowerCase()] = g.image_url;
-      }
-    }
-    return map;
-  }, [giftCatalog]);
   const [isLive, setIsLive] = useState(false);
   const [tiktokUsername, setTiktokUsername] = useState("");
   const [inputUsername, setInputUsername] = useState("");
@@ -200,7 +92,7 @@ const Index = () => {
   const statsInterval = useRef<ReturnType<typeof setInterval> | null>(null);
   const durationInterval = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // ── All existing fetch/connect logic (unchanged) ──
+  // ── Fetch logic ──
   const fetchLiveStats = useCallback(async () => {
     if (!user) return;
     setStatsLoading(true);
@@ -316,7 +208,6 @@ const Index = () => {
       return;
     }
     setTiktokUsername(clean);
-    // Reset all stats for the new username — start fresh
     setLiveStats(null);
     peakStatsRef.current = { likes: 0, gifts: 0, followers: 0 };
     prevStatsRef.current = { viewers: 0, likes: 0, followers: 0, gifts: 0 };
@@ -324,7 +215,6 @@ const Index = () => {
     toast.success(`Connected to @${clean}`);
   }, [inputUsername, user]);
 
-  // Auto-connect WebSocket when TikTok account is linked
   useEffect(() => {
     if (connectionStatus === "connected" && tikTokLive.status === "disconnected") {
       tikTokLive.connect();
@@ -337,24 +227,24 @@ const Index = () => {
     await supabase.from("profiles").update({ tiktok_connected: false } as any).eq("user_id", user.id);
     setConnectionStatus("disconnected");
     setTiktokUsername("");
-    // Reset all stats so next username starts clean
     setLiveStats(null);
     peakStatsRef.current = { likes: 0, gifts: 0, followers: 0 };
     prevStatsRef.current = { viewers: 0, likes: 0, followers: 0, gifts: 0 };
     toast.info("Disconnected from TikTok");
   };
 
+  const handleRankingsRegionChange = useCallback((region: string) => {
+    setRankingsRegion(region);
+    fetchRankings(region);
+  }, [fetchRankings]);
+
+  // ── Connect guide steps ──
   const connectGuideSteps: GuideStep[] = [
     {
       icon: <Wifi size={20} />,
       title: "Welcome to TikUp!",
       subtitle: "Let's connect your TikTok LIVE in under 30 seconds 💜",
-      bullets: [
-        "See real-time viewer stats on your dashboard",
-        "Trigger alerts when viewers send gifts",
-        "Add overlays to your LIVE stream",
-        "No developer account needed!",
-      ],
+      bullets: ["See real-time viewer stats on your dashboard", "Trigger alerts when viewers send gifts", "Add overlays to your LIVE stream", "No developer account needed!"],
       visual: (
         <div className="relative flex items-center justify-center h-full">
           <motion.img src={tikupLogo} alt="TikUp" className="w-16 h-16 object-contain relative z-10"
@@ -442,7 +332,7 @@ const Index = () => {
     },
   ];
 
-  // Merge stats: use the higher of WS real-time or polling data (WS starts at 0, so take max)
+  // ── Merged stats ──
   const wsConnected = tikTokLive.status === "connected";
   const pollingViewers = liveStats?.viewer_count ?? 0;
   const pollingLikes = liveStats?.like_count ?? 0;
@@ -451,13 +341,9 @@ const Index = () => {
   const sessionFollowersFromDB = liveStats?.session_followers ?? 0;
 
   const mergedViewers = Math.max(tikTokLive.stats.viewerCount, pollingViewers);
-
-  // Never let cumulative stats decrease — track highest seen value
   const rawLikes = Math.max(tikTokLive.stats.likeCount, pollingLikes);
   const rawGifts = Math.max(tikTokLive.stats.giftCoins, pollingGifts);
-  // Followers: use total from API if available, otherwise use session count
   const rawFollowers = pollingFollowers > 0 ? pollingFollowers : 0;
-  // Session followers: WS member count + DB follow events (take max to avoid double-counting)
   const rawSessionFollowers = Math.max(sessionFollowersFromDB, tikTokLive.stats.followerCount);
 
   peakStatsRef.current.likes = Math.max(peakStatsRef.current.likes, rawLikes);
@@ -468,13 +354,11 @@ const Index = () => {
   const mergedGifts = peakStatsRef.current.gifts;
   const mergedFollowers = peakStatsRef.current.followers;
 
-  // Track previous stat values for % change calculation
   useEffect(() => {
     if (wsConnected && (mergedViewers > 0 || mergedLikes > 0)) {
-      // Only store previous if we have a meaningful prior reading
       const timer = setTimeout(() => {
         prevStatsRef.current = { viewers: mergedViewers, likes: mergedLikes, followers: mergedFollowers, gifts: mergedGifts };
-      }, 15000); // Snapshot every 15s
+      }, 15000);
       return () => clearTimeout(timer);
     }
   }, [wsConnected, mergedViewers, mergedLikes, mergedFollowers, mergedGifts]);
@@ -493,12 +377,7 @@ const Index = () => {
     return current > previous ? "hsl(160 100% 45%)" : "hsl(0 70% 55%)";
   };
 
-  // Build engagement chart from real events
-  const chartData = useMemo(() => buildEngagementChart(tikTokLive.events), [tikTokLive.events]);
-  const hasChartData = chartData.some(d => d.likes > 0 || d.gifts > 0 || d.follows > 0 || d.chats > 0);
-
-  /* ── Stat card data ── */
-  const statCards = [
+  const statCards: StatCardData[] = [
     {
       label: "Viewers",
       value: mergedViewers,
@@ -537,47 +416,17 @@ const Index = () => {
   return (
     <AppLayout>
       <div className="max-w-[1400px] mx-auto relative z-10 pb-12">
-        {/* ─── HEADER ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4 }}
-          className="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4"
-        >
-          <div>
-            <div className="flex items-center gap-3 mb-1 flex-wrap">
-              <h1 className="text-2xl font-heading font-bold text-foreground">Dashboard</h1>
-              <button onClick={() => setShowConnectGuide(true)}
-                className="p-1.5 rounded-full transition-colors hover:bg-muted/40 text-muted-foreground hover:text-foreground">
-                <HelpCircle size={16} />
-              </button>
-              {isLive && (
-                <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-destructive/10 border border-destructive/20">
-                  <div className="relative">
-                    <div className="w-2 h-2 rounded-full bg-destructive" />
-                    <div className="w-2 h-2 rounded-full bg-destructive absolute inset-0 animate-ping" />
-                  </div>
-                  <span className="text-[11px] font-bold text-destructive">LIVE</span>
-                  {streamDuration && <span className="text-[10px] text-destructive/70">{streamDuration}</span>}
-                </div>
-              )}
-            </div>
-            <p className="text-sm text-muted-foreground">
-              {connectionStatus === "connected"
-                ? <>Streaming as <span className="text-primary font-semibold">@{tiktokUsername}</span></>
-                : "Connect your TikTok to see live stats"}
-            </p>
-          </div>
-          <div className="flex items-center gap-2">
-            <button onClick={fetchLiveStats} disabled={statsLoading}
-              className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted/30 transition-colors border border-border/30">
-              <RefreshCw size={12} className={statsLoading ? "animate-spin" : ""} />
-              Refresh
-            </button>
-          </div>
-        </motion.div>
+        <DashboardHeader
+          isLive={isLive}
+          streamDuration={streamDuration}
+          connectionStatus={connectionStatus}
+          tiktokUsername={tiktokUsername}
+          statsLoading={statsLoading}
+          onRefresh={fetchLiveStats}
+          onShowGuide={() => setShowConnectGuide(true)}
+        />
 
-        {/* ─── DISCORD BANNER (top) ─── */}
+        {/* ─── DISCORD BANNER ─── */}
         <motion.a
           href="https://discord.gg/8S45FFrd"
           target="_blank"
@@ -605,360 +454,36 @@ const Index = () => {
           </GlassCard>
         </motion.a>
 
-        {/* ─── CONNECTION BANNER (compact) ─── */}
-        {connectionStatus !== "connected" && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-            className="mb-6"
-          >
-            <GlassCard className="p-5">
-              <div className="flex flex-col md:flex-row items-start md:items-center gap-4">
-                <div className="flex items-center gap-4 w-full md:w-auto">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                    style={{ background: "hsl(var(--primary) / 0.1)" }}>
-                    <WifiOff size={18} className="text-muted-foreground" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-heading font-bold text-foreground">Connect TikTok</h3>
-                    <p className="text-[11px] text-muted-foreground">Enter your username to power your stream</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 w-full md:w-auto">
-                  <div className="relative flex-1 md:flex-initial">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground font-semibold">@</span>
-                    <input
-                      type="text"
-                      value={inputUsername}
-                      onChange={(e) => setInputUsername(e.target.value.replace(/^@/, ""))}
-                      placeholder="username"
-                      disabled={connectionStatus === "connecting"}
-                      className="w-full md:w-44 bg-muted/50 border border-border rounded-lg pl-8 pr-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/50 outline-none focus:ring-1 focus:ring-primary/30 disabled:opacity-50 transition-all"
-                    />
-                  </div>
-                  <button
-                    onClick={handleConnect}
-                    disabled={connectionStatus === "connecting"}
-                    className="px-5 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-bold hover:opacity-90 transition-opacity disabled:opacity-50 flex items-center gap-2 shrink-0"
-                  >
-                    {connectionStatus === "connecting" && <Loader2 size={14} className="animate-spin" />}
-                    Connect
-                  </button>
-                </div>
-              </div>
-              {connectionError && (
-                <div className="mt-3 flex items-center gap-2 text-xs text-destructive">
-                  <AlertCircle size={12} />
-                  {connectionError}
-                </div>
-              )}
-            </GlassCard>
-          </motion.div>
-        )}
+        <ConnectionBanner
+          connectionStatus={connectionStatus}
+          tiktokUsername={tiktokUsername}
+          inputUsername={inputUsername}
+          connectionError={connectionError}
+          isLive={isLive}
+          streamTitle={liveStats?.title}
+          onInputChange={setInputUsername}
+          onConnect={handleConnect}
+          onDisconnect={handleDisconnect}
+        />
 
-        {/* ─── CONNECTED BAR ─── */}
-        {connectionStatus === "connected" && (
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, delay: 0.05 }}
-            className="mb-6"
-          >
-            <GlassCard className="px-5 py-3 flex flex-col md:flex-row items-start md:items-center gap-3 md:gap-4">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 size={14} className="text-primary" />
-                <span className="text-xs font-semibold text-primary">Connected</span>
-                <span className="text-xs text-muted-foreground">@{tiktokUsername}</span>
-              </div>
-              <div className="md:ml-auto flex items-center gap-3 flex-wrap">
-                {isLive && liveStats?.title && (
-                  <span className="text-xs text-muted-foreground truncate max-w-[200px]">{liveStats.title}</span>
-                )}
-                <Link to="/setup" className="text-[11px] text-muted-foreground hover:text-primary transition-colors flex items-center gap-1">
-                  <Settings size={11} /> Settings
-                </Link>
-                <button onClick={handleDisconnect} className="text-[11px] text-destructive/70 hover:text-destructive transition-colors">
-                  Disconnect
-                </button>
-              </div>
-            </GlassCard>
-          </motion.div>
-        )}
+        <DashboardStatCards statCards={statCards} />
 
-        {/* ─── STAT CARDS (reference style) ─── */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4 mb-6">
-          {statCards.map((stat, i) => {
-            const Icon = stat.icon;
-            return (
-              <motion.div
-                key={stat.label}
-                initial={{ opacity: 0, y: 16 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.35, delay: 0.08 + i * 0.05 }}
-              >
-                <GlassCard className="p-5 hover:border-[hsl(0_0%_100%/0.08)] transition-colors group">
-                  <div className="flex items-center justify-between mb-4">
-                    <span className="text-[12px] text-muted-foreground font-medium tracking-wide uppercase">{stat.label}</span>
-                    <div className="w-7 h-7 rounded-lg flex items-center justify-center opacity-40 group-hover:opacity-70 transition-opacity"
-                      style={{ background: `hsl(${stat.accentColor} / 0.1)` }}>
-                      <Icon size={14} style={{ color: `hsl(${stat.accentColor})` }} />
-                    </div>
-                  </div>
-                  <p className="text-2xl md:text-3xl font-heading font-bold text-foreground mb-1">
-                    <AnimatedCounter value={stat.value} prefix={stat.prefix} />
-                  </p>
-                  <span className="text-[11px] font-semibold" style={{ color: stat.changeColor }}>
-                    {stat.change}
-                  </span>
-                </GlassCard>
-              </motion.div>
-            );
-          })}
-        </div>
-
-
-
-        {/* ─── STREAM FEATURES ─── */}
         <DashboardFeatures />
 
-        {/* ─── RECENT ACTIVITY FEED ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.25 }}
-          className="mb-6"
-        >
-          <GlassCard className="p-5">
-            <div className="flex items-center justify-between mb-3">
-              <div className="flex items-center gap-2">
-                <Gift size={14} className="text-secondary" />
-                <h2 className="text-sm font-heading font-bold text-foreground">Gift Activity</h2>
-              </div>
-              {wsConnected ? (
-                <div className="flex items-center gap-1.5">
-                  <div className="relative">
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary" />
-                    <div className="w-1.5 h-1.5 rounded-full bg-primary absolute inset-0 animate-ping" />
-                  </div>
-                  <span className="text-[10px] text-primary font-semibold">Live</span>
-                </div>
-              ) : (
-                <span className="text-[10px] text-muted-foreground">Demo</span>
-              )}
-            </div>
-            <div className="space-y-0.5">
-              {wsConnected && tikTokLive.events.length > 0 ? (
-                <AnimatePresence initial={false}>
-                  {tikTokLive.events
-                    .filter((event) => event.type === "gift")
-                    .slice(0, 15)
-                    .map((event, i) => {
-                    const username = String(event.data.username || "Unknown");
-                    const giftName = String(event.data.giftName || "a gift");
-                    const giftId = String(event.data.giftId || event.data.gift_id || "");
-                    const repeatCount = (event.data.repeatCount as number) || 1;
-                    const coinValue = (event.data.diamondCount as number) || (event.data.coinValue as number) || 0;
-                    const avatarUrl = String(event.data.profilePictureUrl || event.data.avatar_url || event.data.avatar || "");
-                    const giftImageUrl = giftImageMap[giftId] || giftImageMap[giftName.toLowerCase()] || "";
-                    return (
-                      <motion.div
-                        key={`gift-${event.timestamp}-${i}`}
-                        initial={{ opacity: 0, x: -20, height: 0 }}
-                        animate={{ opacity: 1, x: 0, height: "auto" }}
-                        exit={{ opacity: 0, x: 20, height: 0 }}
-                        transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-                        className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors group/gift"
-                      >
-                        {/* Gift image with user avatar overlay */}
-                        <div className="relative flex-shrink-0">
-                          <div className="w-9 h-9 rounded-full flex items-center justify-center overflow-hidden"
-                            style={{ background: "hsl(280 100% 65% / 0.1)", border: "1px solid hsl(280 100% 65% / 0.15)" }}>
-                            {giftImageUrl ? (
-                              <img src={giftImageUrl} alt={giftName} className="w-7 h-7 object-contain" />
-                            ) : (
-                              <Gift size={16} style={{ color: "hsl(280 100% 65%)" }} />
-                            )}
-                          </div>
-                          {/* User avatar mini overlay */}
-                          {avatarUrl && (
-                            <img src={avatarUrl} alt="" className="absolute -bottom-0.5 -right-0.5 w-4 h-4 rounded-full border border-background object-cover" />
-                          )}
-                        </div>
+        <GiftActivityFeed
+          wsConnected={wsConnected}
+          events={tikTokLive.events}
+        />
 
-                        {/* Content */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-[13px] text-foreground truncate">
-                            <span className="font-semibold">{username}</span>{" "}
-                            <span className="text-muted-foreground">sent</span>{" "}
-                            <span className="font-medium" style={{ color: "hsl(280 100% 70%)" }}>{giftName}</span>
-                            {repeatCount > 1 && (
-                              <span className="text-xs font-bold ml-1" style={{ color: "hsl(45 100% 55%)" }}>x{repeatCount}</span>
-                            )}
-                          </p>
-                        </div>
-
-                        {/* Coin badge */}
-                        {coinValue > 0 && (
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0"
-                            style={{ background: "hsl(280 100% 65% / 0.1)", color: "hsl(280 100% 70%)" }}>
-                            🪙 {coinValue.toLocaleString()}
-                          </span>
-                        )}
-
-                        <span className="text-[11px] text-muted-foreground/40 flex-shrink-0">{formatTimeAgo(event.timestamp)}</span>
-                      </motion.div>
-                    );
-                  })}
-                </AnimatePresence>
-              ) : wsConnected ? (
-                <div className="text-center py-6 text-muted-foreground text-xs">
-                  Waiting for gifts…
-                </div>
-              ) : (
-                staticEvents.map((event, i) => {
-                  const staticGiftImg = giftImageMap[event.giftName.toLowerCase()] || "";
-                  return (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 + i * 0.04 }}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-accent transition-colors group/gift"
-                  >
-                    <div className="relative flex-shrink-0">
-                      <div className="w-9 h-9 rounded-full flex items-center justify-center"
-                        style={{ background: `hsl(${event.color} / 0.1)`, border: `1px solid hsl(${event.color} / 0.15)` }}>
-                        {staticGiftImg ? (
-                          <img src={staticGiftImg} alt={event.giftName} className="w-7 h-7 object-contain" />
-                        ) : (
-                          <Gift size={16} style={{ color: `hsl(${event.color})` }} />
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-[13px] text-foreground flex-1 truncate">
-                      <span className="font-semibold">{event.user}</span>{" "}
-                      <span className="text-muted-foreground">sent</span>{" "}
-                      <span className="font-medium" style={{ color: "hsl(280 100% 70%)" }}>{event.giftName}</span>
-                    </p>
-                    {event.coins && (
-                      <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0"
-                        style={{ background: "hsl(280 100% 65% / 0.1)", color: "hsl(280 100% 70%)" }}>
-                        🪙 {event.coins.toLocaleString()}
-                      </span>
-                    )}
-                    <span className="text-[11px] text-muted-foreground/40 flex-shrink-0">{event.time}</span>
-                  </motion.div>
-                  );
-                })
-              )}
-            </div>
-          </GlassCard>
-        </motion.div>
-
-        {/* ─── MODERATION ─── */}
         <DashboardModeration />
 
-        {/* ─── RANKINGS ─── */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.3 }}
-          className="mb-6"
-        >
-          <GlassCard className="p-5">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <Trophy size={14} className="text-secondary" />
-                <h2 className="text-sm font-heading font-bold text-foreground">TikTok LIVE Rankings</h2>
-                <span className="text-[10px] text-muted-foreground font-medium px-2 py-0.5 rounded-md bg-muted/30">Daily</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <select
-                  value={rankingsRegion}
-                  onChange={(e) => {
-                    setRankingsRegion(e.target.value);
-                    fetchRankings(e.target.value);
-                  }}
-                  className="text-[11px] px-2 py-1 rounded-lg border border-border bg-background text-foreground font-medium focus:outline-none focus:border-primary/30 transition-colors"
-                >
-                  <option value="gb" className="bg-background text-foreground">🇬🇧 GB</option>
-                  <option value="us" className="bg-background text-foreground">🇺🇸 US</option>
-                  <option value="de" className="bg-background text-foreground">🇩🇪 DE</option>
-                  <option value="fr" className="bg-background text-foreground">🇫🇷 FR</option>
-                  <option value="es" className="bg-background text-foreground">🇪🇸 ES</option>
-                  <option value="br" className="bg-background text-foreground">🇧🇷 BR</option>
-                  <option value="id" className="bg-background text-foreground">🇮🇩 ID</option>
-                  <option value="my" className="bg-background text-foreground">🇲🇾 MY</option>
-                  <option value="ph" className="bg-background text-foreground">🇵🇭 PH</option>
-                  <option value="vn" className="bg-background text-foreground">🇻🇳 VN</option>
-                  <option value="th" className="bg-background text-foreground">🇹🇭 TH</option>
-                  <option value="sa" className="bg-background text-foreground">🇸🇦 SA</option>
-                  <option value="tr" className="bg-background text-foreground">🇹🇷 TR</option>
-                  <option value="jp" className="bg-background text-foreground">🇯🇵 JP</option>
-                </select>
-                <button onClick={() => fetchRankings()} disabled={rankingsLoading}
-                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-primary transition-colors">
-                  <RefreshCw size={12} className={rankingsLoading ? "animate-spin" : ""} />
-                </button>
-              </div>
-            </div>
-            {rankingsLoading && rankings.length === 0 ? (
-              <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
-                <Loader2 size={16} className="animate-spin mr-2" /> Loading…
-              </div>
-            ) : rankings.length === 0 ? (
-              <div className="text-center py-6 text-muted-foreground text-sm">No ranking data</div>
-            ) : (
-              <div className="w-full">
-                {/* Table header */}
-                <div className="flex items-center px-4 py-2 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold border-b border-border/30">
-                  <span className="w-12">Rank</span>
-                  <span className="flex-1">User</span>
-                  <span className="w-24 text-right">Diamonds</span>
-                </div>
-                {/* Table rows */}
-                <div className="divide-y divide-border/20">
-                  {rankings.slice(0, 20).map((entry, i) => {
-                    const medalEmojis = ["🏆", "🏆", "🏆"];
-                    const isTop3 = i < 3;
-                    const rankColors = ["45 100% 55%", "0 0% 65%", "25 70% 45%"];
-                    return (
-                      <div
-                        key={entry.unique_id || i}
-                        className="flex items-center px-4 py-3 hover:bg-accent transition-colors"
-                      >
-                        {/* Rank */}
-                        <span className="w-12 text-sm font-bold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
-                          {isTop3 ? (
-                            <span className="flex items-center gap-1.5">
-                              {entry.rank} <span className="text-base">{medalEmojis[i]}</span>
-                            </span>
-                          ) : entry.rank}
-                        </span>
-                        {/* Avatar + Name */}
-                        <div className="flex items-center gap-3 flex-1 min-w-0">
-                          {entry.avatar ? (
-                            <img src={entry.avatar} alt={entry.nickname} className="w-9 h-9 rounded-full object-cover shrink-0 border border-border/30" />
-                          ) : (
-                            <div className="w-9 h-9 rounded-full bg-muted/30 flex items-center justify-center text-xs font-bold text-muted-foreground shrink-0">
-                              {entry.nickname.charAt(0).toUpperCase()}
-                            </div>
-                          )}
-                          <span className="text-sm font-medium text-foreground truncate">{entry.nickname}</span>
-                        </div>
-                        {/* Diamonds */}
-                        <span className="w-24 text-right text-sm font-semibold" style={{ color: isTop3 ? `hsl(${rankColors[i]})` : "hsl(var(--muted-foreground))" }}>
-                          {formatCompact(entry.diamonds || 0)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            )}
-          </GlassCard>
-        </motion.div>
+        <DashboardRankings
+          rankings={rankings}
+          rankingsLoading={rankingsLoading}
+          rankingsRegion={rankingsRegion}
+          onRegionChange={handleRankingsRegionChange}
+          onRefresh={() => fetchRankings()}
+        />
 
         {/* ─── WHAT'S NEW ─── */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }} className="mb-6">

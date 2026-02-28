@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -6,116 +7,120 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TikTokLiveProvider } from "@/hooks/use-tiktok-live-context";
-import Index from "./pages/Index";
-import LandingPage from "./pages/LandingPage";
-import Setup from "./pages/Setup";
-import Overlays from "./pages/Overlays";
-import GoalOverlays from "./pages/GoalOverlays";
-import GoalOverlayRenderer from "./pages/GoalOverlayRenderer";
-import GiftAlertOverlay from "./pages/GiftAlertOverlay";
-import ChatBoxOverlay from "./pages/ChatBoxOverlay";
-import LikeAlertOverlay from "./pages/LikeAlertOverlay";
-import FollowAlertOverlay from "./pages/FollowAlertOverlay";
-import ShareAlertOverlay from "./pages/ShareAlertOverlay";
-import LikeCounterOverlay from "./pages/LikeCounterOverlay";
-import FollowerGoalOverlay from "./pages/FollowerGoalOverlay";
-import ViewerCountOverlay from "./pages/ViewerCountOverlay";
-import LeaderboardOverlay from "./pages/LeaderboardOverlay";
-import StreamTimerOverlay from "./pages/StreamTimerOverlay";
-import CustomTextOverlay from "./pages/CustomTextOverlay";
-import GiftAlertRenderer from "./pages/renderers/GiftAlertRenderer";
-import ChatBoxRenderer from "./pages/renderers/ChatBoxRenderer";
-import LikeAlertRenderer from "./pages/renderers/LikeAlertRenderer";
-import FollowAlertRenderer from "./pages/renderers/FollowAlertRenderer";
-import ShareAlertRenderer from "./pages/renderers/ShareAlertRenderer";
-import LikeCounterRenderer from "./pages/renderers/LikeCounterRenderer";
-import FollowerGoalRenderer from "./pages/renderers/FollowerGoalRenderer";
-import ViewerCountRenderer from "./pages/renderers/ViewerCountRenderer";
-import LeaderboardRenderer from "./pages/renderers/LeaderboardRenderer";
-import StreamTimerRenderer from "./pages/renderers/StreamTimerRenderer";
-import CustomTextRenderer from "./pages/renderers/CustomTextRenderer";
-import GiftComboRenderer from "./pages/renderers/GiftComboRenderer";
-import TickerRenderer from "./pages/renderers/TickerRenderer";
-import AnimatedBgRenderer from "./pages/renderers/AnimatedBgRenderer";
-import SoundReactiveRenderer from "./pages/renderers/SoundReactiveRenderer";
-import BackgroundRenderer from "./pages/renderers/BackgroundRenderer";
-import Actions from "./pages/Actions";
-import Sounds from "./pages/Sounds";
-// SoundAlerts is now merged into Actions page
-import Chat from "./pages/Chat";
-import Points from "./pages/Points";
-import Song from "./pages/Song";
-import Tools from "./pages/Tools";
-import Pro from "./pages/Pro";
 
-import ChatCommands from "./pages/ChatCommands";
-import AutoModeration from "./pages/AutoModeration";
-import RecentActivity from "./pages/RecentActivity";
-import Widgets from "./pages/Widgets";
-import Integrations from "./pages/Integrations";
-import BrandSettings from "./pages/BrandSettings";
-import Auth from "./pages/Auth";
-import Admin from "./pages/Admin";
-import ScreenRenderer from "./pages/ScreenRenderer";
-import TTSOverlayPage from "./pages/TTSOverlayPage";
-import TTSRenderer from "./pages/renderers/TTSRenderer";
-import GiftComboOverlay from "./pages/GiftComboOverlay";
-import TickerOverlay from "./pages/TickerOverlay";
-import AnimatedBgOverlay from "./pages/AnimatedBgOverlay";
-import SoundReactiveOverlay from "./pages/SoundReactiveOverlay";
-import SocialRotatorOverlay from "./pages/SocialRotatorOverlay";
-import GiftFireworkOverlay from "./pages/GiftFireworkOverlay";
-import PromoOverlay from "./pages/PromoOverlay";
-import StreamBorderOverlay from "./pages/StreamBorderOverlay";
-import WebcamFrameOverlay from "./pages/WebcamFrameOverlay";
-import SocialRotatorRenderer from "./pages/renderers/SocialRotatorRenderer";
-import GiftFireworkRenderer from "./pages/renderers/GiftFireworkRenderer";
-import PromoOverlayRenderer from "./pages/renderers/PromoOverlayRenderer";
-import StreamBorderRenderer from "./pages/renderers/StreamBorderRenderer";
-import WebcamFrameRenderer from "./pages/renderers/WebcamFrameRenderer";
-import EventFeedRenderer from "./pages/renderers/EventFeedRenderer";
+// ── Lazy page imports ───────────────────────────────────────
+const Index = lazy(() => import("./pages/Index"));
+const LandingPage = lazy(() => import("./pages/LandingPage"));
+const Setup = lazy(() => import("./pages/Setup"));
+const Overlays = lazy(() => import("./pages/Overlays"));
+const GoalOverlays = lazy(() => import("./pages/GoalOverlays"));
+const GoalOverlayRenderer = lazy(() => import("./pages/GoalOverlayRenderer"));
+const GiftAlertOverlay = lazy(() => import("./pages/GiftAlertOverlay"));
+const ChatBoxOverlay = lazy(() => import("./pages/ChatBoxOverlay"));
+const LikeAlertOverlay = lazy(() => import("./pages/LikeAlertOverlay"));
+const FollowAlertOverlay = lazy(() => import("./pages/FollowAlertOverlay"));
+const ShareAlertOverlay = lazy(() => import("./pages/ShareAlertOverlay"));
+const LikeCounterOverlay = lazy(() => import("./pages/LikeCounterOverlay"));
+const FollowerGoalOverlay = lazy(() => import("./pages/FollowerGoalOverlay"));
+const ViewerCountOverlay = lazy(() => import("./pages/ViewerCountOverlay"));
+const LeaderboardOverlay = lazy(() => import("./pages/LeaderboardOverlay"));
+const StreamTimerOverlay = lazy(() => import("./pages/StreamTimerOverlay"));
+const CustomTextOverlay = lazy(() => import("./pages/CustomTextOverlay"));
+const Actions = lazy(() => import("./pages/Actions"));
+const Sounds = lazy(() => import("./pages/Sounds"));
+const Chat = lazy(() => import("./pages/Chat"));
+const Points = lazy(() => import("./pages/Points"));
+const Song = lazy(() => import("./pages/Song"));
+const Tools = lazy(() => import("./pages/Tools"));
+const Pro = lazy(() => import("./pages/Pro"));
+const ChatCommands = lazy(() => import("./pages/ChatCommands"));
+const AutoModeration = lazy(() => import("./pages/AutoModeration"));
+const RecentActivity = lazy(() => import("./pages/RecentActivity"));
+const Widgets = lazy(() => import("./pages/Widgets"));
+const Integrations = lazy(() => import("./pages/Integrations"));
+const BrandSettings = lazy(() => import("./pages/BrandSettings"));
+const Auth = lazy(() => import("./pages/Auth"));
+const Admin = lazy(() => import("./pages/Admin"));
+const ScreenRenderer = lazy(() => import("./pages/ScreenRenderer"));
+const TTSOverlayPage = lazy(() => import("./pages/TTSOverlayPage"));
+const GiftComboOverlay = lazy(() => import("./pages/GiftComboOverlay"));
+const TickerOverlay = lazy(() => import("./pages/TickerOverlay"));
+const AnimatedBgOverlay = lazy(() => import("./pages/AnimatedBgOverlay"));
+const SoundReactiveOverlay = lazy(() => import("./pages/SoundReactiveOverlay"));
+const SocialRotatorOverlay = lazy(() => import("./pages/SocialRotatorOverlay"));
+const GiftFireworkOverlay = lazy(() => import("./pages/GiftFireworkOverlay"));
+const PromoOverlay = lazy(() => import("./pages/PromoOverlay"));
+const StreamBorderOverlay = lazy(() => import("./pages/StreamBorderOverlay"));
+const WebcamFrameOverlay = lazy(() => import("./pages/WebcamFrameOverlay"));
+const StreamPresets = lazy(() => import("./pages/StreamPresets"));
+const KeystrokeTriggers = lazy(() => import("./pages/KeystrokeTriggers"));
+const GTATriggers = lazy(() => import("./pages/GTATriggers"));
+const PresetDetail = lazy(() => import("./pages/PresetDetail"));
+const VideoCamFrameOverlay = lazy(() => import("./pages/VideoCamFrameOverlay"));
+const VideoLabelBarOverlay = lazy(() => import("./pages/VideoLabelBarOverlay"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+const BackgroundsPage = lazy(() => import("./pages/BackgroundsPage"));
+const CoinJarOverlay = lazy(() => import("./pages/CoinJarOverlay"));
+const SpinWheelOverlay = lazy(() => import("./pages/SpinWheelOverlay"));
+const GiftActionsOverlay = lazy(() => import("./pages/GiftActionsOverlay"));
+const BattleRoyaleOverlay = lazy(() => import("./pages/BattleRoyaleOverlay"));
+const SlotMachineOverlay = lazy(() => import("./pages/SlotMachineOverlay"));
+const VoteBattleOverlay = lazy(() => import("./pages/VoteBattleOverlay"));
+const ProgressRaceOverlay = lazy(() => import("./pages/ProgressRaceOverlay"));
+const AgencyDashboard = lazy(() => import("./pages/AgencyDashboard"));
+const AgencyCreate = lazy(() => import("./pages/AgencyCreate"));
+const AgencyDetail = lazy(() => import("./pages/AgencyDetail"));
+const EnterpriseDashboard = lazy(() => import("./pages/EnterpriseDashboard"));
+const StreamBuddies = lazy(() => import("./pages/StreamBuddies"));
+const PacManOverlay = lazy(() => import("./pages/PacManOverlay"));
+const DownloadPage = lazy(() => import("./pages/DownloadPage"));
+const NeonEventListOverlay = lazy(() => import("./pages/NeonEventListOverlay"));
+const GlowAlertPopupOverlay = lazy(() => import("./pages/GlowAlertPopupOverlay"));
+const CircularProfileWidgetOverlay = lazy(() => import("./pages/CircularProfileWidgetOverlay"));
+const ElectricGiftAlertOverlay = lazy(() => import("./pages/ElectricGiftAlertOverlay"));
 
-import StreamPresets from "./pages/StreamPresets";
-import KeystrokeTriggers from "./pages/KeystrokeTriggers";
-import GTATriggers from "./pages/GTATriggers";
-import PresetDetail from "./pages/PresetDetail";
-import VideoCamFrameOverlay from "./pages/VideoCamFrameOverlay";
-import VideoLabelBarOverlay from "./pages/VideoLabelBarOverlay";
-import NotFound from "./pages/NotFound";
-import BackgroundsPage from "./pages/BackgroundsPage";
-import CoinJarOverlay from "./pages/CoinJarOverlay";
-import CoinJarRenderer from "./pages/renderers/CoinJarRenderer";
-import SpinWheelOverlay from "./pages/SpinWheelOverlay";
-import SpinWheelRenderer from "./pages/renderers/SpinWheelRenderer";
-import GiftActionsOverlay from "./pages/GiftActionsOverlay";
-import GiftActionsRenderer from "./pages/renderers/GiftActionsRenderer";
-import BattleRoyaleOverlay from "./pages/BattleRoyaleOverlay";
-import BattleRoyaleRenderer from "./pages/renderers/BattleRoyaleRenderer";
-import SlotMachineOverlay from "./pages/SlotMachineOverlay";
-import SlotMachineRenderer from "./pages/renderers/SlotMachineRenderer";
-import VoteBattleOverlay from "./pages/VoteBattleOverlay";
-import VoteBattleRenderer from "./pages/renderers/VoteBattleRenderer";
-import ProgressRaceOverlay from "./pages/ProgressRaceOverlay";
-import ProgressRaceRenderer from "./pages/renderers/ProgressRaceRenderer";
-import VideoCamFrameRenderer from "./pages/renderers/VideoCamFrameRenderer";
-import VideoLabelBarRenderer from "./pages/renderers/VideoLabelBarRenderer";
-import AgencyDashboard from "./pages/AgencyDashboard";
-import AgencyCreate from "./pages/AgencyCreate";
-import AgencyDetail from "./pages/AgencyDetail";
-import EnterpriseDashboard from "./pages/EnterpriseDashboard";
-import StreamBuddies from "./pages/StreamBuddies";
-import StreamBuddiesRenderer from "./pages/renderers/StreamBuddiesRenderer";
-import PacManOverlay from "./pages/PacManOverlay";
-import PacManRenderer from "./pages/renderers/PacManRenderer";
-import DownloadPage from "./pages/DownloadPage";
-import NeonEventListOverlay from "./pages/NeonEventListOverlay";
-import GlowAlertPopupOverlay from "./pages/GlowAlertPopupOverlay";
-import CircularProfileWidgetOverlay from "./pages/CircularProfileWidgetOverlay";
-import ElectricGiftAlertOverlay from "./pages/ElectricGiftAlertOverlay";
-import NeonEventListRenderer from "./pages/renderers/NeonEventListRenderer";
-import GlowAlertPopupRenderer from "./pages/renderers/GlowAlertPopupRenderer";
-import CircularProfileWidgetRenderer from "./pages/renderers/CircularProfileWidgetRenderer";
-import ElectricGiftAlertRenderer from "./pages/renderers/ElectricGiftAlertRenderer";
+// ── Lazy renderer imports ───────────────────────────────────
+const GiftAlertRenderer = lazy(() => import("./pages/renderers/GiftAlertRenderer"));
+const ChatBoxRenderer = lazy(() => import("./pages/renderers/ChatBoxRenderer"));
+const LikeAlertRenderer = lazy(() => import("./pages/renderers/LikeAlertRenderer"));
+const FollowAlertRenderer = lazy(() => import("./pages/renderers/FollowAlertRenderer"));
+const ShareAlertRenderer = lazy(() => import("./pages/renderers/ShareAlertRenderer"));
+const LikeCounterRenderer = lazy(() => import("./pages/renderers/LikeCounterRenderer"));
+const FollowerGoalRenderer = lazy(() => import("./pages/renderers/FollowerGoalRenderer"));
+const ViewerCountRenderer = lazy(() => import("./pages/renderers/ViewerCountRenderer"));
+const LeaderboardRenderer = lazy(() => import("./pages/renderers/LeaderboardRenderer"));
+const StreamTimerRenderer = lazy(() => import("./pages/renderers/StreamTimerRenderer"));
+const CustomTextRenderer = lazy(() => import("./pages/renderers/CustomTextRenderer"));
+const TTSRenderer = lazy(() => import("./pages/renderers/TTSRenderer"));
+const GiftComboRenderer = lazy(() => import("./pages/renderers/GiftComboRenderer"));
+const TickerRenderer = lazy(() => import("./pages/renderers/TickerRenderer"));
+const AnimatedBgRenderer = lazy(() => import("./pages/renderers/AnimatedBgRenderer"));
+const SoundReactiveRenderer = lazy(() => import("./pages/renderers/SoundReactiveRenderer"));
+const SocialRotatorRenderer = lazy(() => import("./pages/renderers/SocialRotatorRenderer"));
+const GiftFireworkRenderer = lazy(() => import("./pages/renderers/GiftFireworkRenderer"));
+const PromoOverlayRenderer = lazy(() => import("./pages/renderers/PromoOverlayRenderer"));
+const StreamBorderRenderer = lazy(() => import("./pages/renderers/StreamBorderRenderer"));
+const WebcamFrameRenderer = lazy(() => import("./pages/renderers/WebcamFrameRenderer"));
+const EventFeedRenderer = lazy(() => import("./pages/renderers/EventFeedRenderer"));
+const BackgroundRenderer = lazy(() => import("./pages/renderers/BackgroundRenderer"));
+const CoinJarRenderer = lazy(() => import("./pages/renderers/CoinJarRenderer"));
+const SpinWheelRenderer = lazy(() => import("./pages/renderers/SpinWheelRenderer"));
+const GiftActionsRenderer = lazy(() => import("./pages/renderers/GiftActionsRenderer"));
+const BattleRoyaleRenderer = lazy(() => import("./pages/renderers/BattleRoyaleRenderer"));
+const SlotMachineRenderer = lazy(() => import("./pages/renderers/SlotMachineRenderer"));
+const VoteBattleRenderer = lazy(() => import("./pages/renderers/VoteBattleRenderer"));
+const ProgressRaceRenderer = lazy(() => import("./pages/renderers/ProgressRaceRenderer"));
+const VideoCamFrameRenderer = lazy(() => import("./pages/renderers/VideoCamFrameRenderer"));
+const VideoLabelBarRenderer = lazy(() => import("./pages/renderers/VideoLabelBarRenderer"));
+const StreamBuddiesRenderer = lazy(() => import("./pages/renderers/StreamBuddiesRenderer"));
+const PacManRenderer = lazy(() => import("./pages/renderers/PacManRenderer"));
+const NeonEventListRenderer = lazy(() => import("./pages/renderers/NeonEventListRenderer"));
+const GlowAlertPopupRenderer = lazy(() => import("./pages/renderers/GlowAlertPopupRenderer"));
+const CircularProfileWidgetRenderer = lazy(() => import("./pages/renderers/CircularProfileWidgetRenderer"));
+const ElectricGiftAlertRenderer = lazy(() => import("./pages/renderers/ElectricGiftAlertRenderer"));
+
+// ── Suspense fallback (invisible — overlays must not flash) ─
+const Fallback = () => null;
 
 const queryClient = new QueryClient();
 
@@ -126,6 +131,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <Suspense fallback={<Fallback />}>
         <Routes>
           {/* Public overlay renderer routes - NO auth provider, no login required */}
           <Route path="/screen/:publicToken" element={<ScreenRenderer />} />
@@ -174,6 +180,7 @@ const App = () => (
           <Route path="/*" element={
             <AuthProvider>
               <TikTokLiveProvider>
+              <Suspense fallback={<Fallback />}>
               <Routes>
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/download" element={<DownloadPage />} />
@@ -198,7 +205,6 @@ const App = () => (
                 <Route path="/sound-alerts" element={<Navigate to="/actions" replace />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/points" element={<Points />} />
-                
                 <Route path="/chat-commands" element={<ChatCommands />} />
                 <Route path="/auto-moderation" element={<AutoModeration />} />
                 <Route path="/recent-activity" element={<RecentActivity />} />
@@ -246,10 +252,12 @@ const App = () => (
                 <Route path="/enterprise" element={<EnterpriseDashboard />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
+              </Suspense>
               </TikTokLiveProvider>
             </AuthProvider>
           } />
         </Routes>
+        </Suspense>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

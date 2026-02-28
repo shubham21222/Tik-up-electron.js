@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TikTokLiveProvider } from "@/hooks/use-tiktok-live-context";
+import ProtectedRoute from "@/components/ProtectedRoute";
 
 // ── Lazy page imports ───────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -122,6 +123,9 @@ const ElectricGiftAlertRenderer = lazy(() => import("./pages/renderers/ElectricG
 // ── Suspense fallback (invisible — overlays must not flash) ─
 const Fallback = () => null;
 
+// Helper to wrap protected routes
+const P = ({ children }: { children: React.ReactNode }) => <ProtectedRoute>{children}</ProtectedRoute>;
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -185,71 +189,71 @@ const App = () => (
                 <Route path="/" element={<LandingPage />} />
                 <Route path="/download" element={<DownloadPage />} />
                 <Route path="/auth" element={<Auth />} />
-                <Route path="/dashboard" element={<Index />} />
-                <Route path="/setup" element={<Setup />} />
-                <Route path="/overlays" element={<Overlays />} />
-                <Route path="/goal-overlays" element={<GoalOverlays />} />
-                <Route path="/gift-alerts" element={<GiftAlertOverlay />} />
-                <Route path="/chat-overlay" element={<ChatBoxOverlay />} />
-                <Route path="/like-alerts" element={<LikeAlertOverlay />} />
-                <Route path="/follow-alerts" element={<FollowAlertOverlay />} />
-                <Route path="/share-alerts" element={<ShareAlertOverlay />} />
-                <Route path="/like-counter" element={<LikeCounterOverlay />} />
-                <Route path="/follower-goal" element={<FollowerGoalOverlay />} />
-                <Route path="/viewer-count" element={<ViewerCountOverlay />} />
-                <Route path="/leaderboard" element={<LeaderboardOverlay />} />
-                <Route path="/stream-timer" element={<StreamTimerOverlay />} />
-                <Route path="/custom-text" element={<CustomTextOverlay />} />
-                <Route path="/actions" element={<Actions />} />
-                <Route path="/sounds" element={<Sounds />} />
+                <Route path="/dashboard" element={<P><Index /></P>} />
+                <Route path="/setup" element={<P><Setup /></P>} />
+                <Route path="/overlays" element={<P><Overlays /></P>} />
+                <Route path="/goal-overlays" element={<P><GoalOverlays /></P>} />
+                <Route path="/gift-alerts" element={<P><GiftAlertOverlay /></P>} />
+                <Route path="/chat-overlay" element={<P><ChatBoxOverlay /></P>} />
+                <Route path="/like-alerts" element={<P><LikeAlertOverlay /></P>} />
+                <Route path="/follow-alerts" element={<P><FollowAlertOverlay /></P>} />
+                <Route path="/share-alerts" element={<P><ShareAlertOverlay /></P>} />
+                <Route path="/like-counter" element={<P><LikeCounterOverlay /></P>} />
+                <Route path="/follower-goal" element={<P><FollowerGoalOverlay /></P>} />
+                <Route path="/viewer-count" element={<P><ViewerCountOverlay /></P>} />
+                <Route path="/leaderboard" element={<P><LeaderboardOverlay /></P>} />
+                <Route path="/stream-timer" element={<P><StreamTimerOverlay /></P>} />
+                <Route path="/custom-text" element={<P><CustomTextOverlay /></P>} />
+                <Route path="/actions" element={<P><Actions /></P>} />
+                <Route path="/sounds" element={<P><Sounds /></P>} />
                 <Route path="/sound-alerts" element={<Navigate to="/actions" replace />} />
-                <Route path="/chat" element={<Chat />} />
-                <Route path="/points" element={<Points />} />
-                <Route path="/chat-commands" element={<ChatCommands />} />
-                <Route path="/auto-moderation" element={<AutoModeration />} />
-                <Route path="/recent-activity" element={<RecentActivity />} />
-                <Route path="/widgets" element={<Widgets />} />
-                <Route path="/integrations" element={<Integrations />} />
-                <Route path="/brand-settings" element={<BrandSettings />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/song" element={<Song />} />
-                <Route path="/tools" element={<Tools />} />
-                <Route path="/pro" element={<Pro />} />
-                <Route path="/tts" element={<TTSOverlayPage />} />
-                <Route path="/gift-combo" element={<GiftComboOverlay />} />
-                <Route path="/ticker" element={<TickerOverlay />} />
-                <Route path="/animated-bg" element={<AnimatedBgOverlay />} />
-                <Route path="/sound-reactive" element={<SoundReactiveOverlay />} />
-                <Route path="/social-rotator" element={<SocialRotatorOverlay />} />
-                <Route path="/gift-firework" element={<GiftFireworkOverlay />} />
-                <Route path="/promo-overlay" element={<PromoOverlay />} />
-                <Route path="/stream-border" element={<StreamBorderOverlay />} />
-                <Route path="/webcam-frame" element={<WebcamFrameOverlay />} />
+                <Route path="/chat" element={<P><Chat /></P>} />
+                <Route path="/points" element={<P><Points /></P>} />
+                <Route path="/chat-commands" element={<P><ChatCommands /></P>} />
+                <Route path="/auto-moderation" element={<P><AutoModeration /></P>} />
+                <Route path="/recent-activity" element={<P><RecentActivity /></P>} />
+                <Route path="/widgets" element={<P><Widgets /></P>} />
+                <Route path="/integrations" element={<P><Integrations /></P>} />
+                <Route path="/brand-settings" element={<P><BrandSettings /></P>} />
+                <Route path="/admin" element={<P><Admin /></P>} />
+                <Route path="/song" element={<P><Song /></P>} />
+                <Route path="/tools" element={<P><Tools /></P>} />
+                <Route path="/pro" element={<P><Pro /></P>} />
+                <Route path="/tts" element={<P><TTSOverlayPage /></P>} />
+                <Route path="/gift-combo" element={<P><GiftComboOverlay /></P>} />
+                <Route path="/ticker" element={<P><TickerOverlay /></P>} />
+                <Route path="/animated-bg" element={<P><AnimatedBgOverlay /></P>} />
+                <Route path="/sound-reactive" element={<P><SoundReactiveOverlay /></P>} />
+                <Route path="/social-rotator" element={<P><SocialRotatorOverlay /></P>} />
+                <Route path="/gift-firework" element={<P><GiftFireworkOverlay /></P>} />
+                <Route path="/promo-overlay" element={<P><PromoOverlay /></P>} />
+                <Route path="/stream-border" element={<P><StreamBorderOverlay /></P>} />
+                <Route path="/webcam-frame" element={<P><WebcamFrameOverlay /></P>} />
                 <Route path="/gift-browser" element={<Navigate to="/actions" replace />} />
-                <Route path="/keystroke-triggers" element={<KeystrokeTriggers />} />
-                <Route path="/gta-triggers" element={<GTATriggers />} />
-                <Route path="/presets" element={<StreamPresets />} />
-                <Route path="/presets/:presetId" element={<PresetDetail />} />
-                <Route path="/video-cam-frame" element={<VideoCamFrameOverlay />} />
-                <Route path="/video-label-bar" element={<VideoLabelBarOverlay />} />
-                <Route path="/backgrounds" element={<BackgroundsPage />} />
-                <Route path="/coin-jar" element={<CoinJarOverlay />} />
-                <Route path="/spin-wheel" element={<SpinWheelOverlay />} />
-                <Route path="/gift-actions" element={<GiftActionsOverlay />} />
-                <Route path="/battle-royale" element={<BattleRoyaleOverlay />} />
-                <Route path="/slot-machine" element={<SlotMachineOverlay />} />
-                <Route path="/vote-battle" element={<VoteBattleOverlay />} />
-                <Route path="/progress-race" element={<ProgressRaceOverlay />} />
-                <Route path="/agencies" element={<AgencyDashboard />} />
-                <Route path="/agency/new" element={<AgencyCreate />} />
-                <Route path="/agency/:id" element={<AgencyDetail />} />
-                <Route path="/stream-buddies" element={<StreamBuddies />} />
-                <Route path="/pacman" element={<PacManOverlay />} />
-                <Route path="/neon-event-list" element={<NeonEventListOverlay />} />
-                <Route path="/glow-alert-popup" element={<GlowAlertPopupOverlay />} />
-                <Route path="/circular-profile-widget" element={<CircularProfileWidgetOverlay />} />
-                <Route path="/electric-gift-alert" element={<ElectricGiftAlertOverlay />} />
-                <Route path="/enterprise" element={<EnterpriseDashboard />} />
+                <Route path="/keystroke-triggers" element={<P><KeystrokeTriggers /></P>} />
+                <Route path="/gta-triggers" element={<P><GTATriggers /></P>} />
+                <Route path="/presets" element={<P><StreamPresets /></P>} />
+                <Route path="/presets/:presetId" element={<P><PresetDetail /></P>} />
+                <Route path="/video-cam-frame" element={<P><VideoCamFrameOverlay /></P>} />
+                <Route path="/video-label-bar" element={<P><VideoLabelBarOverlay /></P>} />
+                <Route path="/backgrounds" element={<P><BackgroundsPage /></P>} />
+                <Route path="/coin-jar" element={<P><CoinJarOverlay /></P>} />
+                <Route path="/spin-wheel" element={<P><SpinWheelOverlay /></P>} />
+                <Route path="/gift-actions" element={<P><GiftActionsOverlay /></P>} />
+                <Route path="/battle-royale" element={<P><BattleRoyaleOverlay /></P>} />
+                <Route path="/slot-machine" element={<P><SlotMachineOverlay /></P>} />
+                <Route path="/vote-battle" element={<P><VoteBattleOverlay /></P>} />
+                <Route path="/progress-race" element={<P><ProgressRaceOverlay /></P>} />
+                <Route path="/agencies" element={<P><AgencyDashboard /></P>} />
+                <Route path="/agency/new" element={<P><AgencyCreate /></P>} />
+                <Route path="/agency/:id" element={<P><AgencyDetail /></P>} />
+                <Route path="/stream-buddies" element={<P><StreamBuddies /></P>} />
+                <Route path="/pacman" element={<P><PacManOverlay /></P>} />
+                <Route path="/neon-event-list" element={<P><NeonEventListOverlay /></P>} />
+                <Route path="/glow-alert-popup" element={<P><GlowAlertPopupOverlay /></P>} />
+                <Route path="/circular-profile-widget" element={<P><CircularProfileWidgetOverlay /></P>} />
+                <Route path="/electric-gift-alert" element={<P><ElectricGiftAlertOverlay /></P>} />
+                <Route path="/enterprise" element={<P><EnterpriseDashboard /></P>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
               </Suspense>

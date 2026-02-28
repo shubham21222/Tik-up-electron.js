@@ -274,8 +274,8 @@ const LandingPage = () => {
               to="/auth"
               className="h-9 px-5 text-[13px] font-semibold tracking-wide text-primary-foreground flex items-center gap-1.5 rounded-lg bg-primary hover:brightness-110 transition-all duration-200 whitespace-nowrap"
             >
-              Sign Up
               <ArrowRight size={13} strokeWidth={2.5} />
+              Sign Up
             </Link>
           </div>
         </div>

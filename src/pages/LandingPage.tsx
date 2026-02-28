@@ -282,7 +282,7 @@ const LandingPage = () => {
       </motion.nav>
 
       {/* ── Hero Section ── */}
-      <section className="relative pt-24 pb-16 px-6 overflow-hidden min-h-[85vh] flex items-center">
+      <section className="relative pt-20 pb-16 px-6 overflow-hidden min-h-[85vh] flex items-center">
         <GridPattern />
         <FloatingParticles />
 

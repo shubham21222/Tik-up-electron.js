@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultSocialRotatorSettings } from "@/hooks/overlay-defaults";
-import useOverlayBody from "@/hooks/use-overlay-body";
 import SocialPlatformIcon from "@/components/overlays/SocialPlatformIcon";
 
 const defaultSocials = [
@@ -15,28 +14,9 @@ const defaultSocials = [
   { id: "kick", icon: "kick", label: "Kick", handle: "kick.com/streamer", color: "101 100% 45%" },
 ];
 
-
 const SocialRotatorRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaultSocialRotatorSettings);
+  const { settings } = useRendererSettings(defaultSocialRotatorSettings, "social-rotator");
   const [index, setIndex] = useState(0);
-  const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).maybeSingle()
-      .then(({ data }) => { if (data) setSettings({ ...defaultSocialRotatorSettings, ...(data as any).settings }); });
-  }, [publicToken]);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    const db = supabase.channel(`social-rotator-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaultSocialRotatorSettings, ...p.new.settings }); })
-      .subscribe(s => setConnected(s === "SUBSCRIBED"));
-    return () => { supabase.removeChannel(db); };
-  }, [publicToken]);
 
   const socials = (settings.social_links?.length ? settings.social_links : defaultSocials).filter((s: any) => s.handle);
 
@@ -56,7 +36,6 @@ const SocialRotatorRenderer = () => {
 
   return (
     <div className={`w-screen h-screen overflow-hidden flex items-center justify-center ${settings.transparent_bg ? "bg-transparent" : "bg-black"}`}>
-      <div className="absolute top-2 right-2 opacity-20"><div className={`w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`} /></div>
       <AnimatePresence mode="wait">
         <motion.div
           key={index}

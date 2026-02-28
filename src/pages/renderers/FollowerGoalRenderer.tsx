@@ -1,22 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultFollowerGoalSettings } from "@/hooks/overlay-defaults";
-import useOverlayBody from "@/hooks/use-overlay-body";
 
 const FollowerGoalRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaultFollowerGoalSettings);
+  const { settings, publicToken } = useRendererSettings(defaultFollowerGoalSettings, "follower-goal");
   const [current, setCurrent] = useState(0);
   const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).maybeSingle()
-      .then(({ data }) => { if (data) setSettings({ ...defaultFollowerGoalSettings, ...(data as any).settings }); });
-  }, [publicToken]);
 
   useEffect(() => {
     if (!publicToken) return;
@@ -28,11 +19,7 @@ const FollowerGoalRenderer = () => {
       })
       .on("broadcast", { event: "test_alert" }, () => setCurrent(prev => prev + 10))
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
-    const db = supabase.channel(`follower-goal-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaultFollowerGoalSettings, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
+    return () => { supabase.removeChannel(ch); };
   }, [publicToken]);
 
   const target = settings.target_value || 1000;
@@ -47,7 +34,6 @@ const FollowerGoalRenderer = () => {
         <motion.div className="h-full rounded-full" animate={{ width: `${pct}%` }} style={{ background: `hsl(${accent})`, boxShadow: `0 0 15px hsl(${accent} / 0.3)` }} transition={{ duration: 1 }} />
       </div>
       {settings.show_percentage && <p className="text-xs text-white/50 mt-2">{current} / {target} ({Math.round(pct)}%)</p>}
-      
     </div>
   );
 };

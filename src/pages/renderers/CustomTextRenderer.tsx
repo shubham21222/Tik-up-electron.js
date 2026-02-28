@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultCustomTextSettings } from "@/hooks/overlay-defaults";
-import useOverlayBody from "@/hooks/use-overlay-body";
 
 const mockVars: Record<string, string> = {
   "{viewer_count}": "0",
@@ -14,28 +13,16 @@ const mockVars: Record<string, string> = {
 };
 
 const CustomTextRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaultCustomTextSettings);
+  const { settings, publicToken } = useRendererSettings(defaultCustomTextSettings, "text");
   const [vars, setVars] = useState(mockVars);
   const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).maybeSingle()
-      .then(({ data }) => { if (data) setSettings({ ...defaultCustomTextSettings, ...(data as any).settings }); });
-  }, [publicToken]);
 
   useEffect(() => {
     if (!publicToken) return;
     const ch = supabase.channel(`custom-text-${publicToken}`)
       .on("broadcast", { event: "var_update" }, (msg) => { if (msg.payload) setVars(prev => ({ ...prev, ...msg.payload })); })
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
-    const db = supabase.channel(`text-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaultCustomTextSettings, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
+    return () => { supabase.removeChannel(ch); };
   }, [publicToken]);
 
   let resolved = settings.text_content || "";
@@ -64,7 +51,6 @@ const CustomTextRenderer = () => {
         {...(settings.animated_gradient ? { animate: { backgroundPosition: ["0% 50%", "200% 50%"] }, transition: { duration: settings.gradient_speed || 3, repeat: Infinity, ease: "linear" } } : {})}>
         {resolved}
       </motion.p>
-      
     </div>
   );
 };

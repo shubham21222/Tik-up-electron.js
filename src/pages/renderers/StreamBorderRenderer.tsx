@@ -1,9 +1,6 @@
-import { useEffect, useState, useMemo } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
-import useOverlayBody from "@/hooks/use-overlay-body";
-import { applyUrlOverrides } from "@/lib/overlay-params";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 
 const defaults = {
   border_style: "neon_pulse",
@@ -24,24 +21,7 @@ const P = ({ d, x, y, c }: { d: number; x: string; y: string; c: string }) => (
 );
 
 const StreamBorderRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [s, setS] = useState(defaults);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).single()
-      .then(({ data }) => { if (data) setS(applyUrlOverrides({ ...defaults, ...(data as any).settings }) as typeof defaults); });
-  }, [publicToken]);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    const ch = supabase.channel(`border-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setS({ ...defaults, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [publicToken]);
+  const { settings: s } = useRendererSettings(defaults, "border");
 
   const t = s.border_thickness;
   const dur = 3 / s.animation_speed;

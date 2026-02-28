@@ -1,23 +1,14 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultStreamTimerSettings } from "@/hooks/overlay-defaults";
-import useOverlayBody from "@/hooks/use-overlay-body";
 
 const StreamTimerRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaultStreamTimerSettings);
+  const { settings, publicToken } = useRendererSettings(defaultStreamTimerSettings, "timer");
   const [seconds, setSeconds] = useState(0);
   const [running, setRunning] = useState(true);
   const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).maybeSingle()
-      .then(({ data }) => { if (data) setSettings({ ...defaultStreamTimerSettings, ...(data as any).settings }); });
-  }, [publicToken]);
 
   useEffect(() => {
     if (!publicToken) return;
@@ -29,11 +20,7 @@ const StreamTimerRenderer = () => {
       })
       .on("broadcast", { event: "test_alert" }, () => setSeconds(3600))
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
-    const db = supabase.channel(`timer-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaultStreamTimerSettings, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
+    return () => { supabase.removeChannel(ch); };
   }, [publicToken]);
 
   useEffect(() => {
@@ -61,7 +48,6 @@ const StreamTimerRenderer = () => {
         </motion.div>
       )}
       <span className={`font-black text-white ${fontClass}`} style={{ fontSize: settings.font_size, textShadow: settings.glow_animation ? `0 0 ${15 * glow}px hsl(${accent} / 0.3)` : "none" }}>{timeStr}</span>
-      
     </div>
   );
 };

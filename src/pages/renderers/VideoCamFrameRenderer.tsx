@@ -1,31 +1,8 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import useOverlayBody from "@/hooks/use-overlay-body";
-import { applyUrlOverrides } from "@/lib/overlay-params";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultVideoCamFrameSettings } from "@/hooks/overlay-defaults";
 
 const VideoCamFrameRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [s, setS] = useState(defaultVideoCamFrameSettings);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).single()
-      .then(({ data }) => {
-        if (data) setS(applyUrlOverrides({ ...defaultVideoCamFrameSettings, ...(data as any).settings }) as typeof defaultVideoCamFrameSettings);
-      });
-  }, [publicToken]);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    const ch = supabase.channel(`vcf-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setS({ ...defaultVideoCamFrameSettings, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [publicToken]);
+  const { settings: s } = useRendererSettings(defaultVideoCamFrameSettings, "vcf");
 
   const scale = (s.scale || 100) / 100;
   const opacity = (s.opacity || 100) / 100;
@@ -49,10 +26,7 @@ const VideoCamFrameRenderer = () => {
       <div className="absolute" style={{ ...pos, transform: pos.transform || transformStyle, opacity }}>
         <video
           src="/overlays/cam-frame.webm"
-          autoPlay
-          loop
-          muted
-          playsInline
+          autoPlay loop muted playsInline
           className="w-[300px] h-[300px] object-contain"
           style={{
             mixBlendMode: "screen",
@@ -61,7 +35,6 @@ const VideoCamFrameRenderer = () => {
           ref={(el) => { if (el) el.playbackRate = speed; }}
         />
       </div>
-      
     </div>
   );
 };

@@ -1,51 +1,17 @@
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
-import useOverlayBody from "@/hooks/use-overlay-body";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
+import { defaultPromoOverlaySettings } from "@/hooks/overlay-defaults";
 import tikupLogo from "@/assets/tikup_logo.png";
 
-const defaults = {
-  logo_size: 140,
-  tagline: "Follow for more!",
-  handle: "@tikup",
-  show_handle: true,
-  accent_color: "160 100% 45%",
-  glow_intensity: 60,
-  animation_style: "pulse",
-  show_rings: false,
-  transparent_bg: true,
-  custom_css: "",
-};
-
 const PromoOverlayRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaults);
+  const { settings: s } = useRendererSettings(defaultPromoOverlaySettings, "promo");
 
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).single()
-      .then(({ data }) => { if (data) setSettings({ ...defaults, ...(data as any).settings }); });
-  }, [publicToken]);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    const ch = supabase.channel(`promo-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaults, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, [publicToken]);
-
-  const s = settings;
   const accent = s.accent_color;
   const glow = s.glow_intensity / 100;
   const logoSize = s.logo_size;
 
   return (
     <div className={`w-screen h-screen overflow-hidden flex items-center justify-center ${s.transparent_bg ? "bg-transparent" : "bg-black"}`}>
-      {/* Banner card — wide rectangle */}
       <motion.div
         className="relative flex flex-col items-center gap-5 rounded-3xl overflow-hidden"
         style={{
@@ -59,11 +25,9 @@ const PromoOverlayRenderer = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
       >
-        {/* Top accent line */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[50%] h-[2px]"
           style={{ background: `linear-gradient(90deg, transparent, hsl(${accent} / 0.5), transparent)` }} />
 
-        {/* Logo */}
         <motion.div
           className="rounded-full flex items-center justify-center overflow-hidden"
           style={{
@@ -88,34 +52,23 @@ const PromoOverlayRenderer = () => {
           <img src={tikupLogo} alt="TikUp" style={{ width: "62%", height: "62%", objectFit: "contain" }} />
         </motion.div>
 
-        {/* Tagline */}
-        <motion.p
-          className="text-2xl font-bold text-white text-center tracking-tight"
-          initial={{ opacity: 0, y: 8 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-        >
+        <motion.p className="text-2xl font-bold text-white text-center tracking-tight"
+          initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           {s.tagline}
         </motion.p>
 
-        {/* Handle */}
         {s.show_handle && (
-          <motion.p
-            className="text-lg font-semibold text-center tracking-wider"
+          <motion.p className="text-lg font-semibold text-center tracking-wider"
             style={{ color: `hsl(${accent})` }}
             animate={{ opacity: [0.6, 1, 0.6] }}
-            transition={{ duration: 2.5, repeat: Infinity }}
-          >
+            transition={{ duration: 2.5, repeat: Infinity }}>
             {s.handle}
           </motion.p>
         )}
 
-        {/* Bottom accent line */}
         <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[35%] h-[2px]"
           style={{ background: `linear-gradient(90deg, transparent, hsl(${accent} / 0.4), transparent)` }} />
       </motion.div>
-
-      
     </div>
   );
 };

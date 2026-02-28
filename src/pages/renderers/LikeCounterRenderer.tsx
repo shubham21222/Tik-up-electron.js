@@ -1,22 +1,13 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultLikeCounterSettings } from "@/hooks/overlay-defaults";
-import useOverlayBody from "@/hooks/use-overlay-body";
 
 const LikeCounterRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaultLikeCounterSettings);
+  const { settings, publicToken } = useRendererSettings(defaultLikeCounterSettings, "like-counter");
   const [count, setCount] = useState(0);
   const [connected, setConnected] = useState(false);
-
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).maybeSingle()
-      .then(({ data }) => { if (data) setSettings({ ...defaultLikeCounterSettings, ...(data as any).settings }); });
-  }, [publicToken]);
 
   useEffect(() => {
     if (!publicToken) return;
@@ -28,11 +19,7 @@ const LikeCounterRenderer = () => {
       })
       .on("broadcast", { event: "test_alert" }, () => setCount(prev => prev + 42))
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
-    const db = supabase.channel(`like-counter-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaultLikeCounterSettings, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
+    return () => { supabase.removeChannel(ch); };
   }, [publicToken]);
 
   const mode = settings.display_mode || "numeric";

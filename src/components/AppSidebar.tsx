@@ -1,3 +1,4 @@
+import React from "react";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -131,7 +132,7 @@ function buildFilteredSections(
 }
 
 /* ── Nav item component ── */
-const SidebarNavItem = ({
+const SidebarNavItem = React.memo(({
   item,
   isActive,
   isCollapsed,
@@ -237,7 +238,7 @@ const SidebarNavItem = ({
       )}
     </Link>
   );
-};
+}));
 
 /* ── Section group component ── */
 const SidebarSectionGroup = ({

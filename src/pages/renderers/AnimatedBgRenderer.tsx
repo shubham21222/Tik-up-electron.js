@@ -1,34 +1,22 @@
 import { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultAnimatedBgSettings } from "@/hooks/overlay-defaults";
-import useOverlayBody from "@/hooks/use-overlay-body";
 
 interface Particle { id: number; x: number; y: number; size: number; delay: number; duration: number; }
 
 const AnimatedBgRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaultAnimatedBgSettings);
+  const { settings, publicToken } = useRendererSettings(defaultAnimatedBgSettings, "bg");
   const [connected, setConnected] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).single()
-      .then(({ data }) => { if (data) setSettings({ ...defaultAnimatedBgSettings, ...(data as any).settings }); });
-  }, [publicToken]);
-
+  // Broadcast channel (for event reactivity)
   useEffect(() => {
     if (!publicToken) return;
     const ch = supabase.channel(`animated_bg-${publicToken}`)
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
-    const db = supabase.channel(`bg-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaultAnimatedBgSettings, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
+    return () => { supabase.removeChannel(ch); };
   }, [publicToken]);
 
   // Canvas-based grid and wave rendering
@@ -66,7 +54,6 @@ const AnimatedBgRenderer = () => {
           ctx.lineTo(canvas.width, y);
           ctx.stroke();
         }
-        // Intersection dots
         ctx.fillStyle = `hsla(${settings.color_2}, ${settings.opacity * 0.5})`;
         for (let x = 0; x < canvas.width; x += gridSize) {
           for (let y = 0; y < canvas.height; y += gridSize) {
@@ -101,7 +88,6 @@ const AnimatedBgRenderer = () => {
     return () => cancelAnimationFrame(animFrame);
   }, [settings]);
 
-  // Generate particles
   const particles: Particle[] = settings.bg_type === "particles"
     ? Array.from({ length: settings.particle_count || 50 }, (_, i) => ({
         id: i,
@@ -124,14 +110,10 @@ const AnimatedBgRenderer = () => {
         <div className={`w-2 h-2 rounded-full ${connected ? "bg-green-500" : "bg-red-500"}`} />
       </div>
 
-      {/* Gradient type */}
       {settings.bg_type === "gradient" && (
         <motion.div
           className="absolute inset-0"
-          style={{
-            opacity: settings.opacity,
-            filter: settings.blur_amount ? `blur(${settings.blur_amount}px)` : undefined,
-          }}
+          style={{ opacity: settings.opacity, filter: settings.blur_amount ? `blur(${settings.blur_amount}px)` : undefined }}
           animate={{
             background: [
               `linear-gradient(0deg, hsl(${c1} / 0.6), hsl(${c2} / 0.3), hsl(${c3} / 0.6))`,
@@ -144,7 +126,6 @@ const AnimatedBgRenderer = () => {
         />
       )}
 
-      {/* Aurora type */}
       {settings.bg_type === "aurora" && (
         <div className="absolute inset-0" style={{ opacity: settings.opacity }}>
           {[c1, c2, c3].map((color, i) => (
@@ -154,8 +135,7 @@ const AnimatedBgRenderer = () => {
               style={{
                 width: "150%", height: "60%",
                 background: `radial-gradient(ellipse, hsl(${color} / 0.3), transparent 60%)`,
-                filter: "blur(60px)",
-                left: "-25%",
+                filter: "blur(60px)", left: "-25%",
               }}
               animate={{
                 top: [`${20 + i * 10}%`, `${30 + i * 10}%`, `${20 + i * 10}%`],
@@ -168,7 +148,6 @@ const AnimatedBgRenderer = () => {
         </div>
       )}
 
-      {/* Particles type */}
       {settings.bg_type === "particles" && (
         <div className="absolute inset-0" style={{ opacity: settings.opacity }}>
           {particles.map(p => (
@@ -181,23 +160,16 @@ const AnimatedBgRenderer = () => {
                 background: `hsl(${[c1, c2, c3][p.id % 3]})`,
                 boxShadow: `0 0 ${p.size * 3}px hsl(${[c1, c2, c3][p.id % 3]} / 0.5)`,
               }}
-              animate={{
-                y: [0, -30, 0, 20, 0],
-                x: [0, 15, -10, 5, 0],
-                opacity: [0.3, 0.8, 0.5, 0.9, 0.3],
-              }}
+              animate={{ y: [0, -30, 0, 20, 0], x: [0, 15, -10, 5, 0], opacity: [0.3, 0.8, 0.5, 0.9, 0.3] }}
               transition={{ duration: p.duration / speed, delay: p.delay, repeat: Infinity, ease: "easeInOut" }}
             />
           ))}
         </div>
       )}
 
-      {/* Canvas-based (grid, waves) */}
       {(settings.bg_type === "grid" || settings.bg_type === "waves") && (
         <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" />
       )}
-
-      
     </div>
   );
 };

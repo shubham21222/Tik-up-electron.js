@@ -1,23 +1,15 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { motion } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+import { useRendererSettings } from "@/hooks/use-renderer-settings";
 import { defaultViewerCountSettings } from "@/hooks/overlay-defaults";
-import useOverlayBody from "@/hooks/use-overlay-body";
 
 const ViewerCountRenderer = () => {
-  useOverlayBody();
-  const { publicToken } = useParams();
-  const [settings, setSettings] = useState(defaultViewerCountSettings);
+  const { settings, publicToken } = useRendererSettings(defaultViewerCountSettings, "viewer-count");
   const [count, setCount] = useState(0);
   const [connected, setConnected] = useState(false);
 
-  useEffect(() => {
-    if (!publicToken) return;
-    supabase.from("overlay_widgets" as any).select("settings").eq("public_token", publicToken).maybeSingle()
-      .then(({ data }) => { if (data) setSettings({ ...defaultViewerCountSettings, ...(data as any).settings }); });
-  }, [publicToken]);
-
+  // Broadcast channel for viewer updates
   useEffect(() => {
     if (!publicToken) return;
     const ch = supabase.channel(`viewer-count-${publicToken}`)
@@ -28,11 +20,7 @@ const ViewerCountRenderer = () => {
       })
       .on("broadcast", { event: "test_alert" }, () => setCount(prev => prev + 25))
       .subscribe(s => setConnected(s === "SUBSCRIBED"));
-    const db = supabase.channel(`viewer-db-${publicToken}`)
-      .on("postgres_changes" as any, { event: "UPDATE", schema: "public", table: "overlay_widgets", filter: `public_token=eq.${publicToken}` },
-        (p: any) => { if (p.new?.settings) setSettings({ ...defaultViewerCountSettings, ...p.new.settings }); })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); supabase.removeChannel(db); };
+    return () => { supabase.removeChannel(ch); };
   }, [publicToken]);
 
   const fontClass = settings.font_family === "mono" ? "font-mono" : settings.font_family === "heading" ? "font-heading" : "";
@@ -46,7 +34,6 @@ const ViewerCountRenderer = () => {
         <motion.span className={`font-black text-white ${fontClass}`} style={{ fontSize: settings.font_size }} key={count} initial={{ scale: 1.2 }} animate={{ scale: 1 }}>{count.toLocaleString()}</motion.span>
       </div>
       <p className="absolute mt-12 text-[10px] text-white/40">{settings.label_text || "viewers"}</p>
-      
     </div>
   );
 };

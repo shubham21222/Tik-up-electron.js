@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { devLog, devError } from "@/lib/dev-log";
 
 export type ConnectionStatus = "disconnected" | "connecting" | "connected" | "error" | "not_live";
 
@@ -95,7 +96,7 @@ export function useTikTokLive() {
         }),
       });
     } catch (e) {
-      console.error("Failed to flush event batch to webhook:", e);
+      devError("Failed to flush event batch to webhook:", e);
     }
   }, []);
 
@@ -162,14 +163,14 @@ export function useTikTokLive() {
       // Load gift map for enriching gift events (fire and forget, don't block connect)
       if (Object.keys(giftMapRef.current).length === 0) {
         // We'll load gift map once we have a room_id from roomInfo message
-        console.log("Gift map will load after roomInfo provides room_id");
+        devLog("Gift map will load after roomInfo provides room_id");
       }
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
-        console.log(`WebSocket connected for @${uniqueId}`);
+        devLog(`WebSocket connected for @${uniqueId}`);
       };
 
       ws.onmessage = (event) => {
@@ -210,10 +211,10 @@ export function useTikTokLive() {
                   .then(giftData => {
                     if (giftData?.gifts && Object.keys(giftData.gifts).length > 0) {
                       giftMapRef.current = giftData.gifts;
-                      console.log(`💎 Gift map loaded: ${Object.keys(giftData.gifts).filter((k: string) => !k.startsWith("name:")).length} gifts`);
+                      devLog(`💎 Gift map loaded: ${Object.keys(giftData.gifts).filter((k: string) => !k.startsWith("name:")).length} gifts`);
                     }
                   })
-                  .catch(e => console.error("Failed to load gift map:", e));
+                  .catch(e => devError("Failed to load gift map:", e));
               }
 
               if (ri.liveRoomStats) {
@@ -334,18 +335,18 @@ export function useTikTokLive() {
             }
           }
         } catch (e) {
-          console.error("WS parse error:", e);
+          devError("WS parse error:", e);
         }
       };
 
       ws.onerror = () => {
-        console.error("WebSocket error");
+        devError("WebSocket error");
         setStatus("error");
         setError("Connection error");
       };
 
       ws.onclose = (event) => {
-        console.log(`WebSocket closed: code=${event.code}`);
+        devLog(`WebSocket closed: code=${event.code}`);
         wsRef.current = null;
 
         // Handle close codes (EulerStream ClientCloseCode)

@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { defaultSoundReactiveSettings } from "@/hooks/overlay-defaults";
 import useOverlayBody from "@/hooks/use-overlay-body";
+import { devLog } from "@/lib/dev-log";
 
 const SoundReactiveRenderer = () => {
   useOverlayBody();
@@ -55,7 +56,7 @@ const SoundReactiveRenderer = () => {
       dataArrayRef.current = new Uint8Array(analyser.frequencyBinCount);
       setAudioActive(true);
     } catch {
-      console.log("Audio capture not available, using simulated data");
+      devLog("Audio capture not available, using simulated data");
       setAudioActive(true); // Use simulated mode
     }
   }, [settings.smoothing]);

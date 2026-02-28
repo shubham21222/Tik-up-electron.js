@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, AnimatePresence } from "framer-motion";
 import useOverlayBody from "@/hooks/use-overlay-body";
 import { useQuickControlListener } from "@/hooks/use-quick-controls";
+import { devWarn, devError } from "@/lib/dev-log";
 
 /**
  * TTSRenderer — Browser source overlay for OBS / TikTok Live Studio
@@ -145,7 +146,7 @@ const TTSRenderer = () => {
       };
       audio.onerror = () => {
         audioRef.current = null;
-        console.warn("Base64 audio playback failed, falling back to browser speech");
+        devWarn("Base64 audio playback failed, falling back to browser speech");
         playBrowserSpeech(msg).then(resolve);
       };
 
@@ -177,7 +178,7 @@ const TTSRenderer = () => {
       );
 
       if (!response.ok) {
-        console.warn("ElevenLabs TTS failed, falling back to browser speech");
+        devWarn("ElevenLabs TTS failed, falling back to browser speech");
         await playBrowserSpeech(msg);
         return;
       }
@@ -211,7 +212,7 @@ const TTSRenderer = () => {
         });
       });
     } catch (err) {
-      console.error("ElevenLabs fetch error:", err);
+      devError("ElevenLabs fetch error:", err);
       await playBrowserSpeech(msg);
     }
   }, [publicToken, playBrowserSpeech]);

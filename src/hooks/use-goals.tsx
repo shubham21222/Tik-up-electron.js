@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "sonner";
+import { devError } from "@/lib/dev-log";
 
 export interface Goal {
   id: string;
@@ -36,7 +37,7 @@ export const useGoals = () => {
       .order("created_at", { ascending: false });
 
     if (error) {
-      console.error("Error fetching goals:", error);
+      devError("Error fetching goals:", error);
     } else {
       setGoals((data || []) as unknown as Goal[]);
     }
@@ -72,7 +73,7 @@ export const useGoals = () => {
 
     if (error) {
       toast.error("Failed to create goal");
-      console.error(error);
+      devError(error);
       return null;
     }
     toast.success("Goal created!");
@@ -87,7 +88,7 @@ export const useGoals = () => {
 
     if (error) {
       toast.error("Failed to update goal");
-      console.error(error);
+      devError(error);
     }
   };
 
@@ -99,7 +100,7 @@ export const useGoals = () => {
 
     if (error) {
       toast.error("Failed to delete goal");
-      console.error(error);
+      devError(error);
     } else {
       toast.success("Goal deleted");
     }

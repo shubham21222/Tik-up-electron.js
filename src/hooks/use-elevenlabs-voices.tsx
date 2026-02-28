@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { devError } from "@/lib/dev-log";
 
 export interface ElevenLabsVoice {
   voice_id: string;
@@ -58,7 +59,7 @@ export function useElevenLabsVoices() {
       clientCache = { voices: voiceList, at: Date.now() };
       setVoices(voiceList);
     } catch (err: any) {
-      console.error("Voice fetch error:", err);
+      devError("Voice fetch error:", err);
       setError(err.message);
     } finally {
       setLoading(false);

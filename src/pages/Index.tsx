@@ -1,6 +1,7 @@
 import AppLayout from "@/components/AppLayout";
 import { motion, useMotionValue, useTransform, animate, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { devError } from "@/lib/dev-log";
 import {
   Eye, Heart, Share2, UserPlus, Radio,
   TrendingUp, ArrowUpRight, Activity, Gift, Star,
@@ -222,7 +223,7 @@ const Index = () => {
         setStreamDuration(formatDuration(data.start_time));
       }
     } catch (err) {
-      console.error("Failed to fetch live stats:", err);
+      devError("Failed to fetch live stats:", err);
     } finally {
       setStatsLoading(false);
     }
@@ -247,7 +248,7 @@ const Index = () => {
       const data = await res.json();
       if (data.ranks) setRankings(data.ranks);
     } catch (err) {
-      console.error("Failed to fetch rankings:", err);
+      devError("Failed to fetch rankings:", err);
     } finally {
       setRankingsLoading(false);
     }

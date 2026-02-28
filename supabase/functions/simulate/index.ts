@@ -35,7 +35,21 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const userId = claimsData.claims.sub;
+    const userId = claimsData.claims.sub as string;
+
+    // ── Simple per-user rate limit: 30 simulations per 60s ────────
+    const simKey = `sim:${userId}`;
+    const now = Date.now();
+    const simBucket: number[] = (globalThis as any).__simBucket ??= {};
+    if (!simBucket[simKey]) simBucket[simKey] = [];
+    simBucket[simKey] = simBucket[simKey].filter((t: number) => now - t < 60_000);
+    if (simBucket[simKey].length >= 30) {
+      return new Response(JSON.stringify({ error: "Too many simulation requests" }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "10" },
+      });
+    }
+    simBucket[simKey].push(now);
 
     const body = await req.json();
     const { screen_id, event_type, payload } = body;

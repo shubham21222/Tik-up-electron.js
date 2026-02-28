@@ -1,6 +1,33 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 
+/* ═══════════════════════════════════════════════════════════════════════
+ * In-Memory Sliding Window Rate Limiter
+ * ═══════════════════════════════════════════════════════════════════════ */
+const rateLimitBuckets = new Map<string, number[]>();
+
+function isRateLimited(key: string, maxRequests: number, windowMs: number): boolean {
+  const now = Date.now();
+  const timestamps = rateLimitBuckets.get(key) || [];
+  const valid = timestamps.filter(t => now - t < windowMs);
+  if (valid.length >= maxRequests) {
+    rateLimitBuckets.set(key, valid);
+    return true;
+  }
+  valid.push(now);
+  rateLimitBuckets.set(key, valid);
+  return false;
+}
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, timestamps] of rateLimitBuckets) {
+    const valid = timestamps.filter(t => now - t < 120_000);
+    if (valid.length === 0) rateLimitBuckets.delete(key);
+    else rateLimitBuckets.set(key, valid);
+  }
+}, 60_000);
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
@@ -45,6 +72,14 @@ Deno.serve(async (req) => {
       });
     }
     const userId = claimsData.claims.sub;
+
+    // ── Rate limit: 10 TTS requests per 60s per user ──────────────
+    if (isRateLimited(`tts:${userId}`, 10, 60_000)) {
+      return new Response(JSON.stringify({ error: "Too many TTS requests. Please wait." }), {
+        status: 429,
+        headers: { ...corsHeaders, "Content-Type": "application/json", "Retry-After": "15" },
+      });
+    }
 
     const serviceClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 

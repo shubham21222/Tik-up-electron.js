@@ -1,11 +1,38 @@
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Monitor, Apple, Terminal, Download, ArrowLeft, Check, Zap, Volume2, Gamepad2, Shield } from "lucide-react";
+import { Monitor, Apple, Terminal, Download, ArrowLeft, Zap, Volume2, Gamepad2, Shield, Loader2, ExternalLink } from "lucide-react";
 import tikupLogo from "@/assets/tikup_logo.png";
+
+// ── Config ──────────────────────────────────────────────────
+const GITHUB_REPO = "tikup-gg/tikup"; // Change to your actual org/repo
 
 type Platform = "windows" | "mac" | "linux" | "unknown";
 
+interface ReleaseAsset {
+  name: string;
+  browser_download_url: string;
+  size: number;
+}
+
+interface ReleaseData {
+  tag_name: string;
+  published_at: string;
+  html_url: string;
+  assets: ReleaseAsset[];
+}
+
+interface PlatformInfo {
+  id: Platform;
+  name: string;
+  icon: typeof Monitor;
+  extensions: string[];
+  req: string;
+  url: string | null;
+  size: string;
+}
+
+// ── Helpers ─────────────────────────────────────────────────
 const detectPlatform = (): Platform => {
   const ua = navigator.userAgent.toLowerCase();
   if (ua.includes("win")) return "windows";
@@ -14,64 +41,79 @@ const detectPlatform = (): Platform => {
   return "unknown";
 };
 
-const platforms = [
-  {
-    id: "windows" as Platform,
-    name: "Windows",
-    icon: Monitor,
-    file: "TikUp-Desktop-Setup.exe",
-    size: "~85 MB",
-    req: "Windows 10+",
-  },
-  {
-    id: "mac" as Platform,
-    name: "macOS",
-    icon: Apple,
-    file: "TikUp-Desktop.dmg",
-    size: "~90 MB",
-    req: "macOS 11+",
-  },
-  {
-    id: "linux" as Platform,
-    name: "Linux",
-    icon: Terminal,
-    file: "TikUp-Desktop.AppImage",
-    size: "~80 MB",
-    req: "Ubuntu 20.04+",
-  },
-];
+const formatBytes = (bytes: number): string => {
+  if (bytes === 0) return "0 B";
+  const mb = bytes / (1024 * 1024);
+  return `${mb.toFixed(0)} MB`;
+};
 
+const matchAsset = (assets: ReleaseAsset[], extensions: string[]): ReleaseAsset | undefined =>
+  assets.find((a) => extensions.some((ext) => a.name.toLowerCase().endsWith(ext)));
+
+// ── Desktop features ───────────────────────────────────────
 const desktopFeatures = [
   { icon: Volume2, title: "Virtual Audio Routing", desc: "Route TTS directly into TikTok LIVE Studio as a mic input via VB-Audio Cable or BlackHole." },
   { icon: Gamepad2, title: "Keystroke Triggers", desc: "Gifts trigger real keyboard inputs for in-game effects like GTA actions." },
   { icon: Shield, title: "System Tray Mode", desc: "Runs quietly in the background — no browser tab needed." },
-  { icon: Zap, title: "Persistent Connection", desc: "Stable Supabase Realtime channel that never drops, even during long streams." },
+  { icon: Zap, title: "Persistent Connection", desc: "Stable Realtime channel that never drops, even during long streams." },
 ];
 
+// ── Component ───────────────────────────────────────────────
 const DownloadPage = () => {
   const [detected, setDetected] = useState<Platform>("unknown");
+  const [platforms, setPlatforms] = useState<PlatformInfo[]>([
+    { id: "windows", name: "Windows", icon: Monitor, extensions: [".exe"], req: "Windows 10+", url: null, size: "—" },
+    { id: "mac", name: "macOS", icon: Apple, extensions: [".dmg"], req: "macOS 11+", url: null, size: "—" },
+    { id: "linux", name: "Linux", icon: Terminal, extensions: [".appimage", ".deb"], req: "Ubuntu 20.04+", url: null, size: "—" },
+  ]);
+  const [version, setVersion] = useState<string | null>(null);
+  const [releaseUrl, setReleaseUrl] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     setDetected(detectPlatform());
+
+    const fetchRelease = async () => {
+      try {
+        const res = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/releases/latest`);
+        if (!res.ok) throw new Error("No release found");
+        const data: ReleaseData = await res.json();
+
+        setVersion(data.tag_name.replace(/^desktop-v?/, "v"));
+        setReleaseUrl(data.html_url);
+
+        setPlatforms((prev) =>
+          prev.map((p) => {
+            const asset = matchAsset(data.assets, p.extensions);
+            return asset
+              ? { ...p, url: asset.browser_download_url, size: formatBytes(asset.size) }
+              : p;
+          })
+        );
+      } catch {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRelease();
   }, []);
 
   const detectedPlatform = platforms.find((p) => p.id === detected);
   const otherPlatforms = platforms.filter((p) => p.id !== detected);
 
-  // TODO: Replace with actual GitHub Releases URL
-  const downloadUrl = (file: string) =>
-    `https://github.com/YOUR_ORG/tikup-desktop/releases/latest/download/${file}`;
-
   return (
     <div className="min-h-screen bg-background text-foreground overflow-x-hidden">
       {/* Nav */}
-      <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(20px)", borderBottom: "1px solid hsl(0 0% 10% / 0.6)" }}>
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+      <nav className="fixed top-0 left-0 right-0 z-50" style={{ background: "rgba(0,0,0,0.9)", backdropFilter: "blur(24px)", borderBottom: "1px solid hsl(0 0% 100% / 0.06)" }}>
+        <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={16} />
-            <span className="text-sm font-medium">Back to Home</span>
+            <span className="text-sm font-medium">Back</span>
           </Link>
-          <Link to="/auth" className="px-5 py-2 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:-translate-y-0.5 transition-all duration-300">
+          <Link to="/auth" className="h-9 px-5 text-[13px] font-semibold tracking-wide text-primary-foreground flex items-center gap-1.5 rounded-lg bg-primary hover:brightness-110 transition-all duration-200">
             Sign Up
           </Link>
         </div>
@@ -79,7 +121,6 @@ const DownloadPage = () => {
 
       {/* Hero */}
       <section className="relative pt-32 pb-20 px-6">
-        {/* Ambient glow */}
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[500px] rounded-full pointer-events-none" style={{ background: "radial-gradient(ellipse, hsl(160 100% 45% / 0.06), transparent 65%)" }} />
 
         <div className="max-w-4xl mx-auto text-center relative z-10">
@@ -91,6 +132,7 @@ const DownloadPage = () => {
             <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-[11px] font-semibold uppercase tracking-widest text-primary" style={{ background: "hsl(160 100% 45% / 0.06)", border: "1px solid hsl(160 100% 45% / 0.12)" }}>
               <Monitor size={12} />
               Desktop Companion App
+              {version && <span className="text-muted-foreground/60 ml-1">{version}</span>}
             </span>
           </motion.div>
 
@@ -104,10 +146,27 @@ const DownloadPage = () => {
           </motion.p>
 
           {/* Primary download (detected platform) */}
-          {detectedPlatform && (
+          {loading ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex items-center justify-center gap-2 text-muted-foreground">
+              <Loader2 size={16} className="animate-spin" />
+              <span className="text-sm">Checking for latest release…</span>
+            </motion.div>
+          ) : error ? (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+              <p className="text-sm text-muted-foreground mb-3">No releases available yet.</p>
+              <a
+                href={`https://github.com/${GITHUB_REPO}/releases`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-primary hover:underline"
+              >
+                View on GitHub <ExternalLink size={13} />
+              </a>
+            </motion.div>
+          ) : detectedPlatform?.url ? (
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
               <a
-                href={downloadUrl(detectedPlatform.file)}
+                href={detectedPlatform.url}
                 className="group inline-flex items-center gap-3 px-10 py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:-translate-y-1 transition-all duration-300 hover:shadow-[0_0_40px_hsl(160_100%_45%/0.35)] relative overflow-hidden"
               >
                 <Download size={18} />
@@ -116,7 +175,11 @@ const DownloadPage = () => {
               </a>
               <p className="text-xs text-muted-foreground/50 mt-3">{detectedPlatform.req} · {detectedPlatform.size}</p>
             </motion.div>
-          )}
+          ) : detectedPlatform ? (
+            <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
+              <p className="text-sm text-muted-foreground">No {detectedPlatform.name} installer found in the latest release.</p>
+            </motion.div>
+          ) : null}
         </div>
       </section>
 
@@ -129,16 +192,17 @@ const DownloadPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {(detected === "unknown" ? platforms : otherPlatforms).map((p, i) => {
               const Icon = p.icon;
+              const isAvailable = !!p.url;
               return (
                 <motion.a
                   key={p.id}
-                  href={downloadUrl(p.file)}
+                  href={isAvailable ? p.url! : undefined}
                   initial={{ opacity: 0, y: 16 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ delay: i * 0.08 }}
-                  whileHover={{ y: -4 }}
-                  className="rounded-2xl p-[1px] group block"
+                  whileHover={isAvailable ? { y: -4 } : undefined}
+                  className={`rounded-2xl p-[1px] group block ${!isAvailable ? "opacity-50 pointer-events-none" : ""}`}
                   style={{ background: "linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))" }}
                 >
                   <div className="rounded-2xl p-5 h-full flex items-center gap-4" style={{ background: "rgba(14,18,26,0.7)", backdropFilter: "blur(20px)" }}>
@@ -155,6 +219,14 @@ const DownloadPage = () => {
               );
             })}
           </div>
+
+          {releaseUrl && (
+            <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="text-center mt-6">
+              <a href={releaseUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-xs text-muted-foreground/40 hover:text-primary transition-colors">
+                View all release assets on GitHub <ExternalLink size={11} />
+              </a>
+            </motion.div>
+          )}
         </div>
       </section>
 

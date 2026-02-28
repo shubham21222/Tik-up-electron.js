@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import tikupLogo from "@/assets/tikup_logo.png";
 import { lovable } from "@/integrations/lovable/index";
+import { getSiteUrl } from "@/lib/site-url";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -172,7 +173,7 @@ const Auth = () => {
             onClick={async () => {
               setError("");
               const { error } = await lovable.auth.signInWithOAuth("google", {
-                redirect_uri: window.location.origin,
+                redirect_uri: getSiteUrl(),
               });
               if (error) setError(error.message);
             }}

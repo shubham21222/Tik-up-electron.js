@@ -22,6 +22,7 @@ import ConnectionBanner from "@/components/dashboard/ConnectionBanner";
 import DashboardStatCards, { type StatCardData } from "@/components/dashboard/DashboardStatCards";
 import GiftActivityFeed from "@/components/dashboard/GiftActivityFeed";
 import DashboardRankings, { type RankEntry } from "@/components/dashboard/DashboardRankings";
+import GlassCard from "@/components/ui/glass-card";
 
 interface LiveStats {
   is_live: boolean;
@@ -57,11 +58,6 @@ function formatDuration(startTime: number): string {
   if (m > 0) return `${m}m ${s}s`;
   return `${s}s`;
 }
-
-/* ── Glass card wrapper ── */
-const GlassCard = ({ children, className = "", style = {}, ...rest }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={`glass-card ${className}`} style={style} {...rest}>{children}</div>
-);
 
 const updates = [
   { icon: Download, title: "Desktop App Available", description: "TikUp is now available as a Desktop App for Windows.", tag: "New" },

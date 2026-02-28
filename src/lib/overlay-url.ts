@@ -13,6 +13,6 @@ export function getOverlayBaseUrl(): string {
   if (origin.includes("tik-pro-suite.lovable.app")) {
     return origin;
   }
-  // For preview/dev, fall back to the published domain
-  return "https://tik-pro-suite.lovable.app";
+  // For preview/dev, fall back to the custom domain
+  return "https://tikup.xyz";
 }

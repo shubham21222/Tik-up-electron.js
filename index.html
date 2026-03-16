@@ -7,9 +7,12 @@
     <title>TikUp | Ultimate TikTok LIVE Tools</title>
     <meta name="description" content="TikUp is the ultimate streaming toolkit for TikTok LIVE. Interactive widgets, sound alerts, overlays, and game integrations.">
     <meta name="author" content="TikUp" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="TikUp" />
+    <link rel="manifest" href="/manifest.json" />
 
-    
-    
     <meta property="og:type" content="website" />
     <meta property="og:image" content="https://storage.googleapis.com/gpt-engineer-file-uploads/I02tfxr6kKb6RcKGboENyjyQbaK2/social-images/social-1770902569382-logo_tikup.PNG">
 
@@ -26,5 +29,12 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js');
+        });
+      }
+    </script>
   </body>
 </html>

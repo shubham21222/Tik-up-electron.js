@@ -1,0 +1,44 @@
+{
+  "name": "tikup-desktop",
+  "version": "1.0.0",
+  "description": "TikUp Pro Desktop Companion – Virtual audio routing, TTS, and TikTok LIVE event engine",
+  "author": "TikUp Pro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firstclasstiktokagency-dotcom/tik-pro-suite"
+  },
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.tikup.desktop",
+    "productName": "TikUp Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.95.3",
+    "electron-store": "^8.1.0"
+  },
+  "optionalDependencies": {
+    "node-audio-volume-mixer": "^1.0.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.0.0"
+  }
+}

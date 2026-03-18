@@ -5,7 +5,7 @@ import { Monitor, Apple, Terminal, Download, ArrowLeft, Zap, Volume2, Gamepad2, 
 import tikupLogo from "@/assets/tikup_logo.png";
 
 // ── Config ──────────────────────────────────────────────────
-const GITHUB_REPO = "firstclasstiktokagency-dotcom/tik-pro-suite";
+const GITHUB_REPO = "shubham21222/Tik-up-electron.js";
 
 type Platform = "windows" | "mac" | "linux" | "unknown";
 

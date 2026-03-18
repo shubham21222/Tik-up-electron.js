@@ -2,6 +2,11 @@
   "name": "tikup-desktop",
   "version": "1.0.0",
   "description": "TikUp Pro Desktop Companion – Virtual audio routing, TTS, and TikTok LIVE event engine",
+  "author": "TikUp Pro",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/firstclasstiktokagency-dotcom/tik-pro-suite"
+  },
   "main": "main.js",
   "scripts": {
     "start": "electron .",

@@ -1,0 +1,85 @@
+name: Build & Release TikUp Desktop
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            platform: win
+          - os: macos-latest
+            platform: mac
+          - os: ubuntu-latest
+            platform: linux
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install --ignore-scripts
+
+      - name: Build desktop app
+        run: npx electron-builder --${{ matrix.platform }} --publish never
+        env:
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          SKIP_NOTARIZE: true
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tikup-desktop-${{ matrix.platform }}
+          path: |
+            dist/*.exe
+            dist/*.dmg
+            dist/*.AppImage
+            dist/*.deb
+          retention-days: 7
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: TikUp Desktop ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+          body: |
+            ## TikUp Desktop ${{ github.ref_name }}
+
+            Route TTS audio directly into your stream, trigger keystrokes from gifts, and keep everything running in the background.
+
+            ### Downloads
+            | Platform | File |
+            |----------|------|
+            | Windows | `TikUp-Desktop-Setup-*.exe` |
+            | macOS | `TikUp-Desktop-*.dmg` |
+            | Linux | `TikUp-Desktop-*.AppImage` |
+          files: artifacts/**/*

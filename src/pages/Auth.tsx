@@ -6,6 +6,7 @@ import { Mail, Lock, User, Eye, EyeOff, ArrowRight } from "lucide-react";
 import tikupLogo from "@/assets/tikup_logo.png";
 import { lovable } from "@/integrations/lovable/index";
 import { getSiteUrl } from "@/lib/site-url";
+import { isElectron } from "@/lib/electron";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -172,6 +173,13 @@ const Auth = () => {
             type="button"
             onClick={async () => {
               setError("");
+              if (isElectron() && window.electronAPI?.auth) {
+                const res = await window.electronAPI.auth.startGoogleOAuth();
+                if (res?.error) {
+                  setError(res.error);
+                }
+                return;
+              }
               const { error } = await lovable.auth.signInWithOAuth("google", {
                 redirect_uri: getSiteUrl(),
               });

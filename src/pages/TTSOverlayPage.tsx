@@ -13,6 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
 import VoiceSelectorModal from "@/components/tts/VoiceSelectorModal";
 import { useElevenLabsVoices } from "@/hooks/use-elevenlabs-voices";
+import { isElectron } from "@/lib/electron";
+import { AudioDeviceSelector } from "@/components/AudioDeviceSelector";
 
 import { useAuth } from "@/hooks/use-auth";
 import { getOverlayBaseUrl } from "@/lib/overlay-url";
@@ -319,6 +321,11 @@ const TTSOverlayPage = () => {
                 <span className="text-[10px] font-mono text-muted-foreground w-8 text-right">{local.volume}%</span>
               </div>
             </div>
+            {isElectron() && (
+              <div className="mt-4 pt-3 border-t border-border/40">
+                <AudioDeviceSelector />
+              </div>
+            )}
           </div>
 
           {/* Allowed Users */}

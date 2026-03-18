@@ -3,7 +3,13 @@
  * In production, always uses the custom domain to prevent preview URLs
  * from leaking into confirmation emails.
  */
+import { isElectron } from "@/lib/electron";
+
 export function getSiteUrl(): string {
+  if (isElectron()) {
+    return "tikup://auth/callback";
+  }
+
   if (typeof window !== "undefined") {
     const origin = window.location.origin;
     if (origin.includes("tikup.xyz")) return "https://tikup.xyz";

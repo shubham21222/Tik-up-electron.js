@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import useOverlayBody from "@/hooks/use-overlay-body";
 import { useQuickControlListener } from "@/hooks/use-quick-controls";
 import { devWarn, devError } from "@/lib/dev-log";
+import { isElectron } from "@/lib/electron";
 
 /**
  * TTSRenderer — Browser source overlay for OBS / TikTok Live Studio
@@ -132,6 +133,20 @@ const TTSRenderer = () => {
     });
   }, []);
 
+  const applyElectronOutputDevice = async (audio: HTMLAudioElement) => {
+    if (!isElectron()) return;
+    const anyAudio = audio as any;
+    if (typeof anyAudio.setSinkId !== "function") return;
+    try {
+      const deviceId = await (window as any).electronAPI?.store?.get("ttsAudioDevice");
+      if (deviceId) {
+        await anyAudio.setSinkId(deviceId);
+      }
+    } catch {
+      // ignore routing errors; playback will still occur on default device
+    }
+  };
+
   /** Play pre-generated base64 audio directly (no network call needed) */
   const playBase64Audio = useCallback((msg: TTSMessage): Promise<void> => {
     return new Promise<void>((resolve) => {
@@ -150,9 +165,13 @@ const TTSRenderer = () => {
         playBrowserSpeech(msg).then(resolve);
       };
 
-      audio.play().catch(() => {
-        playBrowserSpeech(msg).then(resolve);
-      });
+      applyElectronOutputDevice(audio)
+        .catch(() => {})
+        .finally(() => {
+          audio.play().catch(() => {
+            playBrowserSpeech(msg).then(resolve);
+          });
+        });
     });
   }, [playBrowserSpeech]);
 
@@ -206,10 +225,14 @@ const TTSRenderer = () => {
           resolve();
         };
 
-        audio.play().catch(() => {
-          playBrowserSpeech(msg);
-          resolve();
-        });
+        applyElectronOutputDevice(audio)
+          .catch(() => {})
+          .finally(() => {
+            audio.play().catch(() => {
+              playBrowserSpeech(msg);
+              resolve();
+            });
+          });
       });
     } catch (err) {
       devError("ElevenLabs fetch error:", err);

@@ -49,8 +49,19 @@ function createWindow() {
 
 // ─── System tray ─────────────────────────────────────────
 function createTray() {
-  const icon = nativeImage.createFromPath(path.join(__dirname, 'assets', 'tray-icon.png'));
-  tray = new Tray(icon.resize({ width: 16, height: 16 }));
+  const iconPath = path.join(__dirname, 'assets', 'tray-icon.png');
+  let icon;
+  try {
+    const fs = require('fs');
+    if (fs.existsSync(iconPath)) {
+      icon = nativeImage.createFromPath(iconPath).resize({ width: 16, height: 16 });
+    } else {
+      icon = nativeImage.createEmpty();
+    }
+  } catch {
+    icon = nativeImage.createEmpty();
+  }
+  tray = new Tray(icon);
   tray.setToolTip('TikUp Desktop');
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: 'Show TikUp', click: () => mainWindow?.show() },

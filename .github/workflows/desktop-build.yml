@@ -9,6 +9,7 @@ on:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: windows-latest
@@ -31,7 +32,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: desktop
-        run: npm install
+        run: npm install --ignore-scripts
 
       - name: Build desktop app
         working-directory: desktop
@@ -39,6 +40,8 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          SKIP_NOTARIZE: true
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

@@ -27,7 +27,9 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.95.3",
-    "electron-store": "^8.1.0",
+    "electron-store": "^8.1.0"
+  },
+  "optionalDependencies": {
     "node-audio-volume-mixer": "^1.0.0"
   },
   "devDependencies": {

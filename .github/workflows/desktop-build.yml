@@ -31,27 +31,27 @@ jobs:
           node-version: 20
 
       - name: Install dependencies
-        run: npm install --ignore-scripts
+        run: npm install
 
       - name: Build Vite + Electron
-        run: npm run electron:build:${{ matrix.platform }}
+        run: npx vite build && npx electron-builder --${{ matrix.platform }} --publish never
         env:
           VITE_SUPABASE_URL: https://jrgjveefowmxyocbggmf.supabase.co
           VITE_SUPABASE_PUBLISHABLE_KEY: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpyZ2p2ZWVmb3dteHlvY2JnZ21mIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA4MzY5NzYsImV4cCI6MjA4NjQxMjk3Nn0.09yTxtJ5C0xGi7Ni6be8JemLQIe-5S09fNj1SGWlFaY
           VITE_SUPABASE_PROJECT_ID: jrgjveefowmxyocbggmf
           CSC_IDENTITY_AUTO_DISCOVERY: false
           SKIP_NOTARIZE: true
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tikup-desktop-${{ matrix.platform }}
           path: |
-            release/**/*.exe
-            release/**/*.dmg
-            release/**/*.AppImage
-            release/**/*.deb
+            release/*.exe
+            release/*.dmg
+            release/*.AppImage
+            release/*.deb
+          if-no-files-found: warn
           retention-days: 30
 
   release:

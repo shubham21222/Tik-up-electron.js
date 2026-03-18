@@ -1,5 +1,6 @@
-const { app, BrowserWindow, shell, Menu, ipcMain } = require('electron');
+const { app, BrowserWindow, shell, Menu, ipcMain, protocol, net } = require('electron');
 const path = require('path');
+const fs = require('fs');
 const Store = require('electron-store');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -41,7 +42,7 @@ function createWindow() {
   if (isDev) {
     win.loadURL('http://localhost:8080');
   } else {
-    win.loadFile(path.join(__dirname, '../dist/index.html'));
+    win.loadURL('app://tikup/');
   }
 
   // Open external links in system browser instead of a new Electron window
@@ -80,8 +81,14 @@ function handleOAuthCallback(url) {
   }
 }
 
-// Register custom protocol before ready
+// Register custom protocols before ready
 app.setAsDefaultProtocolClient('tikup');
+
+// 'app://' protocol — serves the React SPA from dist/ in production.
+// This lets BrowserRouter work correctly (no 404 on reload/deep links).
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'app', privileges: { standard: true, secure: true, supportFetchAPI: true } },
+]);
 
 // Single instance handling (Windows deep link support)
 const gotLock = app.requestSingleInstanceLock();
@@ -136,6 +143,21 @@ ipcMain.handle('store:set', (_event, key, value) => {
 });
 
 app.whenReady().then(() => {
+  // Serve React SPA via app:// so BrowserRouter works in production
+  if (!isDev) {
+    const distDir = path.join(__dirname, '../dist');
+    protocol.handle('app', (request) => {
+      let filePath = request.url.replace('app://tikup', '').split('?')[0];
+      if (!filePath || filePath === '/') filePath = '/index.html';
+      const fullPath = path.join(distDir, filePath);
+      if (fs.existsSync(fullPath) && fs.statSync(fullPath).isFile()) {
+        return net.fetch('file://' + fullPath);
+      }
+      // All unknown routes → index.html (SPA fallback)
+      return net.fetch('file://' + path.join(distDir, 'index.html'));
+    });
+  }
+
   createWindow();
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();

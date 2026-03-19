@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Minus, Square, X, Maximize2 } from "lucide-react";
 import { isElectron, isWindows } from "@/lib/electron";
+import tikupLogo from "@/assets/tikup_logo.png";
 
 export function ElectronTitleBar() {
   const [maximized, setMaximized] = useState(false);
@@ -19,7 +20,7 @@ export function ElectronTitleBar() {
       style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
     >
       <div className="flex items-center gap-2 px-3">
-        <img src="/favicon.ico" alt="" className="w-3.5 h-3.5" />
+        <img src={tikupLogo} alt="" className="w-5 h-5" style={{ objectFit: "contain" }} />
         <span className="text-xs text-white/40 font-medium tracking-wide">TikUp Pro</span>
       </div>
 

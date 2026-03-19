@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             username: "TikUp",
-            avatar_url: "https://tik-pro-suite.lovable.app/favicon.ico",
+            avatar_url: "https://tikup.xyz/logo.png",
             embeds: [embed],
           }),
         });

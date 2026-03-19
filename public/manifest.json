@@ -10,13 +10,13 @@
   "scope": "/",
   "icons": [
     {
-      "src": "https://storage.googleapis.com/gpt-engineer-file-uploads/I02tfxr6kKb6RcKGboENyjyQbaK2/uploads/1770902551463-logo_tikup.PNG",
+      "src": "/logo.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "https://storage.googleapis.com/gpt-engineer-file-uploads/I02tfxr6kKb6RcKGboENyjyQbaK2/uploads/1770902551463-logo_tikup.PNG",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

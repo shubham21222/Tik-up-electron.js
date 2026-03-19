@@ -1,6 +1,7 @@
 const { app, BrowserWindow, shell, Menu, ipcMain, protocol, net } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const http = require('http');
 const Store = require('electron-store');
 const { createClient } = require('@supabase/supabase-js');
 
@@ -111,25 +112,73 @@ app.on('open-url', (_event, url) => {
   handleOAuthCallback(url);
 });
 
-// IPC: start Google OAuth flow in system browser
+// IPC: start Google OAuth via temporary localhost server (RFC 8252)
 ipcMain.handle('auth:google-oauth-start', async () => {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'tikup://auth/callback',
-      skipBrowserRedirect: true,
-    },
+  return new Promise((resolve) => {
+    // Start a temporary HTTP server on a random available port
+    const server = http.createServer((req, res) => {
+      const url = new URL(req.url, 'http://localhost');
+
+      // Supabase sends tokens as hash fragment — we need a page that reads the hash
+      // and sends it back as a query param via redirect
+      if (url.pathname === '/auth/callback') {
+        // Send HTML page that extracts hash tokens and posts them back
+        res.writeHead(200, { 'Content-Type': 'text/html' });
+        res.end(`<!DOCTYPE html><html><body>
+          <p>Signing you in... you can close this tab.</p>
+          <script>
+            const hash = window.location.hash.slice(1);
+            const params = new URLSearchParams(hash);
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+            if (access_token) {
+              fetch('/auth/token?access_token=' + encodeURIComponent(access_token) + '&refresh_token=' + encodeURIComponent(refresh_token || ''))
+                .then(() => { document.body.innerHTML = '<p>✅ Signed in! You can close this tab.</p>'; });
+            }
+          </script>
+        </body></html>`);
+        return;
+      }
+
+      if (url.pathname === '/auth/token') {
+        const access_token = url.searchParams.get('access_token');
+        const refresh_token = url.searchParams.get('refresh_token');
+        res.writeHead(200);
+        res.end('ok');
+        server.close();
+
+        if (access_token && mainWindow) {
+          mainWindow.webContents.send('auth:oauth-callback', { access_token, refresh_token });
+          mainWindow.show();
+          mainWindow.focus();
+        }
+        resolve({ ok: true });
+      }
+    });
+
+    server.listen(54321, '127.0.0.1', async () => {
+      const port = server.address().port;
+      const redirectTo = `http://127.0.0.1:${port}/auth/callback`;
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo, skipBrowserRedirect: true },
+      });
+
+      if (error) {
+        server.close();
+        return resolve({ error: error.message });
+      }
+
+      shell.openExternal(data.url);
+
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        server.close();
+        resolve({ error: 'OAuth timed out' });
+      }, 5 * 60 * 1000);
+    });
   });
-
-  if (error) {
-    return { error: error.message };
-  }
-
-  if (data?.url) {
-    shell.openExternal(data.url);
-  }
-
-  return { ok: true };
 });
 
 // electron-store IPC

@@ -19,7 +19,23 @@ declare global {
         get: (key: string) => Promise<unknown>;
         set: (key: string, value: unknown) => Promise<{ ok: boolean }>;
       };
+      window?: {
+        minimize: () => void;
+        maximize: () => void;
+        close: () => void;
+        isMaximized: () => Promise<boolean>;
+        onMaximizeChange: (cb: (isMaximized: boolean) => void) => void;
+      };
+      keystroke?: {
+        fire: (opts: { key: string; modifiers?: string[] }) => Promise<{ ok?: boolean; error?: string }>;
+      };
+      tray?: {
+        setTooltip: (text: string) => Promise<void>;
+      };
+      updater?: {
+        install: () => void;
+        onUpdateDownloaded: (cb: () => void) => void;
+      };
     };
   }
 }
-

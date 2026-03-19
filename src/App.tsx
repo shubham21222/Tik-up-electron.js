@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -8,6 +8,9 @@ import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/use-auth";
 import { TikTokLiveProvider } from "@/hooks/use-tiktok-live-context";
 import ProtectedRoute from "@/components/ProtectedRoute";
+import { ElectronTitleBar } from "@/components/ElectronTitleBar";
+import { isElectron } from "@/lib/electron";
+import { toast } from "sonner";
 
 // ── Lazy page imports ───────────────────────────────────────
 const Index = lazy(() => import("./pages/Index"));
@@ -128,12 +131,31 @@ const P = ({ children }: { children: React.ReactNode }) => <ProtectedRoute>{chil
 
 const queryClient = new QueryClient();
 
+function ElectronUpdateNotifier() {
+  useEffect(() => {
+    if (!isElectron()) return;
+    window.electronAPI?.updater?.onUpdateDownloaded(() => {
+      toast("Update Ready", {
+        description: "A new version of TikUp Pro has been downloaded.",
+        action: {
+          label: "Restart & Install",
+          onClick: () => window.electronAPI?.updater?.install(),
+        },
+        duration: Infinity,
+      });
+    });
+  }, []);
+  return null;
+}
+
 const App = () => (
   <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <ElectronUpdateNotifier />
+      <ElectronTitleBar />
       <BrowserRouter>
         <Suspense fallback={<Fallback />}>
         <Routes>
